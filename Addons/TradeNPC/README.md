@@ -1,3 +1,5 @@
+https://github.com/Ivaar/Windower-addons/tree/master/TradeNPC
+
 # TradeNPC
 
 Trade an npc up to 8 stacks of items and gil with a single command.
