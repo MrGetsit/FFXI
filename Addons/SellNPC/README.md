@@ -1,3 +1,5 @@
+https://github.com/Icydeath/ffxi-addons/tree/master/SellNPC
+
 # SellNPC
 
 ### Command Usage:
