@@ -15,7 +15,7 @@ function job_setup()
 end
 
 function user_setup()
-	
+	-- Test
 	send_command('send @all bind %1  sta Spikex /SavageBlade')
 	send_command('send @all bind !1  sta Spikex /SwiftBlade')
 	send_command('send @all bind %2  sta Spikex /ChantDuCygne')
