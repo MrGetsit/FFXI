@@ -1,3 +1,5 @@
+https://github.com/raznorw/Ze-HealBot
+
 # HealBot
 
 A tool to reduce the amount of button mashing in the FFXI game.
