@@ -1,1 +1,4 @@
-Simple addon that binds (home) to toggle view between single character and up to 4 at once
+Simple addon for controlling window frames.
+
+home = toggle splitscreen
+alt home = toggle fullscreen
