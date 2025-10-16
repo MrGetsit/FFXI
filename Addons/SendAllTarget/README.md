@@ -1,3 +1,5 @@
+https://github.com/bamboooya/SendAllTarget
+
 Information:
 * Author: Selindrile
 * Thanks to: Arcon, sorry for abusing your code. :<
