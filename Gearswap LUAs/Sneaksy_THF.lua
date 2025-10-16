@@ -5,121 +5,128 @@ end
 
 --------------------------------------------------------		
 --				1				2				3			--
--- 			MeleeWS1		RangeWS1		ToggleRange	--
---	ALT		MeleeWS2		RangeWS2		TripleShot		--
--- 	SHFT	Roll1			Roll2			DoubleUp		--
--- 	CTRL	Cleanse<st>	Heal<st>		HasteSamba		--
--- 	WIN		CrookedCrds	Fold			SnakeEye		--
+-- 			SharkBite		RudrasStorm	SneakAttack	--
+--	ALT		MandalicStab	Evisceration	TrickAttack	--
+-- 	SHFT	Feint			Conspirator	Collaborator	--
+-- 	CTRL	HealingWaltz	CuringWaltz3	HasteSamba		--
+-- 	WIN						Steal			Bully			--
 --															--
 --------------------------------------------------------	
 
 function job_setup()	
     include('Mote-TreasureHunter')
+	skip = true
     info.default_ja_ids = S{35, 204}
     info.default_u_ja_ids = S{201, 202, 203, 205, 207}
 	
 	windower.send_command('sta !packets on') -- For SendTarget to work
+	windower.send_command('lua l thtracker') -- For SendTarget to work
 	
     state.WeaponLock = M(false, 'Weapon Lock')	
-	state.WeaponSet = M{['description']='Weapon Set', 'Sword', 'Dagger'}
+	state.WeaponSet = M{['description']='Weapon Set', 'Dagger', 'Sword'}
     state.OffenseMode:options('Normal', 'Defense')
     send_command('bind @w gs c toggle WeaponLock')	
     send_command('bind %capslock gs c cycle WeaponSet')		
     send_command('bind @S gs c cycle OffenseMode')
     send_command('bind ^= gs c cycle treasuremode')
-	
-	send_command('lua l autora') 
-	autora_on = false
 end
 
 function user_setup()
-	send_command('send @all bind  numpad1  sta Sneaksy /SavageBlade ') 
-	send_command('send @all bind  numpad2  sta Sneaksy /Detonator ') 
-	send_command('send @all bind  numpad3 send Sneaksy gs c toggle_autora ') 
-	send_command('send @all bind !numpad1  sta Sneaksy /Requiescat ') 
-	send_command('send @all bind !numpad2  sta Sneaksy /LastStand ') 
-	send_command('send @all bind !numpad3 send Sneaksy /TripleShot ') 
-	send_command('send @all bind ~numpad1 send Sneaksy /SamuraiRoll ') 
-	send_command('send @all bind ~numpad2 send Sneaksy /ChaosRoll ') 
-	send_command('send @all bind ~numpad3 send Sneaksy /DoubleUp ') 
+	send_command('send @all alias sj send Sneaksy /SpectralJig') 
+	
+	send_command('send @all bind  numpad1  sta Sneaksy /SharkBite ') 
+	send_command('send @all bind  numpad2  sta Sneaksy /RudrasStorm ') 
+	send_command('send @all bind  numpad3 send Sneaksy /SneakAttack ') 
+	send_command('send @all bind !numpad1  sta Sneaksy /MandalicStab ') 
+	send_command('send @all bind !numpad2  sta Sneaksy /Evisceration ') 
+	send_command('send @all bind !numpad3 send Sneaksy /TrickAttack ') 
+	send_command('send @all bind ~numpad1 send Sneaksy /Feint ') 
+	send_command('send @all bind ~numpad2 send Sneaksy /Conspirator ') 
+	send_command('send @all bind ~numpad3  sta Sneaksy /Collaborator <stpc> ') 
 	send_command('send @all bind ^numpad1  sta Sneaksy /HealingWaltz <stpc> ') 
 	send_command('send @all bind ^numpad2  sta Sneaksy /CuringWaltz3 <stpc> ') 
 	send_command('send @all bind ^numpad3 send Sneaksy /HasteSamba ') 
-	send_command('send @all bind @numpad1 send Sneaksy /CrookedCards ') 
-	send_command('send @all bind @numpad2 send Sneaksy /Fold ') 
-	send_command('send @all bind @numpad3 send Sneaksy /SnakeEye ') 
+	send_command('send @all bind @numpad2 send Sneaksy /Steal ') 
+	send_command('send @all bind @numpad3 send Sneaksy /Bully ') 
+	send_command('send @all bind %pageup send  Sneaksy /ReverseFlourish ') 
+	send_command('send @all bind %pagedown send Sneaksy /Boxstep ') 
+	send_command('send @all bind ~pagedown send Sneaksy /Quickstep ') 
+	send_command('send @all bind ^pagedown send Sneaksy /StutterStep ') 
 	send_command('gs c set treasuremode tag')
 	
 	send_command('wait 5; input /lockstyleset 1') 
 end
 
+function user_unload()
+	send_command('lua u thtracker') 
+end
+
 function init_gear_sets()
     --- Weapon Sets ---
-    sets.Sword 	= 	{ main="Kaja Sword", 		sub="Voluspa Knife"}
-    sets.Dagger = 	{ main="Voluspa Knife", 	sub=""}
-
-	gear.CapeTP = { name="Camulus's Mantle", augments={'Accuracy+20 Attack+20','"Dbl.Atk."+10',} }
-	gear.CapeWSD= { name="Camulus's Mantle", augments={'STR+20','Accuracy+20 Attack+20','Weapon skill damage +10%',} }
+    sets.Dagger = 	{ main= "Tauret", 		sub= "Skinflayer"}
+    sets.Sword 	= 	{ main= "Naegling", 	sub= "Skinflayer"}
 	
-    sets.TreasureHunter = {ring1="Gorney Ring", waist="Chaac Belt", ammo="Per. Lucky Egg"} 
+    sets.TreasureHunter = {
+		--ring1	= "Gorney Ring", 			-- 1
+		waist	= "Chaac Belt", 			-- 1
+		hands	= "Plun. Armlets +1", 		-- 3
+		feet	= "Skulk. Poulaines +3", 	-- 4
+		ammo	= "Per. Lucky Egg"			-- 1
+	} 
 	
     --- Precast Sets ---
-    sets.precast.CorsairRoll = {back="Gunslinger's Cape",head="Comm. Tricorne", ring1="Barataria Ring",legs="Desultor Tassets "}
-	sets.midcast.CorsairRoll = {back="Camulus's Cape"}
-
-    sets.precast.Waltz = { feet="Rawhide Boots" }
-    sets.precast.JA['Sneak Attack'] = { feet="Rawhide Boots" }
+    sets.precast.JA['Feint'] = {legs="Plun. Culottes"}
+    sets.precast.JA['Conspirator'] = {legs="Raider's Vest +1"}
 	
-    sets.precast.FC = {}
-	sets.precast.RA = {
-		feet 	= "Meg. Jam. +1",
-		}
+    sets.precast.Waltz = { head="Mummu Bonnet +2", feet="Rawhide Boots" }	
+	
     sets.precast.WS = { 
+		ammo	= "Oshasha's Treatise",
+        neck	= "Rep. Plat. Medal",
 		ear1	= "Moonshade earring",
 		hands	= "Meg. Gloves +2",
-		back	= gear.CapeWSD,
+		back	= "Toutatis's Cape",
 		}
-    sets.precast.WS['Savage Blade'] = set_combine(sets.WS, {})
-
-    --- Midcast Sets ---
-    sets.midcast.SpellInterrupt = {}
-    sets.midcast.Utsusemi = {}
-	sets.midcast.CorsairShot = {ammo="Animikii bullet"}
+    sets.precast.WS['Savage Blade'] = set_combine(sets.WS, {
+		neck 	= "Anu Torque",	
+		ear2 	= "Ishvara Earring",
+	})
+    sets.precast.WS['Aeolian Edge'] = set_combine(sets.WS, {
+		neck	= "Sibyl Scarf",
+		ear2 	= "Friomisi Earring",
+		waist	= "Eschan Stone",  		
+	})
 	
-	sets.midcast.RA = {
-		head 	= "Meghanada Visor +1",
-		neck 	= "Marked Gorget",
-		}
     --- Engaged Sets ---
-    sets.engaged = {
-		ammo 	= "Bronze Bullet",
-		head 	= "Mummu Bonnet +2",
-		neck 	= "Sanctity Necklace",
-		ear1 	= "Eabani Earring",
-		ear2 	= "Odr Earring",
-		body 	= "Mummu Jacket +2",
-		hands	= "Mummu Wrists +2",
-		ring1	= "Mummu Ring",
-		ring2 	= "Rajas Ring",
-		back	= gear.CapeTP,
+    sets.engaged = {	-- Subtle blow 	-- 28 + 10 + 13
+		ammo	= "Ginsen",
+		head 	= "Malignance Chapeau",	--  	Adhemar Bonnet +1 8
+		neck 	= "Anu Torque",			--  	Erudit. Necklace  6
+		ear1 	= "Odr Earring",
+		ear2 	= "Skulker's Earring",	-- 5
+		body 	= "Malignance Tabard",
+		hands	= "Adhemar Wrist. +1",	-- 8
+		ring1 	= "Rajas Ring",			-- 5
+		ring2	= "Chirich Ring +1",	-- 10
+		back	= "Null Shawl",
 		waist	= "Sailfi Belt +1",  
 		legs 	= "Meg. Chausses +2",
-		feet 	= "Mummu Gamash. +2",
+		feet 	= "Skulk. Poulaines +3",
 		}
 
     sets.defense = {
-		head 	= "Mummu Bonnet +2",
-		neck 	= "Sanctity Necklace",
+		head 	= "Malignance Chapeau",
+		neck 	= "Null Loop",
 		ear1 	= "Eabani Earring",
 		ear2 	= "Allegro Earring",
-		body 	= "Mummu Jacket +2",
-		hands	= "Mummu Wrists +2",
-		ring1	= "Mummu Ring",
-		ring2	= "Vehemence Ring",
-		back	= gear.CapeTP,
-		waist	= "Cuchulain's Belt",  
+		body 	= "Malignance Tabard",
+		hands	= "Malignance Gloves",
+		ring1	= "Vehemence Ring",
+		ring2	= "Chirich Ring +1",
+		back	= "Null Shawl",
+		waist	= "Plat. Mog. Belt",  
 		legs 	= "Meg. Chausses +2",
-		feet 	= "Mummu Gamash. +2",
+		feet 	= "Skulk. Poulaines +3",
         }
 
     --- Other Sets ---
@@ -138,9 +145,7 @@ function job_buff_change(buff,gain)
         if gain then
             equip(sets.defense)
         end
-    end
-
-    if buff == "doom" then
+    elseif buff == "doom" then
         if gain then
             equip(sets.buff.Doom)
             send_command('@input /p Doomed.')
@@ -150,11 +155,19 @@ function job_buff_change(buff,gain)
         end
     end
 end
+function job_post_precast(spell, action, spellMap, eventArgs)
+	if spell.type == "WeaponSkill" and player.tp >= 1900 then
+		equip({ear1="Ishvara Earring"})	
+	end
+end
 function customize_melee_set(meleeSet)
     equip(sets[state.WeaponSet.current])
     if state.OffenseMode.value == "Defense" then
 		meleeSet = sets.defense
-    end	
+		
+    elseif state.TreasureMode.value == 'Fulltime' then
+        meleeSet = set_combine(meleeSet, sets.TreasureHunter)
+    end
     return meleeSet
 end
 function job_self_command(command, eventArgs)
@@ -170,7 +183,7 @@ function job_self_command(command, eventArgs)
 		end
 	end
 end
-function job_aftercast(spell, action, spellMap, eventArgs)
+function job_aftercast(spell, action, spellMap, eventArgs)	
     equip(sets[state.WeaponSet.current])
 end
 function job_state_change(field, new_value, old_value)
@@ -179,6 +192,21 @@ function job_state_change(field, new_value, old_value)
     else
         enable('main','sub')
     end
+	if state.WeaponSet.value == "Sword" then
+		if player.equipment.main == "Skinflayer" then
+			send_command('input /equip main')
+		end
+		send_command('send @all bind  numpad1  sta Sneaksy /SavageBlade ') 
+		send_command('send @all bind  numpad2  sta Sneaksy /Requiescat ') 
+	elseif state.WeaponSet.value == "Dagger" then
+		if player.equipment.main == "Skinflayer" then
+			send_command('input /equip main')
+		end
+		send_command('send @all bind  numpad1  sta Sneaksy /SharkBite ') 
+		send_command('send @all bind !numpad1  sta Sneaksy /MandalicStab ') 
+		send_command('send @all bind  numpad2  sta Sneaksy /RudrasStorm ') 
+		send_command('send @all bind !numpad2  sta Sneaksy /Evisceration ') 
+	end
     equip(sets[state.WeaponSet.current])
 end
 function job_update(cmdParams, eventArgs)
