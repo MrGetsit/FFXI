@@ -84,6 +84,7 @@ function init_gear_sets()
 		ammo	= "Oshasha's Treatise",
         neck	= "Rep. Plat. Medal",
 		ear1	= "Moonshade earring",
+		ring1	= "Cornelia's Ring",
 		hands	= "Meg. Gloves +2",
 		back	= "Toutatis's Cape",
 		}
@@ -121,7 +122,7 @@ function init_gear_sets()
 		ear2 	= "Allegro Earring",
 		body 	= "Malignance Tabard",
 		hands	= "Malignance Gloves",
-		ring1	= "Vehemence Ring",
+		ring1	= "Murky Ring",
 		ring2	= "Chirich Ring +1",
 		back	= "Null Shawl",
 		waist	= "Plat. Mog. Belt",  

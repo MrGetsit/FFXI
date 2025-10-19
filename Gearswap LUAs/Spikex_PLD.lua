@@ -133,6 +133,7 @@ function init_gear_sets()
 		body  	= {name="Sulevia\'s Plate. +2",	priority=10},	-- 70
 		hands 	= {name="Chev. Gauntlets +2",	priority= 7},	-- 54
 		ring1 	= {name="Etana Ring",           priority= 9},	-- 60
+		--ring1 	= {name="Cornelia's Ring",      priority= 9},	-- 60
 		ring2 	= {name="Rajas Ring",           priority= 2},
 		back  	= gear.CapeDT,            						-- 60
 		waist 	= {name="Plat. Mog. Belt",      priority=20},	-- 10%
@@ -168,7 +169,7 @@ function init_gear_sets()
 		legs	= {name="Founder's Hose",		priority= 6},	-- 30	54
 		feet	= {name="Odyssean Greaves",		priority= 5},	-- 20	20
 	}			
-    sets.midcast.Cure = set_combine(sets.emnity, {ear2="Chev. Earring",})
+    sets.midcast.Cure = set_combine(sets.emnity, {ear2="Chev. Earring",neck ="Sacro Gorget",})
     sets.midcast.Cure.SIRD = set_combine(sets.midcast.Cure, sets.midcast.SIRD)
     sets.midcast['Phalanx'] = set_combine(sets.emnity, {
 		hands	= "Souveran handschuhs",	-- 4
@@ -187,7 +188,7 @@ function init_gear_sets()
 		body  	= {name="Reverence Surcoat +3", priority=13},	-- 254
 		hands 	= {name="Chev. Gauntlets +2",   priority= 5},	-- 54
 		ring1 	= {name="Etana Ring",           priority= 9},	-- 60
-		ring2 	= {name="Praan Ring",           priority= 8},	-- 60
+		ring2 	= "Gurebu's Ring", 
 		back  	= gear.CapeDT,            						-- 60
 		waist	= {name="Carrier's Sash",       priority= 1},
 		legs  	= {name="Chev. Cuisses +2",     priority=10},	-- 117
@@ -211,7 +212,7 @@ function init_gear_sets()
 	sets.engaged.Offense = {
         ammo	= {name="Focal Orb",            priority= 3},
 		head  	= {name="Flam. Zucchetto +2",   priority=11},	-- 80
-		neck  	= {name="Null Loop",            priority= 8},	-- 50
+		neck  	= {name="Anu Torque",           priority= 8},	-- 50
 		ear1  	= {name="Tuisto Earring",       priority=12},	-- 150
 		ear2  	= {name="Eabani Earring",       priority= 6},	-- 45
 		body  	= {name="Reverence Surcoat +3",	priority=13},	-- 254
@@ -232,7 +233,7 @@ function init_gear_sets()
 		body  	= {name="Reverence Surcoat +3", priority=13},	-- 254
 		hands 	= {name="Chev. Gauntlets +2",   priority= 6},	-- 54
 		ring1 	= {name="Etana Ring",           priority= 9},	-- 60
-		ring2 	= {name="Praan Ring",           priority= 8},	-- 60
+		ring2 	= "Gurebu's Ring", 
 		back  	= gear.CapeDT,            						-- 60
 		waist	= {name="Plat. Mog. Belt",      priority=14},	-- 10%
 		legs  	= {name="Chev. Cuisses +2",     priority=10},	-- 117
@@ -243,7 +244,7 @@ function init_gear_sets()
 	sets.defense.Resist = sets.defense.MDT
 	
     --- Other Sets ---
-    sets.idle.Town = set_combine(sets.idle, {ring1="Warp Ring", ring2="Dim. Ring (Holla)"})	    
+    sets.idle.Town = set_combine(sets.idle, {ammo="Homiliary",ring1="Warp Ring", ring2="Dim. Ring (Holla)"})	    
 	
 	sets.buff.Doom = {
         neck="Nicander's Necklace", --30

@@ -4,12 +4,12 @@ function get_sets()
 end
 
 --------------------------------------------------------		
---				4				5				6			--
--- 			AsuranFists	ShijinSpiral	Boost			--
---	ALT		DragonKick		MaruKala		OffBuffs		--
--- 	SHFT	Provoke		Chakra			DefBuffs		--
+--				1				2				3			--
+-- 			Victory Smite	Asuran Fist		Shijin Spiral	--
+--	ALT		Provoke			Chakra			DEFBuffs		--
+-- 	SHFT	AttackBuffs		Boost			Shell Crusher	--
 -- 	CTRL													--
--- 	WIN		ChiBlast						FormlessStr	--
+-- 	WIN		ChiBlast						FormlessStr		--
 --															--
 --------------------------------------------------------	
 
@@ -23,69 +23,86 @@ function job_setup()
     send_command('bind %capslock gs c cycle WeaponSet')	
     send_command('bind @S gs c cycle OffenseMode')
 end
+-- % Normal	^ Ctrl	! Alt	@ Win	# Apps	~ Shift
 
 function user_setup()
-	send_command('send @all bind  numpad4  sta Pharen /VictorySmite') 
+	send_command('send @all bind  numpad4  sta Pharen /Victory Smite') 
 	send_command('send @all bind  numpad5  sta Pharen /ShijinSpiral') 
-	send_command('send @all bind !numpad4  sta Pharen /AsuranFists') 
-	send_command('send @all bind !numpad5  sta Pharen /MaruKala') 
 	send_command('send @all bind  numpad6 send Pharen /boost') 
+	send_command('send @all bind !numpad4 send Pharen /Provoke') 
+	send_command('send @all bind !numpad5 send Pharen /Chakra') 
 	send_command('send @all bind !numpad6 send Pharen exec MonkOBuffs.txt') 
-	send_command('send @all bind ~numpad4 send Pharen /Provoke') 
-	send_command('send @all bind ~numpad5 send Pharen /Chakra') 
-	send_command('send @all bind ~numpad6 send Pharen exec MonkDBuffs.txt') 
-	send_command('send @all bind @numpad4  sta Pharen /ChiBlast') 
-	send_command('send @all bind @numpad6 send Pharen /FormlessStrikes') 
+	send_command('send @all bind ^numpad6 send Pharen exec MonkDBuffs.txt') 
 	
-	send_command('wait 5; input /lockstyleset 1') 
+	send_command('wait 5; input /lockstyleset 2') 
 end
 
 function init_gear_sets()
     --- Weapon Sets ---
-    sets.Condemners = 	{ main="Condemners"}
-    sets.Sophistry 	= 	{ main="Sophistry"}
+    sets.Condemners = 	{ main=""}
+    sets.Sophistry 	= 	{ main=""}
+	sets.Impetus	=	{body="Bhikku Cyclas +3"}
+	sets.Footwork	=	{body="Bhikku Gaiters+2"}
 
-	gear.TPCape		=	{ name="Segomo's Mantle", augments={'DEX+20','Accuracy+20 Attack+20','DEX+10','"Dbl.Atk."+10','Damage taken-1%',}}
-    --- Precast Sets ---	
+	gear.TPCape		=	{ name="Segomo's Mantle", augments={'DEX+20','Accuracy+20 Attack+20','DEX+10','"Dbl.Atk."+10','Damage taken-5%',}}
+	gear.STRCape	=	{ name="Segomo's Mantle", augments={'STR+20','Accuracy+20 Attack+20','STR+10','"Dbl.Atk."+10',}}
+	
+	
+	
+   --- Precast Sets ---	
     sets.precast.FC = {}
-    sets.precast.WS = { 
-		ear1	= "Moonshade earring",
-		legs  	= "Hiza. Hizayoroi +2",
-		}
-    sets.precast.WS['Shijin Spiral'] = set_combine(sets.precast.ws, { })
+    sets.precast.WS = {
+		ring1 = "Lehko's Ring"
+	}
+	sets.precast.Chakra = { Body = "Anch. Cyclas +1"}
+    sets.precast.WS['Shijin Spiral'] = set_combine(sets.precast.ws, {
+		body	= "Bhikku Cyclas +3",
+		head	= "Malignance Chapeau",
+		hands	= "Bhikku gloves +2",
+		back	= gear.TPCape,
+		})
+	sets.precast.WS['Victory Smite'] = set_combine(sets.precast.ws, {
+		body	= "Bhikku Cyclas +3",
+		hands	= "Bhikku gloves +2",
+		back	= gear.STRCape,
+		feet	= "Herculean Boots",
+		neck	= "Republican Platinum medal",
+		ear2	= "Odr Earring",
+		})
 
     --- Midcast Sets ---
     sets.midcast = {}
 
     --- Engaged Sets ---
     sets.engaged = {
-		head  	= "Hiza. Somen +2",
-		neck  	= "Sanctity necklace",
-		ear1  	= "Mache Earring",
-		ear2  	= "Eabani Earring",
-		body  	= "Hiza. Haramaki +2",
-		hands 	= "Mummu Wrists +2",
-		ring1 	= "Rajas Ring",
-		ring2 	= "Chirich Ring",
+		head  	= "Bhikku Crown +3",
+		neck  	= "Monk's Nodowa +2",
+		ear1  	= "Mache Earring +1",
+		ear2  	= "Cessance Earring",
+		body  	= "Mpaca's doublet",
+		hands 	= "Adhemar wristbands +1",
+		ring1 	= "Lehko's Ring",
+		ring2 	= "Gere Ring",
 		back  	= gear.TPCape,
-		waist 	= "Cetl Belt",
-		legs  	= "Mummu Kecks +2",
-		feet  	= "Mummu Gamash. +2",
+		waist 	= "Moonbow Belt +1",
+		legs  	= "Bhikku Hose +3",
+		feet  	= "Mpaca's boots",
+		ammo	= "Coiste Bodhar",
 		}
 
     sets.defense = {
-		head  	= "Hiza. Somen +2",
+		head  	= "Bhikku Crown +3",
 		neck  	= "Sanctity necklace",
-		ear1  	= "Mache Earring",
-		ear2  	= "Eabani Earring",
-		body  	= "Hiza. Haramaki +2",
-		hands 	= "Mummu Wrists +2",
-		ring1 	= "Hizamaru Ring",
-		ring2 	= "Chirich Ring",
-		back  	= "Segomo's Mantle", 
-		waist 	= "Cetl Belt",
-		legs  	= "Mummu Kecks +2",
-		feet  	= "Mummu Gamash. +2",
+		ear1  	= "Mache Earring +1",
+		ear2  	= "Odr Earring",
+		body  	= "Bhikku Cyclas +3",
+		hands 	= "Adhemar wristbands +1",
+		ring1 	= "Lehko's Ring",
+		ring2 	= "Gere Ring",
+		back  	= gear.TPCape, 
+		waist 	= "Moonbow Belt +1",
+		legs  	= "Bhikku Hose +3",
+		feet  	= "Bhikku gaiters +2",
         }
 
     --- Other Sets ---
@@ -112,4 +129,26 @@ function job_state_change(field, new_value, old_value)
 end
 function job_update(cmdParams, eventArgs)
     equip(sets[state.WeaponSet.current])
+end
+function job_buff_change(buff,gain)
+    if buff == 'Impetus' then
+        if gain then
+            equip(sets.Impetus)
+            disable('body')
+        else
+            enable('body')
+            status_change(player.status)
+        end
+    end
+end
+function job_buff_change(buff,gain)
+    if buff == 'Footwork' then
+        if gain then
+            equip(sets.Impetus)
+            disable('feet')
+        else
+            enable('feet')
+            status_change(player.status)
+        end
+    end
 end

@@ -29,12 +29,14 @@ function job_setup()
     send_command('bind ^= gs c cycle treasuremode')
 	
 	send_command('lua l autora') 
+	send_command('sa lua l rolltracker') 
 	autora_on = false
 end
 
 function user_setup()
 
 	send_command('send @all alias rxp send Sneaksy /CorsairsRoll') 
+	send_command('send @all alias rtp send Sneaksy /TacticiansRoll') 
 	send_command('send @all alias rda send Sneaksy /FightersRoll') 
 	send_command('send @all alias rsb send Sneaksy /MonksRoll') 
 	send_command('send @all alias racc send Sneaksy /HuntersRoll') 
@@ -48,7 +50,6 @@ function user_setup()
 	send_command('send @all alias rpat send Sneaksy /BeastRoll') 
 	send_command('send @all alias rpac send Sneaksy /DrachenRoll') 
 	send_command('send @all alias rpma send Sneaksy /PuppetRoll') 
-	send_command('send @all alias rtpg send Sneaksy /TacticiansRoll') 
 	send_command('send @all alias sj send Sneaksy /SpectralJig') 
 
 	send_command('send @all bind  numpad1  sta Sneaksy /SavageBlade ') 
@@ -88,6 +89,7 @@ end
 
 function user_unload()
 	send_command('lua u autora') 
+	send_command('sa lua u rolltracker') 
 end
 
 function init_gear_sets()
@@ -112,6 +114,7 @@ function init_gear_sets()
         neck	= "Rep. Plat. Medal",
 		ear1	= "Moonshade earring",
 		hands	= "Chasseur's Gants +3",
+		ring1	= "Cornelia's Ring",
 		back	= gear.CapeWSD,
 		}
     sets.precast.WS['Savage Blade'] = set_combine(sets.precast.WS, {
@@ -157,8 +160,8 @@ function init_gear_sets()
 		body 	= "Malignance Tabard",
 		hands	= "Mummu Wrists +2",
 		ring1	= "Chirich Ring +1",
-		ring2 	= "Rajas Ring",
-		back	= gear.CapeTP,
+		ring2 	= "Murky Ring",
+		back	= "Null Shawl",
 		waist	= "Plat. Mog. Belt",  
 		legs 	= "Meg. Chausses +2",
 		feet 	= "Mummu Gamash. +2",

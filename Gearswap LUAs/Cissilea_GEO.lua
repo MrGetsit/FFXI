@@ -17,7 +17,7 @@ function job_setup()
 	windower.send_command('sta !packets on') -- For SendTarget to work
 	
     state.WeaponLock = M(false, 'Weapon Lock')	
-	state.WeaponSet = M{['description']='Weapon Set', 'Solstice', 'Rod'}
+	state.WeaponSet = M{['description']='Weapon Set', 'Club', 'Staff'}
     state.OffenseMode:options('Normal', 'Defense')
     send_command('bind @w gs c toggle WeaponLock')	
     send_command('bind %capslock gs c cycle WeaponSet')	
@@ -117,10 +117,10 @@ function user_setup()
 	send_command('send @all alias t5 send Cissilea /Thunder5') 
 	send_command('send @all alias tga send Cissilea /Thundara3') 
 	
-	send_command('send @all bind  numpad7  sta Cissilea Shellcrusher') 
+	send_command('send @all bind  numpad7  sta Cissilea Realmrazer') 
+	send_command('send @all bind !numpad7  sta Cissilea Moonlight') 
 	send_command('send @all bind  numpad8 send Cissilea '..indiBuff) 
 	send_command('send @all bind  numpad9 send Cissilea '..geoBuff) 
-	send_command('send @all bind !numpad7  sta Cissilea Moonlight') 
 	send_command('send @all bind !numpad8 send Cissilea gs c entrustbuff')
 	send_command('send @all bind !numpad9 send Cissilea gs c superbuff')	
 	send_command('send @all bind ~numpad7 send Cissilea gs c aoe')		
@@ -146,8 +146,8 @@ end
 
 function init_gear_sets()
     --- Weapon Sets ---
-    sets.Solstice 	= 	{ main="Daybreak", sub="Culminus"}
-    sets.Rod 		= 	{ main="Malignance Pole"}
+    sets.Club 	= 	{ main="Daybreak", sub="Culminus"}
+    sets.Staff 		= 	{ main="Malignance Pole", sub="Enki Strap"}
 	
 	gear.REGENCape = { name="Nantosuelta's Cape", augments={'HP+60','Accuracy+20 Attack+20','Pet: "Regen"+10','Pet: "Regen"+5',}}
 	gear.MDCape = { name="Nantosuelta's Cape", augments={'INT+20','Mag. Acc+20 /Mag. Dmg.+20','Magic Damage +10','"Mag.Atk.Bns."+10',}}
@@ -228,7 +228,7 @@ function init_gear_sets()
 		ear2  	= "Flashward Earring",
 		body  	= "Geomancy Tunic +2",
 		hands 	= "Geomancy mitaines +3",
-		ring1 	= "Etana Ring",
+		ring1 	= "Gurebu's Ring",
 		ring2 	= "Rajas Ring",
 		back  	= gear.REGENCape,
 		waist 	= "Witful Belt",
@@ -245,7 +245,7 @@ function init_gear_sets()
 		body  	= "Geomancy Tunic +2",
 		hands 	= "Geomancy mitaines +3",
 		ring1 	= "Etana Ring",
-		ring2  	= "Adoulin ring",
+		ring2  	= "Gurebu's Ring",
 		back  	= gear.REGENCape, 
 		waist 	= "Witful Belt",
 		legs  	= "Geomancy Pants +2",
@@ -289,6 +289,14 @@ function job_state_change(field, new_value, old_value)
     else
         enable('main','sub')
     end
+	if state.WeaponSet.value == "Club" then
+		send_command('send @all bind  numpad7  sta Cissilea Realmrazer') 
+		send_command('send @all bind !numpad7  sta Cissilea Moonlight') 
+	elseif state.WeaponSet.value == "Staff" then
+		send_command('send @all bind  numpad7  sta Cissilea ShellCrusher') 
+		send_command('send @all bind !numpad7  sta Cissilea SpiritTaker') 
+	end
+    equip(sets[state.WeaponSet.current])
     equip(sets[state.WeaponSet.current])
 end
 function job_update(cmdParams, eventArgs)
