@@ -11,9 +11,8 @@ mb stop      -- All characters stop following
 mb advance   -- All characters engage and move towards whatever enemy you have targeted
 mb retreat   -- All characters GTFO and run away from whatever they are fighting
 
-ctrl + enter to have all characters interact with whatever you have targeted
+ctrl + enter to have all characters interact with whatever you have targeted, or press enter if already interacting
 
 mb u -- Press up key on all characters
 mb d -- Press down key on all characters
-mb e -- Press enter on all characters
 ```
