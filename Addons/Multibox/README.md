@@ -2,17 +2,23 @@ Just to be clear, Im not a programmer. Smashing bits of code together from all o
 
 # Multibox
 
-A simple multiboxing addon to get all characters to follow you and engage enemies when commanded. Also some other random functions that I keep adding in that should probably be removed at some point.
+A simple multiboxing addon to give basic orders to all other characters. Shows cooldown for all characters abilities using the timers addon custom timers.
 
 ### Command Usage:
 ```
-mb follow    -- All other nearby characters start to follow whichever character is active, will switch automatically to other characters if you switch to them
+mb follow    -- Single tap to order all characters to disenage from enemies and follow, double tap to move all characters to current position
 mb stop      -- All characters stop following
 mb advance   -- All characters engage and move towards whatever enemy you have targeted
-mb retreat   -- All characters GTFO and run away from whatever they are fighting
+mb retreat   -- Single tap to turn all away from enemy, double tap to order others to run away to a set distance (12 meters default)           
 
-ctrl + enter to have all characters interact with whatever you have targeted, or press enter if already interacting
-
-mb u -- Press up key on all characters
-mb d -- Press down key on all characters
+ctrl + enter -- Order all characters interact with whatever you have targeted, or press enter if already interacting
+ctrl + up    -- All characters hold up briefly
+ctrl + down  -- All characters hold down briefly
+```
+Designed to be set up as hotkeys in your init such as:
+```
+bind %numpad0 multibox follow;
+bind !numpad0 multibox stop;
+bind %numpad. multibox advance;
+bind !numpad. multibox retreat;
 ```
