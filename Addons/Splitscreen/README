@@ -1,4 +1,4 @@
-Simple addon for controlling window frames.
+Simple addon for controlling window frames using the WinControl default windower plugin.
 
 home = toggle splitscreen
 alt home = toggle fullscreen
