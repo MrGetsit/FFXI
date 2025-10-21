@@ -97,8 +97,8 @@ function init_gear_sets()
     sets.Sword 	= 	{ main="Naegling", 	sub="Tauret",	range="Anarchy +2",	ammo="Bronze bullet"}
     sets.Dagger = 	{ main="Tauret"}
 
-	gear.CapeTP = { name="Camulus's Mantle", augments={'DEX+1','Accuracy+20 Attack+20','"Dbl.Atk."+10',} }
-	gear.CapeWSD= { name="Camulus's Mantle", augments={'DEX+1','Accuracy+20 Attack+20','STR+8','Weapon skill damage +10%',} }
+	gear.CapeTP = { name="Camulus's Mantle", augments={'DEX+20','Accuracy+20 Attack+20','DEX+10','"Dbl.Atk."+10','Phys. dmg. taken-8%',} }
+	gear.CapeWSD= { name="Camulus's Mantle", augments={'STR+20','Accuracy+20 Attack+20','STR+10','Weapon skill damage +10%',} }
 	
     sets.TreasureHunter = {head="Herculean Helm",body="Herculean Vest",ring1="Gorney Ring", waist="Chaac Belt"} 
 	
@@ -111,14 +111,20 @@ function init_gear_sets()
 		feet 	= "Meg. Jam. +1",		
 		}
     sets.precast.WS = { 
-        neck	= "Rep. Plat. Medal",
 		ear1	= "Moonshade earring",
 		hands	= "Chasseur's Gants +3",
 		ring1	= "Cornelia's Ring",
 		back	= gear.CapeWSD,
 		}
     sets.precast.WS['Savage Blade'] = set_combine(sets.precast.WS, {
-		waist	= "Prosilio Belt +1",  	
+		head	= "Meghanada Visor +2",
+        neck	= "Rep. Plat. Medal",
+		ear2	= "Ishvara Earring",
+		body	= "Meg. Cuirie +2",
+		ring2	= "Rajas Ring",
+		waist	= "Prosilio Belt +1",
+		legs	= "Meg. Chausses +2",
+		feet	= "Lanun Bottes +2",
 	})
     sets.precast.WS['Leaden Salute'] = set_combine(sets.precast.WS, {
 		neck	= "Sibyl Scarf",
@@ -132,7 +138,7 @@ function init_gear_sets()
 	sets.midcast.CorsairShot = {ammo="Animikii bullet"}
 	
 	sets.midcast.RA = {
-		head 	= "Meghanada Visor +1",
+		head 	= "Meghanada Visor +2",
 		neck 	= "Marked Gorget",		
 		}
     --- Engaged Sets ---
