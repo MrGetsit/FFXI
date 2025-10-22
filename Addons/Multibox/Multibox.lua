@@ -276,7 +276,7 @@ windower.register_event('postrender', function()
 	
 	check = check + 1
 	
-	if check > 60 then -- Only check every 60 frames
+	if not current_leader and check > 60 then -- Only check every 60 frames
 		check = 0
 		if windower.ffxi.get_player().autorun then 
 			moving = true 
@@ -612,11 +612,6 @@ windower.register_event('keyboard',function (dik, pressed, flags, blocked )
 	if not windower.ffxi.get_info().logged_in then return end
 	if not self then self = windower.ffxi.get_player() return end
 	if current_leader ~= self.name then update_leader(self.name) end
-	
-	if not sound_enabled then
-		enable_sound()
-		windower.send_ipc_message('multibox mute_others')
-	end
 	
 	--print('Keyboard event dik:'..dik..'  pressed:'..tostring(pressed)..'  flags:'..flags..'  blocked:'..tostring(blocked))
 	if dik == 28 and flags == 4 and not pressed then -- dik 28 = enter key, flag 4 = ctrl, not pressed = on key up
