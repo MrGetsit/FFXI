@@ -100,10 +100,10 @@ function init_gear_sets()
 	gear.CapeTP = { name="Camulus's Mantle", augments={'DEX+20','Accuracy+20 Attack+20','DEX+10','"Dbl.Atk."+10','Phys. dmg. taken-8%',} }
 	gear.CapeWSD= { name="Camulus's Mantle", augments={'STR+20','Accuracy+20 Attack+20','STR+10','Weapon skill damage +10%',} }
 	
-    sets.TreasureHunter = {head="Herculean Helm",body="Herculean Vest",ring1="Gorney Ring", waist="Chaac Belt"} 
+    sets.TreasureHunter = {head="Herculean Helm", body="Herculean Vest", ring1="Gorney Ring", waist="Chaac Belt"} 
 	
     --- Precast Sets ---
-    sets.precast.CorsairRoll = {back="Camulus's Cape",head="Lanun Tricorne", hands="Chasseur's Gants +3",ring1="Barataria Ring",legs="Desultor Tassets"}	
+    sets.precast.CorsairRoll = {back="Camulus's Mantle",head="Lanun Tricorne", hands="Chasseur's Gants +3",ring1="Barataria Ring",legs="Desultor Tassets"}
 
     sets.precast.Waltz = { head="Mummu Bonnet +2", feet="Rawhide Boots" }	
     sets.precast.FC = {}
@@ -139,7 +139,7 @@ function init_gear_sets()
 	
 	sets.midcast.RA = {
 		head 	= "Meghanada Visor +2",
-		neck 	= "Marked Gorget",		
+		neck 	= "Marked Gorget",
 		}
     --- Engaged Sets ---
     sets.engaged = {
