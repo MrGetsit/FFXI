@@ -1,10 +1,9 @@
 _addon.author = 'Spikex'
-_addon.version = '0.82'
+_addon.version = '0.83'
 _addon.commands = { 'multibox', 'mb' }
 
 -- Changes: 
--- Single tap retreat to turn around, double to run away
--- Frequently check if moving to make it less likely for follow or engage to stop moving
+-- Filter for sound messages
 
 config = require('config')
 require('sets')
@@ -37,7 +36,7 @@ double_tap = false -- Move exactly to where leader is instead of just close
 casting = false -- Works but is messed up by sendtargets packet interception
 report = false
 
-track_spell = true
+track_spell = true -- Tracking requires timers
 track_ability = true
 filter_ability = false
 tracked_abilities = S{
@@ -68,13 +67,13 @@ settings = config.load(default_settings)
 t = texts.new(settings)
 
 function update_display(show)
-	t:text('Loupon '..pethp)
+	t:text('Loupan '..pethp)
 	if show then t:visible(true)
 	else t:visible(false) end
 end
 
 windower.register_event('ipc message', function (msg)
-    if not windower.ffxi.get_info().logged_in then return end
+    if not windower.ffxi.get_info().logged_in or not self then return end
 	zone = windower.ffxi.get_info().zone
 	
 	ipc_message = msg:split(' ')
@@ -87,7 +86,7 @@ windower.register_event('ipc message', function (msg)
 	local arg3 = ipc_message[6]
 	
 	if command == 'pos_update' then 
-		new_waypoint = { x = arg1, y = arg2 }		
+		new_waypoint = { x = arg1, y = arg2 }
 		newest_distance = math.sqrt((new_waypoint.x - self.x)^2 + (new_waypoint.y - self.y)^2)
 		if not waypoint_distance or newest_distance < waypoint_distance then -- New waypoint is closer
 			-- Only update if closer, but not too close else it breaks things
@@ -315,7 +314,7 @@ windower.register_event('postrender', function()
 				
 				elseif last_checked_distance < waypoint_distance then -- Running the wrong direction
 					if waypoint_distance < 35 then 
-						windower.send_command('input /party Missed a waypoint, moving to leader')
+						--windower.send_command('input /party Missed a waypoint, moving to leader')
 						stop_moving()
 						windower.ffxi.run(get_direction(current_waypoint))
 					else 
@@ -501,7 +500,11 @@ end)
 windower.register_event('status change',function (new, old)	
 	if old == 1 and new == 0 then  -- Exit combat state
 		if is_following then 
-			change_state('resume_follow')
+			for i = 0, 5, 1 do 
+				if current_state == 'follow' then break end
+				change_state('resume_follow')
+				coroutine.sleep(2)
+			end
 			
 		else
 			change_state('stop')
@@ -597,9 +600,11 @@ function enable_sound(mute)
 	if mute ~= false then
 		windower.send_command('input /mutebgm off')
 		windower.send_command('input /mutese off')
+		sound_enabled = false
 	else
 		windower.send_command('input /mutebgm on')
 		windower.send_command('input /mutese on')
+		sound_enabled = true
 	end
 end
 
@@ -607,6 +612,11 @@ windower.register_event('keyboard',function (dik, pressed, flags, blocked )
 	if not windower.ffxi.get_info().logged_in then return end
 	if not self then self = windower.ffxi.get_player() return end
 	if current_leader ~= self.name then update_leader(self.name) end
+	
+	if not sound_enabled then
+		enable_sound()
+		windower.send_ipc_message('multibox mute_others')
+	end
 	
 	--print('Keyboard event dik:'..dik..'  pressed:'..tostring(pressed)..'  flags:'..flags..'  blocked:'..tostring(blocked))
 	if dik == 28 and flags == 4 and not pressed then -- dik 28 = enter key, flag 4 = ctrl, not pressed = on key up
@@ -764,7 +774,7 @@ windower.register_event('chat message', function(message, sender, mode)
 	end
 end)
 
-previous_message = nil
+previous_message = nil 
 --- Output most recent npc dialogue ---
 windower.register_event('incoming text', function(text, modified, mode)
 	if mode < 124 or not report then return end -- Normal chat channel, probably
@@ -775,4 +785,12 @@ windower.register_event('incoming text', function(text, modified, mode)
 	else 
 		previous_message = last_message
 	end
+end)
+ 
+filter = S{
+	'Sound effects:*',
+	'Background music:*',
+}
+windower.register_event('incoming text', function(text)
+    return filter:any(windower.wc_match+{text})
 end)
