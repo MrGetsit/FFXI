@@ -1,9 +1,9 @@
 _addon.author = 'Spikex'
-_addon.version = '0.83'
+_addon.version = '0.84'
 _addon.commands = { 'multibox', 'mb' }
 
 -- Changes: 
--- Filter for sound messages
+-- Fix running back and forth without stopping
 
 config = require('config')
 require('sets')
@@ -178,7 +178,7 @@ function change_state(new_state, arg1, arg2, arg3)
 	elseif new_state == 'stop' then
 		--windower.send_command('input /party Stopped')
 		stop_engage = true
-		if moving then stop_moving() end
+		stop_moving()
 		is_following = false
 		
 	elseif new_state == 'advance' then
@@ -274,10 +274,9 @@ windower.register_event('postrender', function()
 	if self.hpp == 0 and current_state ~= 'stop' then change_state('stop') return end -- Dead
 	if start_casting then change_state('casting') return end -- Casting
 	
-	check = check + 1
+	check = check + 1 -- Keep from running every frame
 	
-	if not current_leader and check > 60 then -- Only check every 60 frames
-		check = 0
+	if current_leader ~= self.name then 
 		if windower.ffxi.get_player().autorun then 
 			moving = true 
 		else 
@@ -286,7 +285,7 @@ windower.register_event('postrender', function()
 	end
 	
 	if current_state == 'follow' then
-		if not current_leader then print('No leader to follow') change_state('stop') return end		
+		if not current_leader then print('No leader to follow') change_state('stop') return end
 		
 		if is_leader then -- If leader has moved far enough from last waypoint, create new waypoint
 			local distance = math.sqrt((new_waypoint.x - self.x)^2 + (new_waypoint.y - self.y)^2)
@@ -314,18 +313,19 @@ windower.register_event('postrender', function()
 				
 				elseif last_checked_distance < waypoint_distance then -- Running the wrong direction
 					if waypoint_distance < 35 then 
-						--windower.send_command('input /party Missed a waypoint, moving to leader')
+						windower.send_command('input /party Missed a waypoint, moving to leader')
 						stop_moving()
 						windower.ffxi.run(get_direction(current_waypoint))
 					else 
 						windower.send_command('input /party Leader too far, stopping')
 						change_state('stop') 
 					end
-				elseif check == 15 or check == 45 then -- Update distance from waypoint
+				elseif check == 15 then -- Update distance from waypoint
 					last_checked_distance = waypoint_distance + 0.2
 				end
 			else
 				if move_here and waypoint_distance > 0.5 or waypoint_distance > 2.5 then -- Start moving to next waypoint
+					--windower.send_command('input /party Next waypoint '..waypoint_distance)
 					last_checked_distance = waypoint_distance + 0.5
 					windower.ffxi.run(get_direction(current_waypoint))
 				
@@ -337,7 +337,7 @@ windower.register_event('postrender', function()
 						windower.send_command('input /party Stopping: Next waypoint too far')
 						change_state('stop')
 					end
-				elseif check == 30 then -- Standing still with nothing else to do, look at target
+				elseif check == 15 or check == 45 then -- Standing still with nothing else to do, look at target
 					turn_to_target(current_target)
 				end
 			end
@@ -365,7 +365,7 @@ windower.register_event('postrender', function()
 		
 	elseif current_state == 'reverse' then
 		if is_leader then return end
-		if check == 30 then
+		if check == 0 then
 			local t = windower.ffxi.get_mob_by_id(current_target.id)
 			if not t then return end 
 			turn_to_target(t, true)
@@ -389,6 +389,7 @@ windower.register_event('postrender', function()
 			else turn_to_target(current_target) end
 		end
 	end
+	if check >= 60 then check = 0 end
 end)
 
 function end_double_tap()
