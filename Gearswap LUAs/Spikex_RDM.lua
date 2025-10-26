@@ -70,7 +70,7 @@ function user_setup()
 	send_command('send @all bind %~` send Spikex /Break')
 	
 	if player.sub_job == 'SCH' then
-		send_command('lua l stna')
+		send_command('lua l StratagemCounter')
 		send_command('send @all bind %x send Spikex /Accession')
 		send_command('send @all bind !x send Spikex /LightArts')
 		send_command('send @all bind @x send Spikex /AddendumWhite')
@@ -150,19 +150,20 @@ function init_gear_sets()
     --- Midcast Sets ---					
     sets.midcast = {}					
     sets.midcast['Enfeebling Magic'] = {
+        sub		= "Ammurapi Shield",
         range	= "Ullr",
-		head  	= "Null Masque",
+		head  	= "Viti. Chapeau +3",
 		neck  	= "Dls. Torque +2",
 		ear1  	= "Malignance Earring",
-		ear2  	= "Lethargy Earring",
-		body  	= "Lethargy Sayon +2",
-		hands 	= "Leth. Ganth. +2",
+		ear2  	= "Snotra Earring",
+		body  	= "Lethargy Sayon +3",
+		hands 	= "Leth. Ganth. +3",
 		ring1 	= "Etana Ring",
 		ring2 	= "Metamor. Ring +1",
 		back  	= "Sucellos's Cape",
-		waist 	= "Null Belt",
+		waist 	= "Sacro Cord",
 		legs  	= "Leth. Fuseau +2",
-		feet  	= "Leth. Houseaux +2",
+		feet  	= "Vitiation boots +3",
 		}						
     sets.midcast['Enhancing Magic'] = {
         ammo	= "Homiliary",
@@ -170,8 +171,8 @@ function init_gear_sets()
 		neck  	= "Dls. Torque +2",
 		ear1  	= "Malignance Earring",
 		ear2  	= "Lethargy Earring",
-		body  	= "Lethargy Sayon +2",
-		hands 	= "Leth. Ganth. +2",
+		body  	= "Lethargy Sayon +3",
+		hands 	= "Leth. Ganth. +3",
 		ring1 	= "Etana Ring",
 		ring2 	= "Metamor. Ring +1",
 		back  	= "Sucellos's Cape",
@@ -191,8 +192,8 @@ function init_gear_sets()
 		neck  	= "Null Loop",
 		ear1  	= "Malignance Earring",
 		ear2  	= "Lethargy Earring",
-		body  	= "Lethargy Sayon +2",
-		hands 	= "Leth. Ganth. +2",
+		body  	= "Lethargy Sayon +3",
+		hands 	= "Leth. Ganth. +3",
 		ring1 	= "Gurebu's Ring", 
 		ring2 	= "Rajas Ring",
 		back  	= "Sucellos's Cape",
@@ -207,12 +208,12 @@ function init_gear_sets()
 		neck  	= "Null Loop",
 		ear1  	= "Tuisto Earring",
 		ear2  	= "Eabani Earring",
-		body  	= "Lethargy Sayon +2",
-		hands 	= "Leth. Ganth. +2",
+		body  	= "Lethargy Sayon +3",
+		hands 	= "Leth. Ganth. +3",
 		ring1 	= "Gurebu's Ring", 
 		ring2 	= "Murky Ring",
 		back  	= "Sucellos's Cape",
-		waist 	= "Plat. Mog. Belt",
+		waist 	= "Null belt",
 		legs  	= "Leth. Fuseau +2",
 		feet  	= "Leth. Houseaux +2",
 		}
@@ -249,12 +250,25 @@ function job_buff_change(buff,gain)
             enable('ring1','ring2','waist','neck')
         end
     end
+    if buff == 'Phalanx' then
+        if gain then
+            custom_impetus = true 			
+        else
+            custom_impetus = false 
+            status_change(player.status)
+        end
+		send_command('input /echo Phalanx '..tostring(custom_impetus))
+    end
 end
 function customize_melee_set(meleeSet)
     equip(sets[state.WeaponSet.current])
     if state.OffenseMode.value == "Defense" then
 		meleeSet = sets.defense
     end	
+	if custom_impetus == true then		
+        meleeSet = set_combine(meleeSet, {body="Chocobo Shirt"})
+	end
+	
     return meleeSet
 end
 function job_aftercast(spell, action, spellMap, eventArgs)	
@@ -263,9 +277,9 @@ function job_aftercast(spell, action, spellMap, eventArgs)
 end
 function job_state_change(field, new_value, old_value)
     if state.WeaponLock.value == true then
-        disable('main','sub')
+        disable('main','sub','range')
     else
-        enable('main','sub')
+        enable('main','sub','range')
     end
 	--if state.WeaponSet.value == "DPS" then
 	--	send_command('send @all bind %1  sta Spikex /SavageBlade')

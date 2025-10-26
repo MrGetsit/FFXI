@@ -39,9 +39,8 @@ end
 
 function init_gear_sets()
     --- Weapon Sets ---
-    sets.Condemners = 	{ main=""}
+    sets.Condemners = 	{ main="Godhands"}
     sets.Sophistry 	= 	{ main=""}
-	sets.Impetus	=	{body="Bhikku Cyclas +3"}
 	sets.Footwork	=	{body="Bhikku Gaiters+2"}
 
 	gear.TPCape		=	{ name="Segomo's Mantle", augments={'DEX+20','Accuracy+20 Attack+20','DEX+10','"Dbl.Atk."+10','Damage taken-5%',}}
@@ -51,10 +50,9 @@ function init_gear_sets()
 	
    --- Precast Sets ---	
     sets.precast.FC = {}
-    sets.precast.WS = {
-		ring1 = "Lehko's Ring"
-	}
-	sets.precast.Chakra = { Body = "Anch. Cyclas +1"}
+    sets.precast.WS = {}
+	sets.precast.JA['Chakra'] = { Body = "Anch. Cyclas +1","Melee Gloves"}
+	
     sets.precast.WS['Shijin Spiral'] = set_combine(sets.precast.ws, {
 		body	= "Bhikku Cyclas +3",
 		head	= "Malignance Chapeau",
@@ -77,12 +75,12 @@ function init_gear_sets()
     sets.engaged = {
 		head  	= "Bhikku Crown +3",
 		neck  	= "Monk's Nodowa +2",
-		ear1  	= "Mache Earring +1",
-		ear2  	= "Cessance Earring",
+		ear2  	= "Mache Earring +1",
+		ear1  	= "Sherida Earring",
 		body  	= "Mpaca's doublet",
 		hands 	= "Adhemar wristbands +1",
-		ring1 	= "Lehko's Ring",
-		ring2 	= "Gere Ring",
+		ring1 	= "Gere Ring",
+		ring2 	= "Lehko Habhoka's Ring",
 		back  	= gear.TPCape,
 		waist 	= "Moonbow Belt +1",
 		legs  	= "Bhikku Hose +3",
@@ -93,12 +91,12 @@ function init_gear_sets()
     sets.defense = {
 		head  	= "Bhikku Crown +3",
 		neck  	= "Sanctity necklace",
-		ear1  	= "Mache Earring +1",
-		ear2  	= "Odr Earring",
-		body  	= "Bhikku Cyclas +3",
+		ear2  	= "Mache Earring +1",
+		ear1  	= "Sherida Earring",
+		body  	= "Mpaca's doublet",
 		hands 	= "Adhemar wristbands +1",
-		ring1 	= "Lehko's Ring",
-		ring2 	= "Gere Ring",
+		ring1 	= "Gere Ring",
+		ring2 	= "Lehko Habhoka's Ring",
 		back  	= gear.TPCape, 
 		waist 	= "Moonbow Belt +1",
 		legs  	= "Bhikku Hose +3",
@@ -109,15 +107,21 @@ function init_gear_sets()
     sets.idle = sets.defense
     sets.idle.Town = set_combine(sets.idle, {ring1="Warp Ring", ring2="Dim. Ring (Holla)"})	 
 end
+
+custom_impetus = false
 function customize_melee_set(meleeSet)
     equip(sets[state.WeaponSet.current])
     if state.OffenseMode.value == "Defense" then
 		meleeSet = sets.defense
     end	
+	if custom_impetus == true then		
+		meleeSet = set_combine(meleeSet, {body="Bhikku Cyclas +3",ear2="Cessance earring"})
+	end
     return meleeSet
 end
 function job_aftercast(spell, action, spellMap, eventArgs)	
     equip(sets[state.WeaponSet.current])
+	equip(customize_melee_set())
 end
 function job_state_change(field, new_value, old_value)
     if state.WeaponLock.value == true then
@@ -126,29 +130,29 @@ function job_state_change(field, new_value, old_value)
         enable('main','sub')
     end
     equip(sets[state.WeaponSet.current])
+	equip(customize_melee_set())
 end
 function job_update(cmdParams, eventArgs)
     equip(sets[state.WeaponSet.current])
-end
-function job_buff_change(buff,gain)
-    if buff == 'Impetus' then
-        if gain then
-            equip(sets.Impetus)
-            disable('body')
-        else
-            enable('body')
-            status_change(player.status)
-        end
-    end
+	equip(customize_melee_set())
 end
 function job_buff_change(buff,gain)
     if buff == 'Footwork' then
         if gain then
-            equip(sets.Impetus)
+            equip(sets.Footwork)
             disable('feet')
         else
             enable('feet')
             status_change(player.status)
         end
     end
+    if buff == 'Impetus' then
+        if gain then
+            custom_impetus = true 
+        else
+            custom_impetus = false 
+            status_change(player.status)
+        end
+    end
+	equip(customize_melee_set())
 end

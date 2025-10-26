@@ -52,7 +52,7 @@ function user_setup()
 	send_command('send @all alias rpma send Sneaksy /PuppetRoll') 
 	send_command('send @all alias sj send Sneaksy /SpectralJig') 
 
-	send_command('send @all bind  numpad1  sta Sneaksy /SavageBlade ') 
+	send_command('send @all bind  numpad1 send Sneaksy /SavageBlade ') 
 	send_command('send @all bind  numpad2  sta Sneaksy /LeadenSalute ') 
 	send_command('send @all bind  numpad3 send Sneaksy gs c toggle_autora ') 
 	send_command('send @all bind !numpad1  sta Sneaksy /Requiescat ') 
@@ -97,13 +97,13 @@ function init_gear_sets()
     sets.Sword 	= 	{ main="Naegling", 	sub="Tauret",	range="Anarchy +2",	ammo="Bronze bullet"}
     sets.Dagger = 	{ main="Tauret"}
 
-	gear.CapeTP = { name="Camulus's Mantle", augments={'DEX+20','Accuracy+20 Attack+20','DEX+10','"Dbl.Atk."+10','Phys. dmg. taken-8%',} }
-	gear.CapeWSD= { name="Camulus's Mantle", augments={'STR+20','Accuracy+20 Attack+20','STR+10','Weapon skill damage +10%',} }
+	gear.CapeTP = { name="Camulus's Mantle", augments={'DEX+1','Accuracy+20 Attack+20','"Dbl.Atk."+10',} }
+	gear.CapeWSD= { name="Camulus's Mantle", augments={'DEX+1','Accuracy+20 Attack+20','STR+8','Weapon skill damage +10%',} }
 	
-    sets.TreasureHunter = {head="Herculean Helm", body="Herculean Vest", ring1="Gorney Ring", waist="Chaac Belt"} 
+    sets.TreasureHunter = {head="Herculean Helm",body="Herculean Vest",ring1="Gorney Ring", waist="Chaac Belt"} 
 	
     --- Precast Sets ---
-    sets.precast.CorsairRoll = {back="Camulus's Mantle",head="Lanun Tricorne", hands="Chasseur's Gants +3",ring1="Barataria Ring",legs="Desultor Tassets"}
+    sets.precast.CorsairRoll = {back="Camulus's Cape",head="Lanun Tricorne", hands="Chasseur's Gants +3",ring1="Barataria Ring",legs="Desultor Tassets"}	
 
     sets.precast.Waltz = { head="Mummu Bonnet +2", feet="Rawhide Boots" }	
     sets.precast.FC = {}
@@ -111,24 +111,22 @@ function init_gear_sets()
 		feet 	= "Meg. Jam. +1",		
 		}
     sets.precast.WS = { 
+        neck	= "Rep. Plat. Medal",
 		ear1	= "Moonshade earring",
 		hands	= "Chasseur's Gants +3",
 		ring1	= "Cornelia's Ring",
 		back	= gear.CapeWSD,
+		feet 	= "Lanun bottes +2",
 		}
     sets.precast.WS['Savage Blade'] = set_combine(sets.precast.WS, {
-		head	= "Meghanada Visor +2",
-        neck	= "Rep. Plat. Medal",
-		ear2	= "Ishvara Earring",
-		body	= "Meg. Cuirie +2",
-		ring2	= "Rajas Ring",
-		waist	= "Prosilio Belt +1",
-		legs	= "Meg. Chausses +2",
-		feet	= "Lanun Bottes +2",
+		waist	= "Prosilio Belt +1",  	
 	})
     sets.precast.WS['Leaden Salute'] = set_combine(sets.precast.WS, {
+		head 	= "Pixie Hairpin +1",
 		neck	= "Sibyl Scarf",
 		ear2	= "Friomisi Earring",
+		body	= "Lanun frac +2",
+		ring1	= "Archon Ring",
 		waist	= "Eschan Stone",  	
 	})
 
@@ -138,8 +136,8 @@ function init_gear_sets()
 	sets.midcast.CorsairShot = {ammo="Animikii bullet"}
 	
 	sets.midcast.RA = {
-		head 	= "Meghanada Visor +2",
-		neck 	= "Marked Gorget",
+		head 	= "Meghanada Visor +1",
+		neck 	= "Marked Gorget",		
 		}
     --- Engaged Sets ---
     sets.engaged = {
