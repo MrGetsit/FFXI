@@ -1,9 +1,15 @@
 _addon.author = 'Spikex'
-_addon.version = '0.84'
+_addon.version = '0.85'
 _addon.commands = { 'multibox', 'mb' }
 
 -- Changes: 
--- Fix running back and forth without stopping
+-- Check if enter key is already down on ctrl enter to avoid double press
+-- Disabled key press party message
+-- Renamed key press function
+-- Removed npc dialogue reporting, never really used it
+-- Removed some of the buff tracking stuff that wasn't used
+-- Removed a few comments, general code tidying
+-- Increased number of times to turn to face target from 1 to 3 per second for better tracking
 
 config = require('config')
 require('sets')
@@ -28,37 +34,15 @@ current_leader = nil
 is_leader = false
 moving = false
 self = nil
-zone = nil -- Current zone leader is in
 interacting = false
+zone = nil -- Current zone leader is in
 zoning = false
 check = 0 -- Increment to not check every frame
 double_tap = false -- Move exactly to where leader is instead of just close
-casting = false -- Works but is messed up by sendtargets packet interception
-report = false
+casting = false -- Don't start moving during a cast, Works but is messed up by sendtargets packet interception
+keydown = false
 
-track_spell = true -- Tracking requires timers
-track_ability = true
-filter_ability = false
-tracked_abilities = S{
-	'Roll',
-	'Double-Up',
-	'Blaze of Glory',
-	'Radial Arcana',
-	'Berserk',
-	'Sneak Attack',
-	'Trick Attack',
-	'Sentinel',
-}
 blocked_abilities = S{
-	'Focus',
-	'Footwork',
-	'Impetus',
-	'Haste Samba',
-	'Dia II',
-	'Sylvie (UC)',
-	'Joachim',
-	'Valainderal',
-	'Shantotto II',
 }
  
 default_settings = {}
@@ -100,7 +84,7 @@ windower.register_event('ipc message', function (msg)
 		if is_leader and self then update_leader(self.name) end
 		
 	elseif command == 'key_press' then 
-		try_key_press(arg1)
+		simulate_key_press(arg1)
 		
 	elseif command == 'interact' then
 		if arg1 and not trying_to_interact then interact_with_target(windower.ffxi.get_mob_by_id(arg1)) return end
@@ -176,7 +160,6 @@ function change_state(new_state, arg1, arg2, arg3)
 		stop_moving()
 		
 	elseif new_state == 'stop' then
-		--windower.send_command('input /party Stopped')
 		stop_engage = true
 		stop_moving()
 		is_following = false
@@ -246,20 +229,9 @@ function change_state(new_state, arg1, arg2, arg3)
 		
 	elseif new_state == 'interact' then
 		interacting = true
-		if report then
-			if last_message and last_report ~= last_message then -- Message hasn't been reported yet
-				last_report = last_message
-				windower.send_command('input /party Interacting : '..last_message)
-			elseif current_target then
-				windower.send_command('input /party Interacting with '..current_target.name)
-			end
-		end
 		
 	elseif new_state == 'end_interact' then
 		interacting = false
-		if report and last_report ~= last_message then 
-			windower.send_command('input /party '..last_message)
-		end
 		if is_following then change_state('resume_follow')
 		else change_state('stop') end return
 	end
@@ -313,14 +285,14 @@ windower.register_event('postrender', function()
 				
 				elseif last_checked_distance < waypoint_distance then -- Running the wrong direction
 					if waypoint_distance < 35 then 
-						windower.send_command('input /party Missed a waypoint, moving to leader')
+						--windower.send_command('input /party Missed a waypoint, moving to leader')
 						stop_moving()
 						windower.ffxi.run(get_direction(current_waypoint))
 					else 
 						windower.send_command('input /party Leader too far, stopping')
 						change_state('stop') 
 					end
-				elseif check == 15 then -- Update distance from waypoint
+				elseif check == 30 then -- Update distance from waypoint
 					last_checked_distance = waypoint_distance + 0.2
 				end
 			else
@@ -358,14 +330,14 @@ windower.register_event('postrender', function()
 			if distance > 3 and not is_leader then
 				windower.ffxi.run(get_direction(t))
 				if not windower.ffxi.get_player().target_locked then windower.send_command('input /lockon') end -- Lockon to prevent running wrong direction
-			elseif check == 30 then
+			elseif check == 15 or check == 30 or check == 45 then
 				turn_to_target(t)
 			end
 		end
 		
 	elseif current_state == 'reverse' then
 		if is_leader then return end
-		if check == 0 then
+		if check == 15 or check == 30 or check == 45 then
 			local t = windower.ffxi.get_mob_by_id(current_target.id)
 			if not t then return end 
 			turn_to_target(t, true)
@@ -462,39 +434,22 @@ windower.register_event('addon command', function(action, arg1)
 			change_state('retreat')
 		end
 		
-	elseif action == 'track spells' or action == 'ts' then
-		track_spell = not track_spell
-		windower.add_to_chat(160, 'Track Spells: '..tostring(track_spell))
-		
-	elseif action == 'track abilities' or action == 'ta' then
-		track_ability = not track_ability
-		windower.add_to_chat(160, 'Track Abilities: '..tostring(track_ability))
-		
 	elseif action == 'u' then
-		try_key_press('up')
+		simulate_key_press('up')
 		
 	elseif action == 'd' then
-		try_key_press('down')
+		simulate_key_press('down')
 		
 	elseif action == 'e' then
-		try_key_press('enter')
-		
-	elseif action == 'report' then
-		report = not report
-		windower.add_to_chat(160, 'Report: '..tostring(report))
+		simulate_key_press('enter')
 	
 	else
-		windower.add_to_chat(160, 'Multibox commands: ctrl + esc : Send escape to all characters')
+		windower.add_to_chat(160, 'Multibox commands: ctrl + up/down/left/right/esc : Send key press to all characters')
 		windower.add_to_chat(160, 'Multibox commands: ctrl + enter : tell all characters to try and interact with target')
-		windower.add_to_chat(160, 'Multibox commands: //mb u : Send up arrow to all characters')
-		windower.add_to_chat(160, 'Multibox commands: //mb d : Send down arrow to all characters')
-		windower.add_to_chat(160, 'Multibox commands: //mb e : Send enter to all characters')
-		windower.add_to_chat(160, 'Multibox commands: //mb follow : Disenage and follow current character')
+		windower.add_to_chat(160, 'Multibox commands: //mb follow : Disenage and follow current character, double press to move closer to current location')
 		windower.add_to_chat(160, 'Multibox commands: //mb stop : Stop moving')
 		windower.add_to_chat(160, 'Multibox commands: //mb engage : Engage and approach target')
-		windower.add_to_chat(160, 'Multibox commands: //mb retreat : Engage and move away from target until min_retreat_range')
-		--windower.add_to_chat(160, 'Multibox commands: //mb track spells or ts : Toggle spell tracking - Requires timers')
-		--windower.add_to_chat(160, 'Multibox commands: //mb track abilities or ta : Toggle ability tracking - Requires timers')
+		windower.add_to_chat(160, 'Multibox commands: //mb retreat : Characters turn away, double press to move away from target until min_retreat_range')
 	end
 end)
 
@@ -554,7 +509,6 @@ function engage(new_target)
 end
 
 function update_leader(new_leader) -- new_leader = name
-	--print('Leader update: '..new_leader)
 	self = windower.ffxi.get_mob_by_target('me') 
 	if not self then return end
 	if self.name == new_leader then
@@ -616,8 +570,8 @@ windower.register_event('keyboard',function (dik, pressed, flags, blocked )
 	
 	--print('Keyboard event dik:'..dik..'  pressed:'..tostring(pressed)..'  flags:'..flags..'  blocked:'..tostring(blocked))
 	if dik == 28 and flags == 4 and not pressed then -- dik 28 = enter key, flag 4 = ctrl, not pressed = on key up
-		if interacting then -- In event (Dialog open)
-			try_key_press('enter')		
+		if interacting and not keydown then -- In event (Dialog open)
+			simulate_key_press('enter')
 		else
 			local target = windower.ffxi.get_mob_by_target('t')
 			if not target then return end
@@ -627,41 +581,37 @@ windower.register_event('keyboard',function (dik, pressed, flags, blocked )
 			end
 		end
 	elseif dik == 200 and flags == 4 and not pressed and interacting then -- dik 200 = up key, flag 1 = shift
-		try_key_press('up')
+		simulate_key_press('up')
 	elseif dik == 208 and flags == 4 and not pressed and interacting  then -- dik 208 = down key, flag 1 = shift
-		try_key_press('down')
+		simulate_key_press('down')
 	elseif dik == 1 and flags == 4 and not pressed then -- dik 1 = esc key, flag 1 = shift
-		try_key_press('escape')
+		simulate_key_press('escape')
 	end
 end)
 
-function try_key_press (key_to_press)
+function simulate_key_press (key_to_press)
 	if is_leader then 
 		print('Sending ['..key_to_press..'] to others')
 		windower.send_ipc_message('multibox key_press '..zone..' '..key_to_press) 
 	end
 	
-	windower.send_command('input /party Pressing '..key_to_press)
+	keydown = true
 	windower.send_command('setkey '..key_to_press..' down')
 	coroutine.sleep(0.5)
 	windower.send_command('setkey '..key_to_press..' up')
+	keydown = false
 end
 
 function interact_with_target(target)
 	if not target then print ('No target to interact with') return end
-	current_target = target
-	
+	current_target = target	
 	trying_to_interact = true
 	event_found = false
-	
-	last_report = nil
-	last_message = nil
-	repeat_dialogue = false
 	
 	local success = false
 	
 	for i = 0, 5, 1 do -- Send interactions until we get some kind of response
-		if interacting or event_found or repeat_dialogue then success = true break end
+		if interacting or event_found then success = true break end
 		print('Interact attempt: '..i)
 		packets.inject(packets.new('outgoing', 0x01A, {
 			['Target'] = target.id,
@@ -675,17 +625,10 @@ function interact_with_target(target)
 			change_state('interact')
 		else
 			for i = 0, 3, 1 do -- Check a few times to see if an event started, they take a bit to go through
-				-- print('checking for event success')
-				if event_found then break end
+				if event_found then 
+					change_state('interact') 
+				break end
 				coroutine.sleep(1)
-			end
-			if event_found then 
-				change_state('interact')
-			else -- Got dialogue with no options				
-				if report and last_report ~= last_message then -- Last npc message hasn't been reported yet
-					last_report = last_message
-					windower.send_command('input /party '..last_message)
-				end
 			end
 		end
 	else
@@ -702,7 +645,7 @@ function check_recast(check, kind)
 	elseif kind == 'spell' then
 		recast = math.round(windower.ffxi.get_spell_recasts()[check.recast_id] / 60)
 	else return end
-	if table.contains(blocked_abilities, check.en) or
+	if blocked_abilities and table.contains(blocked_abilities, check.en) or
 	recast > 1200 then return end -- Filter out all 1hrs
 	windower.send_command('send @all timers c "'..job..' : '..check.en..'" '..recast)
 end
@@ -766,23 +709,11 @@ end)
 --- Forward message to leader when recieving a tell ---
 windower.register_event('chat message', function(message, sender, mode)
 	if mode == 3 and not is_leader then
-		windower.send_command('input /tell '..current_leader..' Forward: ['..message..'] - '..sender)
-	end
-end)
-
-previous_message = nil 
---- Output most recent npc dialogue ---
-windower.register_event('incoming text', function(text, modified, mode)
-	if mode < 124 or not report then return end -- Normal chat channel, probably
-	
-	last_message = string.trim(text)
-	if previous_message == last_message then 
-		repeat_dialogue = true 
-	else 
-		previous_message = last_message
+		windower.send_command('input /tell '..current_leader..' Multibox Forward: ['..message..'] - '..sender)
 	end
 end)
  
+-- Block audio change messages
 filter = S{
 	'Sound effects:*',
 	'Background music:*',
