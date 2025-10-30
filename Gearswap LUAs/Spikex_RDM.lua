@@ -13,15 +13,15 @@ end
 function job_setup()	
 	windower.send_command('sta !packets on') -- For SendTarget to work
 	
-    barstatus = S{'Baramnesia', 'Barvirus', 'Barparalyze', 'Barsilence', 'Barpetrify', 'Barpoison', 'Barblind', 'Barsleep'}
     rune_enchantments = S{'Lux','Tenebrae', 'Ignis', 'Gelus', 'Flabra', 'Tellus', 'Sulpor', 'Unda' }
+	barstatus = S{'Baramnesia', 'Barvirus', 'Barparalyze', 'Barsilence', 'Barpetrify', 'Barpoison', 'Barblind', 'Barsleep'} 
 	
     state.WeaponLock = M(false, 'Weapon Lock')	
 	state.WeaponSet = M{['description']='Weapon Set', 'Sword', 'Dual', 'Enspell', 'EnspellDW'}
-    state.OffenseMode:options('Normal', 'Defense')	
+    state.OffenseMode:options('Normal', 'Defense')
     state.Runes = M{['description']='Runes', 'Lux', 'Tenebrae','Ignis', 'Gelus', 'Flabra', 'Tellus', 'Sulpor', 'Unda' }
-    send_command('bind @w gs c toggle WeaponLock')	
-    send_command('bind %capslock gs c cycle WeaponSet')	
+    send_command('bind @w gs c toggle WeaponLock')
+    send_command('bind %capslock gs c cycle WeaponSet')
     --send_command('bind %capslock gs c toggleweapon')	
     send_command('bind @S gs c cycle OffenseMode')
 	
@@ -71,7 +71,7 @@ function user_setup()
 	send_command('send @all bind %~` send Spikex /Break')
 	
 	if player.sub_job == 'SCH' then
-		send_command('lua l stna')
+		send_command('lua l StratagemCounter')
 		send_command('send @all bind %x send Spikex /Accession')
 		send_command('send @all bind !x send Spikex /LightArts')
 		send_command('send @all bind @x send Spikex /AddendumWhite')
@@ -115,18 +115,16 @@ function init_gear_sets()
 		
 	gear.CapeEnf = { name="Sucellos's Cape", augments={'MND+20','Mag. Acc+20 /Mag. Dmg.+20','MND+10','"Fast Cast"+10','Phys. dmg. taken-10%',} }
 	
-    --- Precast Sets ---
-	
     sets.precast.WS = set_combine(sets.engaged, {})
 	sets.precast.WS['Savage Blade'] = set_combine(sets.precast.WS, {
 		ammo	= "Oshasha's Treatise",
-		head  	= "Viti. Chapeau +3",
+		head  	= "Leth. Chappel +2",
         neck	= "Rep. Plat. Medal",
-		ear1	= "Ishvara earring",
 		ear2	= "Moonshade earring",
 		ring1	= "Ruby Ring",
 		waist	= "Sailfi Belt +1",
 		--ring2	= "Cornelia's Ring",
+		feet  	= "Sulevia's Leggings +1",
 		})
 	sets.precast.WS['Sanguine Blade'] = set_combine(sets.precast.WS, {neck="Sibyl Scarf"})
 	
@@ -144,6 +142,7 @@ function init_gear_sets()
     --- Midcast Sets ---
     sets.midcast = {}
     sets.midcast['Enfeebling Magic'] = {
+        sub		= "Ammurapi Shield",
         range	= "Ullr",
 		head  	= "Viti. Chapeau +3",
 		neck  	= "Dls. Torque +2",
@@ -156,7 +155,7 @@ function init_gear_sets()
 		back  	= gear.CapeEnf,
 		waist 	= "Sacro Cord",
 		legs  	= "Leth. Fuseau +2",
-		feet  	= "Leth. Houseaux +2",
+		feet  	= "Vitiation boots +3",
 		}						
     sets.midcast['Enhancing Magic'] = {
         ammo	= "Homiliary",
@@ -172,12 +171,12 @@ function init_gear_sets()
 		waist 	= "Null Belt",
 		legs  	= "Leth. Fuseau +2",
 		feet  	= "Leth. Houseaux +2",
-		}
-    sets.midcast.GainSpell = set_combine(sets.midcast['Enhancing Magic'], { hands="Viti. Gloves +2" })
-	sets.midcast.BarStatus = set_combine(sets.midcast['Enhancing Magic'], { neck = "Sroda Necklace" })
+		}									 
+	sets.midcast.GainSpell = set_combine(sets.midcast['Enhancing Magic'], { hands="Viti. Gloves +2" })
+	sets.midcast.BarStatus = set_combine(sets.midcast['Enhancing Magic'], { neck = "Sroda Necklace" }) 
     sets.midcast['Refresh'] = set_combine(sets.midcast['Enhancing Magic'], {
 		body  	= "Atrophy Tabard +3",
-	}) 
+	})
 	
     --- Engaged Sets ---
     sets.engaged = {
@@ -207,7 +206,7 @@ function init_gear_sets()
 		ring1 	= "Gurebu's Ring", 
 		ring2 	= "Murky Ring",
 		back  	= "Sucellos's Cape",
-		waist 	= "Plat. Mog. Belt",
+		waist 	= "Null belt",
 		legs  	= "Leth. Fuseau +2",
 		feet  	= "Leth. Houseaux +2",
 		}
@@ -253,12 +252,25 @@ function job_buff_change(buff,gain)
             enable('ring1','ring2','waist','neck')
         end
     end
+    if buff == 'Phalanx' then
+        if gain then
+            custom_impetus = true 			
+        else
+            custom_impetus = false 
+            status_change(player.status)
+        end
+		send_command('input /echo Phalanx '..tostring(custom_impetus))
+    end
 end
 function customize_melee_set(meleeSet)
     equip(sets[state.WeaponSet.current])
     if state.OffenseMode.value == "Defense" then
 		meleeSet = sets.defense
     end	
+	if custom_impetus == true then		
+        meleeSet = set_combine(meleeSet, {body="Chocobo Shirt"})
+	end
+	
     return meleeSet
 end
 function job_aftercast(spell, action, spellMap, eventArgs)	
@@ -267,10 +279,21 @@ function job_aftercast(spell, action, spellMap, eventArgs)
 end
 function job_state_change(field, new_value, old_value)
     if state.WeaponLock.value == true then
-        disable('main','sub', 'range')
+        disable('main','sub','range')
     else
-        enable('main','sub', 'range')
+        enable('main','sub','range')
     end
+	--if state.WeaponSet.value == "DPS" then
+	--	send_command('send @all bind %1  sta Spikex /SavageBlade')
+	--	send_command('send @all bind !1  sta Spikex /SwiftBlade')
+	--	send_command('send @all bind %2  sta Spikex /ChantDuCygne')
+	--	send_command('send @all bind !2  sta Spikex /Atonement')
+	--elseif state.WeaponSet.value == "Club" then
+	--	send_command('send @all bind %1  sta Spikex /BlackHalo')
+	--	send_command('send @all bind !1  sta Spikex /HexaStrike')
+	--	send_command('send @all bind %2  sta Spikex /FlashNova')
+	--	send_command('send @all bind !2  sta Spikex /Moonlight')
+	--end
     equip(sets[state.WeaponSet.current])
 	equip(customize_melee_set())
 end
