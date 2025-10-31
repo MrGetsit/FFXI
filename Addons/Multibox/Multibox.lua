@@ -541,12 +541,15 @@ windower.register_event('zone change','load', function (new, old)
 		coroutine.sleep(1)
 	end
 	if not self then return end
-	enable_sound(false)
 	job = windower.ffxi.get_player().main_job
 	zone = windower.ffxi.get_info().zone
 	windower.send_ipc_message('multibox request_leader '..zone)
 	coroutine.sleep(1)
-	if not current_leader then update_leader(self.name) end
+	if not current_leader then 
+		update_leader(self.name) 
+	elseif current_leader ~= self.name then		
+		enable_sound(false)
+	end
 	if current_state ~= 'stop' then change_state('stop') end
 	zoning = false
 end)
