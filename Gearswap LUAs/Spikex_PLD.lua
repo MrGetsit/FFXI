@@ -109,7 +109,7 @@ function init_gear_sets()
 		body  	= {name="Souv. Cuirass +1",		priority=12},	-- 20	171
 		hands 	= {name="Souv. Handschuhs",		priority=11},	-- 7	164
 		ring1	= {name="Etana Ring",			priority= 8},	--		60
-		ring1	= {name="Praan Ring",			priority= 7},	--		60
+		ring1	= {name="Eihwaz Ring",			priority= 7},	-- 5	60
 		back  	= {name=gear.CapeDT,			priority= 6},	-- 10	60
 		waist	= {name="Creed Baudrier",  		priority= 3},	-- 5	40
 		legs  	= {name="Eschite Cuisses",		priority= 9},	-- 7	117
@@ -198,13 +198,13 @@ function init_gear_sets()
         ammo	= {name="Staunch Tathlum",      priority= 3},
 		head  	= {name="Flam. Zucchetto +2",   priority=10},	-- 80
 		neck  	= {name="Null Loop",            priority= 7},	-- 50
-		ear1  	= {name="Tuisto Earring",       priority=12},	-- 150
+		ear1  	= {name="Cessance Earring",     priority=12},	-- 150
 		ear2	= {name="Eabani Earring", 		priority= 6},	-- 45
 		body  	= {name="Reverence Surcoat +3", priority=13},	-- 254
 		hands 	= {name="Sulev. Gauntlets +2",  priority= 4},	-- 30
 		ring1 	= {name="Etana Ring",           priority= 9},	-- 60
 		ring2 	= {name="Rajas Ring",           priority= 2},
-		back  	= gear.CapeDT,            						-- 60
+		back  	= "Null Shawl",
 		waist 	= {name="Sailfi Belt +1",       priority= 1},
 		legs  	= {name="Chev. Cuisses +2",     priority=11},	-- 117
 		feet  	= {name="Flam. Gambieras +2",   priority= 5},	-- 40
@@ -213,13 +213,13 @@ function init_gear_sets()
         ammo	= {name="Focal Orb",            priority= 3},
 		head  	= {name="Flam. Zucchetto +2",   priority=11},	-- 80
 		neck  	= {name="Anu Torque",           priority= 8},	-- 50
-		ear1  	= {name="Tuisto Earring",       priority=12},	-- 150
+		ear1  	= {name="Cessance Earring",     priority=12},	-- 150
 		ear2  	= {name="Eabani Earring",       priority= 6},	-- 45
 		body  	= {name="Reverence Surcoat +3",	priority=13},	-- 254
 		hands 	= {name="Sulev. Gauntlets +2",	priority= 4},	-- 30
 		ring1 	= {name="Etana Ring",           priority=10},	-- 60
 		ring2 	= {name="Rajas Ring",           priority= 2},
-		back  	= gear.CapeDT,            						-- 60
+		back  	= "Null Shawl",
 		waist 	= {name="Sailfi Belt +1",       priority= 1},
 		legs  	= {name="Sulev. Cuisses +2", 	priority= 7},	-- 50
 		feet  	= {name="Flam. Gambieras +2",   priority= 5},	-- 40

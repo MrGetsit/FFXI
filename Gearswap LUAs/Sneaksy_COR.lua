@@ -54,22 +54,23 @@ function user_setup()
 
 	send_command('send @all bind  numpad1 send Sneaksy /SavageBlade ') 
 	send_command('send @all bind  numpad2  sta Sneaksy /LeadenSalute ') 
-	send_command('send @all bind  numpad3 send Sneaksy gs c toggle_autora ') 
+	send_command('send @all bind  numpad3 send Sneaksy /LightShot ') 
 	send_command('send @all bind !numpad1  sta Sneaksy /Requiescat ') 
 	send_command('send @all bind !numpad2  sta Sneaksy /LastStand ') 
-	send_command('send @all bind !numpad3 send Sneaksy /TripleShot ') 
+	send_command('send @all bind !numpad3 send Sneaksy /DarkShot ') 
 	send_command('send @all bind ~numpad1 send Sneaksy /SamuraiRoll ') 
 	send_command('send @all bind ~numpad2 send Sneaksy /ChaosRoll ') 
 	send_command('send @all bind ~numpad3 send Sneaksy /DoubleUp ') 
 	send_command('send @all bind @numpad1 send Sneaksy /CrookedCards ') 
 	send_command('send @all bind @numpad2 send Sneaksy /Fold ') 
 	send_command('send @all bind @numpad3 send Sneaksy /SnakeEye ') 
+	--send_command('send @all bind  numpad3 send Sneaksy gs c toggle_autora ') 
 	
 	if player.sub_job == 'DNC' then
 		send_command('send @all bind ^numpad1  sta Sneaksy /HealingWaltz <stpc> ') 
 		send_command('send @all bind ^numpad2  sta Sneaksy /CuringWaltz3 <stpc> ') 
 		send_command('send @all bind ^numpad3 send Sneaksy /HasteSamba ')  
-		send_command('send @all bind %pageup send Sneaksy /ReverseFlourish ') 
+		--send_command('send @all bind %pageup send Sneaksy /ReverseFlourish ') 
 		send_command('send @all bind %pagedown send Sneaksy /Boxstep ') 
 		send_command('send @all bind ~pagedown send Sneaksy /Quickstep ') 
 		send_command('send @all bind ^pagedown send Sneaksy /StutterStep ') 
@@ -95,7 +96,7 @@ end
 function init_gear_sets()
     --- Weapon Sets ---
     sets.Sword 	= 	{ main="Naegling", 	sub="Tauret",	range="Anarchy +2",	ammo="Bronze bullet"}
-    sets.Dagger = 	{ main="Tauret"}
+    sets.Dagger = 	{ main="Tauret", 	sub="Naegling",}
 
 	gear.CapeTP = { name="Camulus's Mantle", augments={'DEX+1','Accuracy+20 Attack+20','"Dbl.Atk."+10',} }
 	gear.CapeWSD= { name="Camulus's Mantle", augments={'DEX+1','Accuracy+20 Attack+20','STR+8','Weapon skill damage +10%',} }
@@ -116,7 +117,7 @@ function init_gear_sets()
 		hands	= "Chasseur's Gants +3",
 		ring1	= "Cornelia's Ring",
 		back	= gear.CapeWSD,
-		feet 	= "Lanun bottes +2",
+		feet 	= "Lanun bottes +4",
 		}
     sets.precast.WS['Savage Blade'] = set_combine(sets.precast.WS, {
 		waist	= "Prosilio Belt +1",  	
@@ -143,9 +144,9 @@ function init_gear_sets()
     sets.engaged = {
 		ammo 	= "Bronze Bullet",
 		head 	= "Malignance Chapeau",
-		neck 	= "Sanctity Necklace",
+		neck 	= "Asperity Necklace",
 		ear1 	= "Eabani Earring",
-		ear2 	= "Odr Earring",
+		ear2 	= "Suppanomimi",
 		body 	= "Malignance Tabard",
 		hands	= "Adhemar Wrist. +1",
 		ring1	= "Chirich Ring +1",
@@ -153,22 +154,22 @@ function init_gear_sets()
 		back	= "Null Shawl",
 		waist	= "Sailfi Belt +1",  
 		legs 	= "Meg. Chausses +2",
-		feet 	= "Mummu Gamash. +2",
+		feet 	= "Malignance Boots",
 		}
 
     sets.defense = {
 		head 	= "Malignance Chapeau",
-		neck 	= "Sanctity Necklace",
+		neck 	= "Null Loop",
 		ear1 	= "Eabani Earring",
-		ear2 	= "Allegro Earring",
+		ear2 	= "Alabaster Earring",
 		body 	= "Malignance Tabard",
-		hands	= "Mummu Wrists +2",
+		hands	= "Malignance Gloves",
 		ring1	= "Chirich Ring +1",
 		ring2 	= "Murky Ring",
 		back	= "Null Shawl",
 		waist	= "Plat. Mog. Belt",  
 		legs 	= "Meg. Chausses +2",
-		feet 	= "Mummu Gamash. +2",
+		feet 	= "Malignance Boots",
         }
 
     --- Other Sets ---
@@ -230,7 +231,20 @@ function job_state_change(field, new_value, old_value)
         disable('main','sub')
     else
         enable('main','sub')
-    end
+	end
+	if state.WeaponSet.value == "Sword" then	
+		if player.equipment.main == "Tauret" then
+			send_command('input /equip main')
+		end
+		send_command('send @all bind  numpad1 send Sneaksy /SavageBlade ') 
+		send_command('send @all bind !numpad1  sta Sneaksy /Requiescat ')
+	elseif state.WeaponSet.value == "Dagger" then
+		if player.equipment.main == "Naegling" then
+			send_command('input /equip main')
+		end
+		send_command('send @all bind  numpad1 send Sneaksy /Exenterator ') 
+		send_command('send @all bind !numpad1  sta Sneaksy /Evisceration ') 
+	end
     equip(sets[state.WeaponSet.current])
 end
 function job_update(cmdParams, eventArgs)

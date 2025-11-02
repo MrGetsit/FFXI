@@ -123,7 +123,7 @@ function user_setup()
 	send_command('send @all bind  numpad9 send Cissilea '..geoBuff) 
 	send_command('send @all bind !numpad8 send Cissilea gs c entrustbuff')
 	send_command('send @all bind !numpad9 send Cissilea gs c superbuff')	
-	send_command('send @all bind ~numpad7 send Cissilea gs c aoe')		
+	send_command('send @all bind ~numpad7  sta Cissilea Dia2')		
 	send_command('send @all bind ~numpad9  sta Cissilea Cure4 <stpc>') 
 	send_command('send @all bind @numpad7  sta Cissilea '..nuke) 
 	send_command('send @all bind @numpad8  sta Cissilea Haste <stpc>') 
@@ -147,10 +147,11 @@ end
 function init_gear_sets()
     --- Weapon Sets ---
     sets.Club 	= 	{ main="Daybreak", sub="Culminus"}
-    sets.Staff 		= 	{ main="Malignance Pole", sub="Enki Strap"}
+    sets.Staff 	= 	{ main="Malignance Pole", sub="Enki Strap"}
 	
 	gear.REGENCape = { name="Nantosuelta's Cape", augments={'HP+60','Accuracy+20 Attack+20','Pet: "Regen"+10','Pet: "Regen"+5',}}
 	gear.MDCape = { name="Nantosuelta's Cape", augments={'INT+20','Mag. Acc+20 /Mag. Dmg.+20','Magic Damage +10','"Mag.Atk.Bns."+10',}}
+	gear.FCcape = { name="Nantosuelta's Cape", augments={'MND+20','Mag. Acc+20 /Mag. Dmg.+20','"Fast Cast"+10',}}
 	
     --- Precast Sets ---	
     sets.precast.FC = {
@@ -158,15 +159,15 @@ function init_gear_sets()
 		ring2 	= "Jhakri Ring",
 		legs	= "Geomancy Pants +2",
 		feet  	= "Jhakri Pigaches +2",
-		back	= "Lifestream Cape",
+		back	= gear.FCcape,
 		}
 	sets.precast.FC['Elemental Magic'] = set_combine(sets.precast.FC, {
 		head  	= "Mallquis Chapeau +1",
 		neck	= "Orunmila's Torque",
-		body  	= "Jhakri Robe +2",
+		body  	= "Azimuth Coat +3",
 		hands 	= "Mallquis Cuffs +1",
 		legs  	= "Mallquis Trews +1",
-		feet  	= "Mallquis Clogs +2",
+		feet  	= "Azimuth Gaiters +3",
 		ring1	= "Mallquis Ring",
 		})
 	sets.precast.FC['Healing Magic'] = set_combine(sets.precast.FC, {
@@ -190,7 +191,7 @@ function init_gear_sets()
 		neck	= "Mizu. Kubikazari",
 		ear1  	= "Static Earring",
 		ear2  	= "Friomisi Earring",
-		body  	= "Jhakri Robe +2",
+		body  	= "Azimuth Coat +3",
 		hands 	= "Jhakri cuffs +2",
 		legs  	= "Jhakri Slops +2",
 		feet  	= "Jhakri Pigaches +2",
@@ -226,7 +227,7 @@ function init_gear_sets()
 		neck  	= "Sanctity Necklace",
 		ear1  	= "Vor Earring",
 		ear2  	= "Flashward Earring",
-		body  	= "Geomancy Tunic +2",
+		body  	= "Azimuth Coat +3",
 		hands 	= "Geomancy mitaines +3",
 		ring1 	= "Gurebu's Ring",
 		ring2 	= "Rajas Ring",

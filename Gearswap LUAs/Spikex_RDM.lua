@@ -113,18 +113,21 @@ function init_gear_sets()
     sets.Enspell	= 	{ main="Qutrub Knife", 		sub="Diamond Aspis"}
     sets.EnspellDW	= 	{ main="Qutrub Knife", 		sub="Ceremonial Dagger"}
 		
-	gear.CapeEnf = { name="Sucellos's Cape", augments={'MND+20','Mag. Acc+20 /Mag. Dmg.+20','MND+10','"Fast Cast"+10','Phys. dmg. taken-10%',} }
+	gear.CapeMND = { name="Sucellos's Cape", augments={'MND+20','Mag. Acc+20 /Mag. Dmg.+20','MND+10','"Fast Cast"+10','Phys. dmg. taken-10%',} }
+	gear.CapeWSD = { name="Sucellos's Cape", augments={'STR+20','Accuracy+20 Attack+20','STR+10','Weapon skill damage +10%',} }
 	
     sets.precast.WS = set_combine(sets.engaged, {})
 	sets.precast.WS['Savage Blade'] = set_combine(sets.precast.WS, {
 		ammo	= "Oshasha's Treatise",
-		head  	= "Leth. Chappel +2",
+		head  	= "Viti. Chapeau +3",
         neck	= "Rep. Plat. Medal",
 		ear2	= "Moonshade earring",
-		ring1	= "Ruby Ring",
+		ring1	= "Petrov Ring",
+		ring2	= "Rajas Ring",
+		back	= gear.CapeWSD,
 		waist	= "Sailfi Belt +1",
 		--ring2	= "Cornelia's Ring",
-		feet  	= "Sulevia's Leggings +1",
+		feet  	= "Leth. Houseaux +2",
 		})
 	sets.precast.WS['Sanguine Blade'] = set_combine(sets.precast.WS, {neck="Sibyl Scarf"})
 	
@@ -136,14 +139,31 @@ function init_gear_sets()
 		--hands	= "Leyline Gloves",       	-- 7
 		ring1	= "Prolix Ring",			-- 2
 		ring2	= "Weather. Ring",			-- 5
-		back  	= "Sucellos's Cape",		-- 10
+		back  	= gear.CapeMND,		-- 10
 		}       
 		
     --- Midcast Sets ---
     sets.midcast = {}
-    sets.midcast['Enfeebling Magic'] = {
+    sets.midcast['Elemental Magic'] = {
         sub		= "Ammurapi Shield",
-        range	= "Ullr",
+        ammo	= "Ghastly Tathlum +1",
+		head  	= "Leth. Chappel +2",
+		neck  	= "Sibyl Scarf",
+		ear1  	= "Malignance Earring",
+		ear2  	= "Snotra Earring",
+		body  	= "Lethargy Sayon +3",
+		hands 	= "Leth. Ganth. +3",
+		ring1 	= "Stikini Ring +1",
+		ring2 	= "Metamor. Ring +1",
+		back  	= gear.CapeMND,
+		waist 	= "Acuity Belt +1",
+		legs  	= "Leth. Fuseau +3",
+		feet  	= "Vitiation boots +4",
+		}		
+    sets.midcast['Enfeebling Magic'] = { -- Priority for ammo on weapon lock
+        sub		= "Ammurapi Shield",
+		--range	= "Ullr",				
+        ammo	= {name="Regal Gem", priority = 1},
 		head  	= "Viti. Chapeau +3",
 		neck  	= "Dls. Torque +2",
 		ear1  	= "Malignance Earring",
@@ -152,10 +172,10 @@ function init_gear_sets()
 		hands 	= "Leth. Ganth. +3",
 		ring1 	= "Stikini Ring +1",
 		ring2 	= "Metamor. Ring +1",
-		back  	= gear.CapeEnf,
+		back  	= gear.CapeMND,
 		waist 	= "Sacro Cord",
-		legs  	= "Leth. Fuseau +2",
-		feet  	= "Vitiation boots +3",
+		legs  	= "Leth. Fuseau +3",
+		feet  	= "Vitiation boots +4",
 		}						
     sets.midcast['Enhancing Magic'] = {
         ammo	= "Homiliary",
@@ -167,31 +187,48 @@ function init_gear_sets()
 		hands 	= "Leth. Ganth. +3",
 		ring1 	= "Stikini Ring +1",
 		ring2 	= "Metamor. Ring +1",
-		back  	= "Sucellos's Cape",
+		back  	= gear.CapeMND,
 		waist 	= "Null Belt",
-		legs  	= "Leth. Fuseau +2",
+		legs  	= "Leth. Fuseau +3",
 		feet  	= "Leth. Houseaux +2",
 		}									 
-	sets.midcast.GainSpell = set_combine(sets.midcast['Enhancing Magic'], { hands="Viti. Gloves +2" })
-	sets.midcast.BarStatus = set_combine(sets.midcast['Enhancing Magic'], { neck = "Sroda Necklace" }) 
+	sets.midcast.GainSpell = set_combine(sets.midcast['Enhancing Magic'], {
+		hands	= "Viti. Gloves +2", })
+	sets.midcast.BarStatus = set_combine(sets.midcast['Enhancing Magic'], { 
+		neck	= "Sroda Necklace", }) 
     sets.midcast['Refresh'] = set_combine(sets.midcast['Enhancing Magic'], {
-		body  	= "Atrophy Tabard +3",
-	})
+		head  	= "Amalric Coif +1",		-- +2
+		body  	= "Atrophy Tabard +3",		-- +2
+		legs  	= "Leth. Fuseau +3", })		-- +4
+    sets.midcast['Stoneskin'] = set_combine(sets.midcast['Enhancing Magic'], {
+		neck  	= "Nodens Gorget",			-- +30
+		ear1	= "Earthcry Earring",		-- +10
+		hands	= "Stone Mufflers",			-- +30
+		legs  	= "Shedir Seraweels", })	-- +35
+    sets.midcast['Aquaveil'] = set_combine(sets.midcast['Enhancing Magic'], {
+		head  	= "Amalric Coif +1",		-- +2
+		hands  	= "Regal Cuffs",			-- +2
+		waist	= "Emphatikos Rope",		-- +1
+		legs  	= "Shedir Seraweels", })	-- +1
+    sets.midcast.Cure = set_combine(sets.midcast['Enhancing Magic'], {
+		neck  	= "Nodens Gorget",
+		legs  	= "Chironic Hose", })
 	
     --- Engaged Sets ---
     sets.engaged = {
-        ammo	= "Homiliary",
+        --ammo	= "Homiliary",
+		ammo 	= "Beetle Arrow",
 		head  	= "Malignance Chapeau",
-		neck  	= "Null Loop",
-		ear1  	= "Malignance Earring",
-		ear2  	= "Lethargy Earring",
+		neck  	= "Anu Torque",
+		ear1  	= "Cessance Earring",
+		ear2  	= "Eabani Earring",
 		body  	= "Lethargy Sayon +3",
 		hands 	= "Leth. Ganth. +3",
-		ring1 	= "Gurebu's Ring", 
+		ring1 	= "Petrov Ring", 
 		ring2 	= "Rajas Ring",
-		back  	= "Sucellos's Cape",
+		back  	= "Null Shawl",
 		waist 	= "Null Belt",
-		legs  	= "Leth. Fuseau +2",
+		legs  	= "Leth. Fuseau +3",
 		feet  	= "Leth. Houseaux +2",
 		}
 		
@@ -205,9 +242,9 @@ function init_gear_sets()
 		hands 	= "Leth. Ganth. +3",
 		ring1 	= "Gurebu's Ring", 
 		ring2 	= "Murky Ring",
-		back  	= "Sucellos's Cape",
+		back  	= gear.CapeMND,
 		waist 	= "Null belt",
-		legs  	= "Leth. Fuseau +2",
+		legs  	= "Leth. Fuseau +3",
 		feet  	= "Leth. Houseaux +2",
 		}
 		
@@ -252,24 +289,12 @@ function job_buff_change(buff,gain)
             enable('ring1','ring2','waist','neck')
         end
     end
-    if buff == 'Phalanx' then
-        if gain then
-            custom_impetus = true 			
-        else
-            custom_impetus = false 
-            status_change(player.status)
-        end
-		send_command('input /echo Phalanx '..tostring(custom_impetus))
-    end
 end
 function customize_melee_set(meleeSet)
     equip(sets[state.WeaponSet.current])
     if state.OffenseMode.value == "Defense" then
 		meleeSet = sets.defense
     end	
-	if custom_impetus == true then		
-        meleeSet = set_combine(meleeSet, {body="Chocobo Shirt"})
-	end
 	
     return meleeSet
 end

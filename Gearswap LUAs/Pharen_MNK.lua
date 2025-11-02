@@ -31,10 +31,14 @@ function user_setup()
 	send_command('send @all bind  numpad6 send Pharen /boost') 
 	send_command('send @all bind !numpad4 send Pharen /Provoke') 
 	send_command('send @all bind !numpad5 send Pharen /Chakra') 
-	send_command('send @all bind !numpad6 send Pharen exec MonkOBuffs.txt') 
-	send_command('send @all bind ^numpad6 send Pharen exec MonkDBuffs.txt') 
+	send_command('send @all bind !numpad6 send Pharen exec MonkDBuffs.txt') 
+	send_command('send @all bind ^numpad4 send Pharen /Counterstance') 
+	send_command('send @all bind ^numpad5 send Pharen /Impetus') 
+	send_command('send @all bind ^numpad6 send Pharen exec MonkOBuffs.txt') 
 	
-	send_command('wait 5; input /lockstyleset 2') 
+	send_command('send @all bind %pageup send Pharen /ChiBlast ') 
+	
+	send_command('wait 5; input /lockstyle on') 
 end
 
 function init_gear_sets()
