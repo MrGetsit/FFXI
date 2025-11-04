@@ -25,6 +25,15 @@ function job_setup()
     --send_command('bind %capslock gs c toggleweapon')	
     send_command('bind @S gs c cycle OffenseMode')
 	
+    enfeebling_mnd = S{'Paralyze', 'Paralyze II', 'Addle', 'Addle II', 'Slow', 'Slow II'}
+    enfeebling_skill = S{'Distract III', 'Frazzle III', 'Poison', 'Poison II'}
+    enfeebling_accuracy = S{'Frazzle II', 'Dispel'}
+    enfeebling_duration = S{'Sleep', 'Sleep II', 'Sleepga', 'Bind', 'Break', 'Silence', 'Inundation'}
+
+    skill_spells = S{
+        'Temper', 'Temper II', 'Enfire', 'Enfire II', 'Enblizzard', 'Enblizzard II', 'Enaero', 'Enaero II',
+        'Enstone', 'Enstone II', 'Enthunder', 'Enthunder II', 'Enwater', 'Enwater II'}
+		
 	send_command('lua l xipivot')
 	send_command('Pivot a NextHD')
 end
@@ -116,20 +125,38 @@ function init_gear_sets()
 	gear.CapeMND = { name="Sucellos's Cape", augments={'MND+20','Mag. Acc+20 /Mag. Dmg.+20','MND+10','"Fast Cast"+10','Phys. dmg. taken-10%',} }
 	gear.CapeWSD = { name="Sucellos's Cape", augments={'STR+20','Accuracy+20 Attack+20','STR+10','Weapon skill damage +10%',} }
 	
-    sets.precast.WS = set_combine(sets.engaged, {})
-	sets.precast.WS['Savage Blade'] = set_combine(sets.precast.WS, {
+	sets.precast.WS = {
 		ammo	= "Oshasha's Treatise",
 		head  	= "Viti. Chapeau +3",
-        neck	= "Rep. Plat. Medal",
+		neck	= "Sibyl Scarf",
+		ear1	= "Malignance earring",
 		ear2	= "Moonshade earring",
+		body	= "Lethargy Sayon +3",
+		hands	= "Leth. Ganth. +3",
+		ring1	= "Gurebu's Ring",
+		ring2 	= "Metamor. Ring +1",
+		back	= gear.CapeWSD,
+		waist	= "Eschan Stone",
+		legs	= "Leth. Fuseau +3",
+		feet  	= "Leth. Houseaux +2",
+		}
+	
+	sets.precast.WS['Savage Blade'] = {
+		ammo	= "Oshasha's Treatise",
+		head  	= "Viti. Chapeau +3",
+		neck	= "Rep. Plat. Medal",
+		ear1	= "Ishvara earring",
+		ear2	= "Moonshade earring",
+		body	= "Lethargy Sayon +3",
+		hands	= "Jhakri cuffs +2",
 		ring1	= "Petrov Ring",
 		ring2	= "Rajas Ring",
 		back	= gear.CapeWSD,
 		waist	= "Sailfi Belt +1",
-		--ring2	= "Cornelia's Ring",
+		legs	= "Leth. Fuseau +3",
 		feet  	= "Leth. Houseaux +2",
 		})
-	sets.precast.WS['Sanguine Blade'] = set_combine(sets.precast.WS, {neck="Sibyl Scarf"})
+	sets.precast.WS['Sanguine Blade'] = set_combine(sets.precast.WS, {ear2="Friomisi Earring"})
 	
     sets.precast.FC = {						-- 49 + 38
 		ammo  	= "Sapience Orb",			-- 2
@@ -140,10 +167,9 @@ function init_gear_sets()
 		ring1	= "Prolix Ring",			-- 2
 		ring2	= "Weather. Ring",			-- 5
 		back  	= gear.CapeMND,		-- 10
-		}       
+		}
 		
     --- Midcast Sets ---
-    sets.midcast = {}
     sets.midcast['Elemental Magic'] = {
         sub		= "Ammurapi Shield",
         ammo	= "Ghastly Tathlum +1",
@@ -159,11 +185,12 @@ function init_gear_sets()
 		waist 	= "Acuity Belt +1",
 		legs  	= "Leth. Fuseau +3",
 		feet  	= "Vitiation boots +4",
-		}		
-    sets.midcast['Enfeebling Magic'] = { -- Priority for ammo on weapon lock
+		}
+		
+	sets.EnfMND = { -- Paralyze, Paralyze II, Addle, Addle II, Slow, Slow II
+        main	= "Daybreak",
         sub		= "Ammurapi Shield",
-		--range	= "Ullr",				
-        ammo	= {name="Regal Gem", priority = 1},
+        ammo	= "Regal Gem",
 		head  	= "Viti. Chapeau +3",
 		neck  	= "Dls. Torque +2",
 		ear1  	= "Malignance Earring",
@@ -176,7 +203,22 @@ function init_gear_sets()
 		waist 	= "Sacro Cord",
 		legs  	= "Leth. Fuseau +3",
 		feet  	= "Vitiation boots +4",
-		}						
+		}
+	sets.EnfSkill = set_combine(sets.EnfMND, { -- Frazzle III, Distract III, Poison, Poison II 
+		ear1  	= "Vor Earring",
+		ring2 	= "Stikini Ring +1",
+		})
+	sets.EnfAcc = set_combine(sets.EnfMND, { -- Frazzle II, Dispel 
+		range	= "Ullr",
+		neck	= "Null Loop",
+		body	= "Atrophy Tabard +3",
+		back	= "Null Shawl",
+		waist	= "Null Belt",
+		})
+	sets.EnfDur = set_combine(sets.EnfMND, { -- Sleep, Sleep II, Bind, Break, Silence
+		ring2	= "Kishar Ring",
+		})
+	
     sets.midcast['Enhancing Magic'] = {
         ammo	= "Homiliary",
 		head  	= "Leth. Chappel +2",
@@ -186,12 +228,12 @@ function init_gear_sets()
 		body  	= "Lethargy Sayon +3",
 		hands 	= "Leth. Ganth. +3",
 		ring1 	= "Stikini Ring +1",
-		ring2 	= "Metamor. Ring +1",
+		ring2 	= "Kishar Ring",
 		back  	= gear.CapeMND,
 		waist 	= "Null Belt",
 		legs  	= "Leth. Fuseau +3",
 		feet  	= "Leth. Houseaux +2",
-		}									 
+		}
 	sets.midcast.GainSpell = set_combine(sets.midcast['Enhancing Magic'], {
 		hands	= "Viti. Gloves +2", })
 	sets.midcast.BarStatus = set_combine(sets.midcast['Enhancing Magic'], { 
@@ -262,18 +304,32 @@ end
 
 function job_post_precast(spell, action, spellMap, eventArgs)
 	if spell.type == "WeaponSkill" and player.tp >= 2950 then
-		equip({ear2="Ishvara Earring"})	
+		equip({ear2="Ishvara Earring"})
 	end
 end
+
 function job_post_midcast(spell, action, spellMap, eventArgs)
-    if spell.skill == 'Enhancing Magic' then
-		if spell.english:startswith('Gain') then
-            equip(sets.midcast.GainSpell)
-        elseif barstatus:contains(spell.english) then
-            equip(sets.midcast.BarStatus)
+    if spell.action_type == 'Magic' then
+		if spell.skill == 'Enhancing Magic' then
+			if spell.english:startswith('Gain') then
+				equip(sets.midcast.GainSpell)
+			elseif barstatus:contains(spell.english) then
+				equip(sets.midcast.BarStatus)
+			end
+		elseif spell.skill == 'Enfeebling Magic' then
+			if enfeebling_skill:contains(spell.english) then
+                equip(sets.EnfSkill)
+			elseif enfeebling_accuracy:contains(spell.english) then
+                equip(sets.EnfAcc)
+			elseif enfeebling_duration:contains(spell.english) then
+                equip(sets.EnfDur)
+			else
+               equip(sets.EnfMND)
+            end
         end
-    end
+	end
 end
+
 function job_buff_change(buff,gain)
     if buff == "terror" or buff == "petrification" or buff == "stun" then
         if gain then
@@ -290,6 +346,7 @@ function job_buff_change(buff,gain)
         end
     end
 end
+
 function customize_melee_set(meleeSet)
     equip(sets[state.WeaponSet.current])
     if state.OffenseMode.value == "Defense" then
@@ -298,10 +355,12 @@ function customize_melee_set(meleeSet)
 	
     return meleeSet
 end
+
 function job_aftercast(spell, action, spellMap, eventArgs)	
     equip(sets[state.WeaponSet.current])
 	equip(customize_melee_set())
 end
+
 function job_state_change(field, new_value, old_value)
     if state.WeaponLock.value == true then
         disable('main','sub','range')
@@ -322,9 +381,11 @@ function job_state_change(field, new_value, old_value)
     equip(sets[state.WeaponSet.current])
 	equip(customize_melee_set())
 end
+
 function job_update(cmdParams, eventArgs)
     equip(sets[state.WeaponSet.current])
 end
+
 function job_self_command(cmdParams, eventArgs)
     if cmdParams[1]:lower() == 'rune' then
         send_command('@input /ja '..state.Runes.value..' <me>')
