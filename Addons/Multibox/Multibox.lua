@@ -1,14 +1,12 @@
 _addon.author = 'Spikex'
-_addon.version = '0.86'
+_addon.version = '0.87'
 _addon.commands = { 'multibox', 'mb' }
 
 -- Changes: 
--- Removed resume interrupt for follow, shouldn't stop following after combat anymore
--- Split off zone from load events and added login, turns autotarget off by default to help prevent issues
--- Changed combat lock on to be checked even when in range, should fix sometimes not facing target
--- Tweaked check to include 0 and more evenly spaced out checks
--- Fixed getting interrupted during a cast not resuming state
--- Fixed ctrl enter imputing twice when framerate too high, checking key down instead of up now
+-- Added toggle for specific characters follow/engage
+-- Added sleep to zone to keep it from switching back too fast
+-- Added waypoint check to fix error leaving combat
+-- Fixed follower not moving through zone after leader
 
 config = require('config')
 require('sets')
@@ -29,6 +27,8 @@ min_retreat_range = 12
 max_retreat_range =  15
 is_following = false
 engage_distance = 1.2
+can_follow = true
+can_engage = true
 current_leader = nil
 is_leader = false
 moving = false
@@ -62,11 +62,19 @@ windower.register_event('ipc message', function (msg)
 	ipc_message = msg:split(' ')
 	if ipc_message[1] ~= 'multibox' then return end
 	local command = ipc_message[2]
-	if command == 'mute_others' then enable_sound(false) return end
-	if ipc_message[3] ~= tostring(zone) then return end
+	local ipc_zone = ipc_message[3]
 	local arg1 = ipc_message[4]
 	local arg2 = ipc_message[5]
 	local arg3 = ipc_message[6]
+	
+	if command == 'mute_others' then 
+		enable_sound(false) return
+		
+	elseif command == 'toggle' then
+		toggle_state(arg1, arg2)
+	end
+	
+	if ipc_zone ~= tostring(zone) then return end
 	
 	if command == 'pos_update' then 
 		new_waypoint = { x = arg1, y = arg2 }
@@ -125,6 +133,7 @@ function change_state(new_state, arg1, arg2, arg3)
 	check = 0
 	
 	if new_state == 'follow' then
+		
 		stop_engage = true
 		is_following = true
 		if is_leader then
@@ -136,7 +145,7 @@ function change_state(new_state, arg1, arg2, arg3)
 				coroutine.schedule(end_double_tap, 2)
 				windower.send_ipc_message('multibox follow '..zone..' '..self.x..' '..self.y)
 			end
-		else
+		elseif can_follow then
 			if self.status == 1 then windower.send_command('input /attack off') end -- Disengage from combat
 			current_target = windower.ffxi.get_mob_by_name(current_leader) -- Know who to turn to when stopped
 			if arg1 then 
@@ -165,6 +174,7 @@ function change_state(new_state, arg1, arg2, arg3)
 		is_following = false
 		
 	elseif new_state == 'advance' then
+		if not can_engage then return end
 		stop_engage = true
 		stop_moving()
 
@@ -265,8 +275,11 @@ windower.register_event('postrender', function()
 					change_state('stop')
 				end
 			end
-		else -- Move follower 
-			if not current_waypoint then windower.send_command('input /party No Waypoint') change_state('stop') return end
+		elseif can_follow then -- Move follower 
+			if not current_waypoint then 
+				windower.send_command('input /party No Waypoint') 
+				change_state('stop') 
+				return end
 			
 			waypoint_distance = math.sqrt((current_waypoint.x - self.x)^2 + (current_waypoint.y - self.y)^2)
 			
@@ -291,12 +304,17 @@ windower.register_event('postrender', function()
 					last_checked_distance = waypoint_distance + 0.2
 				end
 			else
+				if not current_waypoint then 
+					windower.send_command('Missing waypoint') 
+					change_state('stop')
+					return end
+				
 				if move_here and waypoint_distance > 0.5 or waypoint_distance > 2.5 then -- Start moving to next waypoint
 					--windower.send_command('input /party Next waypoint '..waypoint_distance)
 					last_checked_distance = waypoint_distance + 0.5
 					windower.ffxi.run(get_direction(current_waypoint))
 				
-				elseif current_waypoint ~= new_waypoint then -- Update next waypoint
+				elseif new_waypoint and current_waypoint ~= new_waypoint then -- Update next waypoint
 					local wdist = math.sqrt((new_waypoint.x - current_waypoint.x)^2 + (new_waypoint.y - current_waypoint.y)^2)
 					if wdist < 30 then -- Check that the next waypoint is nearby
 						current_waypoint = new_waypoint -- Move to next waypoint
@@ -413,7 +431,20 @@ function turn_to_target(target, invert)
 	windower.ffxi.turn(turn_direction)
 end
 
-windower.register_event('addon command', function(action, arg1)
+function toggle_state(arg1, arg2)
+	if arg1 == 'follow' and string.lower(arg2) == string.lower(self.name) then
+		can_follow = not can_follow
+		windower.send_command('input /party Follow: '..tostring(can_follow))
+		if current_state == 'follow' and not can_follow then stop_moving() end
+		
+	elseif arg1 == 'engage' and string.lower(arg2) == string.lower(self.name) then
+		can_engage = not can_engage
+		windower.send_command('input /party Engage: '..tostring(can_engage))
+		if current_state == 'advance' and not can_engage then change_state('stop') end
+	end
+end
+
+windower.register_event('addon command', function(action, arg1, arg2)
 	if not windower.ffxi.get_info().logged_in then return end
 	if not self then self = windower.ffxi.get_player() end
 	
@@ -440,6 +471,23 @@ windower.register_event('addon command', function(action, arg1)
 			change_state('retreat')
 		end
 		
+	elseif action == 'toggle' or action == 't' then
+		if not arg1 or not arg2 then
+			windower.add_to_chat(160, 'Specify what to toggle: mb toggle follow character or mb toggle engage character')
+			return end
+		
+		if arg1 == 'follow' or arg1 == 'f' then
+			cmd = 'follow'
+		elseif arg1 == 'engage' or arg1 == 'e' then
+			cmd = 'engage'
+		else return end
+		
+		if string.lower(arg2) == string.lower(self.name) then 
+			toggle_state(cmd, arg2) 
+		else
+			windower.send_ipc_message('multibox toggle '..zone..' '..cmd..' '..arg2)
+		end
+		
 	elseif action == 'u' then
 		simulate_key_press('up')
 		
@@ -456,6 +504,8 @@ windower.register_event('addon command', function(action, arg1)
 		windower.add_to_chat(160, 'Multibox commands: //mb stop : Stop moving')
 		windower.add_to_chat(160, 'Multibox commands: //mb engage : Engage and approach target')
 		windower.add_to_chat(160, 'Multibox commands: //mb retreat : Characters turn away, double press to move away from target until min_retreat_range')
+		windower.add_to_chat(160, 'Multibox commands: //mb toggle follow character or //mb t f character: Disable/Enable follow for character')
+		windower.add_to_chat(160, 'Multibox commands: //mb toggle engage character or //mb t e character: Disable/Enable engage for character')
 	end
 end)
 
@@ -558,6 +608,8 @@ end)
 
 windower.register_event('zone change',function (new, old)
 	zone = windower.ffxi.get_info().zone
+	coroutine.sleep(2)
+	enable_sound(false)
 	zoning = false
 end)
 
@@ -713,6 +765,8 @@ windower.register_event('incoming chunk', function(id, data)
 		if current_state == 'casting' then 
 			change_state('casting')
 		end
+	elseif id == 0x00B then -- Started zoning
+		change_state('zoning')
 	end
 end)
 
