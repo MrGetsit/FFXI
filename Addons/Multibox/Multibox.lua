@@ -1,12 +1,14 @@
 _addon.author = 'Spikex'
-_addon.version = '0.87'
+_addon.version = '0.88'
 _addon.commands = { 'multibox', 'mb' }
 
 -- Changes: 
--- Added toggle for specific characters follow/engage
--- Added sleep to zone to keep it from switching back too fast
--- Added waypoint check to fix error leaving combat
--- Fixed follower not moving through zone after leader
+-- Sound fix, changed how current character was selected
+-- Fixed turning toward leader while in combat when following
+-- Stop moving when changing characters
+-- Removed redundant zone calls, should hopefully stop moving after zoning
+-- Set max distance to try and run to zone to 6, shouldn't run off too far if a zone is missed
+-- Tidy up and sorted functions 
 
 config = require('config')
 require('sets')
@@ -36,14 +38,13 @@ self = nil
 interacting = false
 zone = nil -- Current zone leader is in
 zoning = false
-check = 0 -- Increment to not check every frame
-double_tap = false -- Move exactly to where leader is instead of just close
+double_tap = false
 casting = false -- Don't start moving during a cast, Works but is messed up by sendtargets packet interception
 keydown = false
+has_focus = false
+check = 0 -- Increment to not check every frame
 
-blocked_abilities = S{
-}
- 
+blocked_abilities = S{} 
 default_settings = {}
  
 settings = config.load(default_settings)
@@ -55,56 +56,22 @@ function update_display(show)
 	else t:visible(false) end
 end
 
-windower.register_event('ipc message', function (msg)
-    if not windower.ffxi.get_info().logged_in or not self then return end
-	zone = windower.ffxi.get_info().zone
-	
-	ipc_message = msg:split(' ')
-	if ipc_message[1] ~= 'multibox' then return end
-	local command = ipc_message[2]
-	local ipc_zone = ipc_message[3]
-	local arg1 = ipc_message[4]
-	local arg2 = ipc_message[5]
-	local arg3 = ipc_message[6]
-	
-	if command == 'mute_others' then 
-		enable_sound(false) return
-		
-	elseif command == 'toggle' then
-		toggle_state(arg1, arg2)
+function update_leader(new_leader) -- new_leader = name
+	self = windower.ffxi.get_mob_by_target('me') 
+	if not self then return end
+	if self.name == new_leader then
+		zone = windower.ffxi.get_info().zone
+		is_leader = true
+		windower.send_ipc_message('multibox change_leader '..zone..' '..new_leader)
+		stop_moving()
+	else -- Update target to turn to if following and not fighting
+		if is_following and self.status == 0 then current_target = windower.ffxi.get_mob_by_name(new_leader) end 
+		is_leader = false
 	end
-	
-	if ipc_zone ~= tostring(zone) then return end
-	
-	if command == 'pos_update' then 
-		new_waypoint = { x = arg1, y = arg2 }
-		newest_distance = math.sqrt((new_waypoint.x - self.x)^2 + (new_waypoint.y - self.y)^2)
-		if not waypoint_distance or newest_distance < waypoint_distance then -- New waypoint is closer
-			-- Only update if closer, but not too close else it breaks things
-			if newest_distance > 3 then current_waypoint = new_waypoint end
-			stop_moving()
-		end		
-    elseif command == 'change_leader' then 
-		update_leader(arg1)
-		
-    elseif command == 'request_leader' then 
-		if is_leader and self then update_leader(self.name) end
-		
-	elseif command == 'key_press' then 
-		simulate_key_press(arg1)
-		
-	elseif command == 'interact' then
-		if arg1 and not trying_to_interact then interact_with_target(windower.ffxi.get_mob_by_id(arg1)) return end
-	
-	elseif command == 'pet_update' then 
-		pethp = tonumber(arg1)
-		if pethp > 0 then update_display(true)
-		else update_display(false) end
-		
-	else
-		change_state(command, arg1, arg2, arg3)
-	end
-end)
+	current_leader = new_leader
+	new_waypoint = { x = self.x, y = self.y } -- Update waypoint info to stop them from running to old position
+	current_waypoint = new_waypoint
+end
 
 function change_state(new_state, arg1, arg2, arg3)
 	if new_state == 'zoning' then
@@ -116,10 +83,22 @@ function change_state(new_state, arg1, arg2, arg3)
 				windower.send_ipc_message('multibox zoning '..zone)
 			else 
 				if not windower.ffxi.get_info().logged_in or not windower.ffxi.get_mob_by_target('me') then return end -- Sending run command in loading screen crashes game
-				windower.ffxi.run(true) -- Run forward for a few seconds to get across zone line
 				current_leader = nil
 				interrupt = false
-				coroutine.sleep(4)
+				
+				start_zone_pos = windower.ffxi.get_mob_by_target('me')
+				local incr = 0
+				while windower.ffxi.get_mob_by_target('me') and -- Haven't started zoning
+				distance_to(start_zone_pos, windower.ffxi.get_mob_by_target('me')) < 6 and -- At least this far
+				incr < 10 do -- Try this many times
+					windower.ffxi.run(true) 
+					self = windower.ffxi.get_mob_by_target('me')
+					if not self then break end -- Started zoning
+					--print('zone distance '..distance_to(start_zone_pos, self)..' '..incr)
+					coroutine.sleep(0.5)
+					incr = incr + 1
+				end
+				
 				if interrupt then print('zoning interrupt') return end
 				if windower.ffxi.get_info().logged_in and windower.ffxi.get_mob_by_target('me') then change_state('stop') end -- Haven't zoned, stop moving
 			end 
@@ -245,151 +224,65 @@ function change_state(new_state, arg1, arg2, arg3)
 	--windower.send_command('input /party state: '..current_state)
 end
 
---- Run in renderer to keep accurate track of distances ---
-windower.register_event('postrender', function()
-	self = windower.ffxi.get_mob_by_target('me')
-	if not self then if not zoning then change_state('zoning') end return end -- Change to zoning if not, either way return
-	if self.hpp == 0 and current_state ~= 'stop' then change_state('stop') return end -- Dead
-	if start_casting then change_state('casting') return end -- Casting	
+function interact_with_target(target)
+	if not target then print ('No target to interact with') return end
+	current_target = target	
+	trying_to_interact = true
+	event_found = false
 	
-	if current_leader ~= self.name then -- Only update followers
-		player_current = windower.ffxi.get_player()
-		if player_current.autorun then 
-			moving = true 
-		else 
-			moving = false 
-		end 
+	local success = false
+	
+	for i = 0, 5, 1 do -- Send interactions until we get some kind of response
+		if interacting or event_found then success = true break end
+		print('Interact attempt: '..i)
+		packets.inject(packets.new('outgoing', 0x01A, {
+			['Target'] = target.id,
+			['Target Index'] = target.index,
+			['Category'] = 0,
+		}))
+		coroutine.sleep(1)
 	end
-	
-	if current_state == 'follow' then
-		if not current_leader then print('No leader to follow') change_state('stop') return end
-		
-		if is_leader then -- If leader has moved far enough from last waypoint, create new waypoint
-			local distance = math.sqrt((new_waypoint.x - self.x)^2 + (new_waypoint.y - self.y)^2)
-			if distance > 2 then 
-				if distance < 20 then -- Had it at 5 before, seemed to occassionally trigger within server update
-					send_new_waypoint(self) 
-				else -- Leader moved too far in a single update
-					windower.send_command('input /party Teleported, stopping '..distance)
-					windower.send_ipc_message('multibox stop '..zone)
-					change_state('stop')
-				end
-			end
-		elseif can_follow then -- Move follower 
-			if not current_waypoint then 
-				windower.send_command('input /party No Waypoint') 
-				change_state('stop') 
-				return end
-			
-			waypoint_distance = math.sqrt((current_waypoint.x - self.x)^2 + (current_waypoint.y - self.y)^2)
-			
-			if moving then
-				if move_here and waypoint_distance < 0.3 then -- Move closer to leaders position
-					move_here = false
-					stop_moving()
-				
-				elseif not move_here and waypoint_distance < 1 then -- Close enough to next waypoint 
-					stop_moving()
-				
-				elseif last_checked_distance < waypoint_distance then -- Running the wrong direction
-					if waypoint_distance < 35 then 
-						--windower.send_command('input /party Missed a waypoint, moving to leader')
-						stop_moving()
-						windower.ffxi.run(get_direction(current_waypoint))
-					else 
-						windower.send_command('input /party Leader too far, stopping')
-						change_state('stop') 
-					end
-				elseif check == 30 then -- Update distance from waypoint
-					last_checked_distance = waypoint_distance + 0.2
-				end
-			else
-				if not current_waypoint then 
-					windower.send_command('Missing waypoint') 
-					change_state('stop')
-					return end
-				
-				if move_here and waypoint_distance > 0.5 or waypoint_distance > 2.5 then -- Start moving to next waypoint
-					--windower.send_command('input /party Next waypoint '..waypoint_distance)
-					last_checked_distance = waypoint_distance + 0.5
-					windower.ffxi.run(get_direction(current_waypoint))
-				
-				elseif new_waypoint and current_waypoint ~= new_waypoint then -- Update next waypoint
-					local wdist = math.sqrt((new_waypoint.x - current_waypoint.x)^2 + (new_waypoint.y - current_waypoint.y)^2)
-					if wdist < 30 then -- Check that the next waypoint is nearby
-						current_waypoint = new_waypoint -- Move to next waypoint
-					else
-						windower.send_command('input /party Stopping: Next waypoint too far')
-						change_state('stop')
-					end
-				elseif check == 15 or check == 45 then -- Standing still with nothing else to do, look at target
-					turn_to_target(current_target)
-				end
-			end
-		end
-		
-	elseif current_state == 'advance' then
-		if is_leader then return end-- Only followers approach enemies
-		
-		local t = windower.ffxi.get_mob_by_target('t')
-		if not t then 
-			if moving then stop_moving() end
-			return end
-			
-		local distance = t.distance:sqrt() - (t.model_size/2 + self.model_size/2 - 1)
-		
-		if moving then 
-			if distance < engage_distance then
-				stop_moving()
-			end
+	if success then
+		if event_found then
+			change_state('interact')
 		else
-			if check == 0 or check == 30 then -- Lockon to prevent running wrong direction
-				if not player_current.target_locked then windower.send_command('input /lockon') end
-			end
-			if distance > 3 and not is_leader then
-				windower.ffxi.run(get_direction(t))
-			elseif check == 0 or check == 20 or check == 40 then
-				turn_to_target(t)
+			for i = 0, 3, 1 do -- Check a few times to see if an event started, they take a bit to go through
+				if event_found then 
+					change_state('interact') 
+				break end
+				coroutine.sleep(1)
 			end
 		end
-		
-	elseif current_state == 'reverse' then
-		if is_leader then return end
-		if check == 0 or check == 20 or check == 40 then
-			if player_current.target_locked then windower.send_command('input /lockon') end -- Unlock
-			local t = windower.ffxi.get_mob_by_id(current_target.id)
-			if not t then return end 
-			turn_to_target(t, true)
-		end
-		
-	elseif current_state == 'retreat' then
-		if is_leader then return end
-		if not current_target then windower.send_command('input /party Lost Target') return end
-		local t = windower.ffxi.get_mob_by_id(current_target.id)
-		if not t then return end 
-		
-		local distance = math.sqrt((t.x - self.x)^2 + (t.y - self.y)^2)
-		if distance < min_retreat_range and not moving then -- Too close, move back
-			if player_current.target_locked then windower.send_command('input /lockon') end -- Unlock
-			windower.ffxi.run(get_direction(t, true))
-			
-		elseif distance > max_retreat_range and not moving then -- Too far, move forward
-			windower.ffxi.run(get_direction(t))
-			
-		elseif distance < max_retreat_range and distance > min_retreat_range then -- In range, stop
-			if moving then stop_moving()
-			else turn_to_target(t) end
-		end
-	end
-	if check >= 60 then -- Keep from running every frame
-		check = 0 
 	else
-		check = check + 1 
+		print('Couldn\'t interact with '..current_target.name)
 	end
-end)
+	trying_to_interact = false
+end
 
-function end_double_tap()
-	double_tap = false
+function engage(new_target)
+	if not new_target then stop_engage = true return end
+	local success = false
+	stop_engage = false
+	for i = 0, 5, 1 do -- Try 5 times
+		if stop_engage then break end
+		self = windower.ffxi.get_mob_by_target('me')
+		local t = windower.ffxi.get_mob_by_target('t')
+		if t and t.id == new_target.id and self.status == 1 then 
+			success = true
+		break end
+		local attack = packets.new('outgoing', 0x01A, {
+				["Target"] = new_target.id,
+				["Target Index"] = new_target.index,
+				["Category"] = 0x02 -- Engage
+			})
+		if self.status == 1 then attack['Category'] = 0x0F end -- Switch target
+		packets.inject(attack)
+		coroutine.sleep(2)
+	end
+	if not success then
+		print('Couldn\'t Engage')
+		change_state('stop')
+	end
 end
 
 function send_new_waypoint(new_position)
@@ -415,8 +308,18 @@ function get_direction(target, inverse)
 	return h
 end
 
+function distance_to(point1, point2)
+	new_distance = math.sqrt((point1.x - point2.x)^2 + (point1.y - point2.y)^2)
+	return new_distance
+end
+
 function stop_moving()
 	moving = false
+	movpos = windower.ffxi.get_mob_by_target('me')
+	if current_waypoint then
+		current_waypoint.x = movpos.x
+		current_waypoint.y = movpos.y
+	end
 	windower.ffxi.run(false)
 end
 
@@ -441,6 +344,67 @@ function toggle_state(arg1, arg2)
 		can_engage = not can_engage
 		windower.send_command('input /party Engage: '..tostring(can_engage))
 		if current_state == 'advance' and not can_engage then change_state('stop') end
+	end
+end
+
+function enable_sound(mute)
+	if mute ~= false then
+		windower.send_command('input /mutebgm off')
+		windower.send_command('input /mutese off')
+		sound_enabled = false
+	else
+		windower.send_command('input /mutebgm on')
+		windower.send_command('input /mutese on')
+		sound_enabled = true
+	end
+end
+
+function end_double_tap()
+	double_tap = false
+end
+
+function simulate_key_press (key_to_press)
+	if keydown then return end
+	keydown = true
+	if is_leader then 
+		print('Sending ['..key_to_press..'] to others')
+		windower.send_ipc_message('multibox key_press '..zone..' '..key_to_press) 
+	end
+	
+	windower.send_command('setkey '..key_to_press..' down')
+	coroutine.sleep(0.5)
+	windower.send_command('setkey '..key_to_press..' up')
+	keydown = false
+end
+
+function check_recast(check, kind)
+	if not check then return end
+	coroutine.sleep(2) -- Wait a second for recast timers to update
+	if kind == 'ability' then
+		recast =  math.round(windower.ffxi.get_ability_recasts()[check.recast_id])
+	elseif kind == 'spell' then
+		recast = math.round(windower.ffxi.get_spell_recasts()[check.recast_id] / 60)
+	else return end
+	if blocked_abilities and table.contains(blocked_abilities, check.en) or
+	recast > 1200 then return end -- Filter out all 1hrs
+	windower.send_command('send @all timers c "'..job..' : '..check.en..'" '..recast)
+end
+
+function pet_status()
+	pethp = 100
+	while pethp do
+		local pet = windower.ffxi.get_mob_by_target('pet')
+		if not pet then -- Pet dead / unsummoned
+			update_display(false)
+			windower.send_ipc_message('multibox pet_update '..zone..' 0') 
+			break 
+		elseif pet.hpp ~= pethp then -- Pet health changed, update everyone
+			pethp = pet.hpp
+			windower.send_ipc_message('multibox pet_update '..zone..' '..pethp)
+			if pethp > 0 then update_display(true)
+			else update_display(false) break end
+		end
+		coroutine.sleep(2)
 	end
 end
 
@@ -509,6 +473,201 @@ windower.register_event('addon command', function(action, arg1, arg2)
 	end
 end)
 
+windower.register_event('postrender', function()
+	self = windower.ffxi.get_mob_by_target('me')
+	if not self then if not zoning then change_state('zoning') end return end -- Change to zoning if not, either way return
+	if self.hpp == 0 and current_state ~= 'stop' then change_state('stop') return end -- Dead
+	if start_casting then change_state('casting') return end -- Casting	
+	
+	if current_leader ~= self.name then -- Only update followers
+		player_current = windower.ffxi.get_player()
+		if player_current.autorun then 
+			moving = true 
+		else 
+			moving = false 
+		end 
+	end
+	
+	if current_state == 'follow' then
+		if not current_leader then print('No leader to follow') change_state('stop') return end
+		
+		if is_leader then -- If leader has moved far enough from last waypoint, create new waypoint
+			local distance = distance_to(new_waypoint, self)
+			if distance > 2 then 
+				if distance < 20 then -- Had it at 5 before, seemed to occassionally trigger within server update
+					send_new_waypoint(self) 
+				else -- Leader moved too far in a single update
+					windower.send_command('input /party Teleported, stopping '..distance)
+					windower.send_ipc_message('multibox stop '..zone)
+					change_state('stop')
+				end
+			end
+		elseif can_follow then -- Move follower 
+			if player_current.status == 1 then return end -- Engaged, don't turn away
+			if not current_waypoint then 
+				windower.send_command('input /party No Waypoint') 
+				change_state('stop') 
+				return end
+			
+			waypoint_distance = distance_to(current_waypoint, self)
+			
+			if moving then
+				if move_here and waypoint_distance < 0.3 then -- Move closer to leaders position
+					move_here = false
+					stop_moving()
+				
+				elseif not move_here and waypoint_distance < 1 then -- Close enough to next waypoint 
+					stop_moving()
+				
+				elseif last_checked_distance < waypoint_distance then -- Running the wrong direction
+					if waypoint_distance < 35 then 
+						--windower.send_command('input /party Missed a waypoint, moving to leader')
+						stop_moving()
+						windower.ffxi.run(get_direction(current_waypoint))
+					else 
+						windower.send_command('input /party Leader too far, stopping')
+						change_state('stop') 
+					end
+				elseif check == 30 then -- Update distance from waypoint
+					last_checked_distance = waypoint_distance + 0.2
+				end
+			else
+				if not current_waypoint then 
+					windower.send_command('Missing waypoint') 
+					change_state('stop')
+					return end
+				
+				if move_here and waypoint_distance > 0.5 or waypoint_distance > 2.5 then -- Start moving to next waypoint
+					--windower.send_command('input /party Next waypoint '..waypoint_distance)
+					last_checked_distance = waypoint_distance + 0.5
+					windower.ffxi.run(get_direction(current_waypoint))
+				
+				elseif new_waypoint.x and new_waypoint.y and current_waypoint ~= new_waypoint then -- Update next waypoint
+					local wdist = distance_to(new_waypoint, current_waypoint)
+					if wdist < 30 then -- Check that the next waypoint is nearby
+						current_waypoint = new_waypoint -- Move to next waypoint
+					else
+						windower.send_command('input /party Stopping: Next waypoint too far')
+						change_state('stop')
+					end
+				elseif check == 15 or check == 45 then -- Standing still with nothing else to do, look at target
+					turn_to_target(current_target)
+				end
+			end
+		end
+		
+	elseif current_state == 'advance' then
+		if is_leader then return end-- Only followers approach enemies
+		
+		local t = windower.ffxi.get_mob_by_target('t')
+		if not t then 
+			if moving then stop_moving() end
+			return end
+		print(t.name)
+			
+		local distance = t.distance:sqrt() - (t.model_size/2 + self.model_size/2 - 1)
+		
+		if moving then 
+			if distance < engage_distance then
+				stop_moving()
+			end
+		else
+			if check == 0 or check == 30 then -- Lockon to prevent running wrong direction
+				if not player_current.target_locked then windower.send_command('input /lockon') end
+			end
+			if distance > 3 and not is_leader then
+				windower.ffxi.run(get_direction(t))
+			elseif check == 0 or check == 20 or check == 40 then
+				turn_to_target(t)
+			end
+		end
+		
+	elseif current_state == 'reverse' then
+		if is_leader then return end
+		if check == 0 or check == 20 or check == 40 then
+			if player_current.target_locked then windower.send_command('input /lockon') end -- Unlock
+			local t = windower.ffxi.get_mob_by_id(current_target.id)
+			if not t then return end 
+			turn_to_target(t, true)
+		end
+		
+	elseif current_state == 'retreat' then
+		if is_leader then return end
+		if not current_target then windower.send_command('input /party Lost Target') return end
+		local t = windower.ffxi.get_mob_by_id(current_target.id)
+		if not t then return end 
+		
+		local distance =distance_to(t, self)
+		if distance < min_retreat_range and not moving then -- Too close, move back
+			if player_current.target_locked then windower.send_command('input /lockon') end -- Unlock
+			windower.ffxi.run(get_direction(t, true))
+			
+		elseif distance > max_retreat_range and not moving then -- Too far, move forward
+			windower.ffxi.run(get_direction(t))
+			
+		elseif distance < max_retreat_range and distance > min_retreat_range then -- In range, stop
+			if moving then stop_moving()
+			else turn_to_target(t) end
+		end
+	end
+	if check >= 60 then -- Keep from running every frame
+		check = 0 
+	else
+		check = check + 1 
+	end
+end)
+
+windower.register_event('ipc message', function (msg)
+    if not windower.ffxi.get_info().logged_in or not self then return end
+	zone = windower.ffxi.get_info().zone
+	
+	ipc_message = msg:split(' ')
+	if ipc_message[1] ~= 'multibox' then return end
+	local command = ipc_message[2]
+	local ipc_zone = ipc_message[3]
+	local arg1 = ipc_message[4]
+	local arg2 = ipc_message[5]
+	local arg3 = ipc_message[6]
+	
+	if command == 'mute_others' then 
+		enable_sound(false) return
+		
+	elseif command == 'toggle' then
+		toggle_state(arg1, arg2)
+	end
+	
+	if ipc_zone ~= tostring(zone) then return end
+	
+	if command == 'pos_update' then 
+		new_waypoint = { x = arg1, y = arg2 }
+		newest_distance = distance_to(new_waypoint, self)
+		if not waypoint_distance or newest_distance < waypoint_distance then -- New waypoint is closer
+			-- Only update if closer, but not too close else it breaks things
+			if newest_distance > 3 then current_waypoint = new_waypoint end
+			stop_moving()
+		end		
+    elseif command == 'change_leader' then 
+		update_leader(arg1)
+		
+    elseif command == 'request_leader' then 
+		if is_leader and self then update_leader(self.name) end
+		
+	elseif command == 'key_press' then 
+		simulate_key_press(arg1)
+		
+	elseif command == 'interact' then
+		if arg1 and not trying_to_interact then interact_with_target(windower.ffxi.get_mob_by_id(arg1)) return end
+	
+	elseif command == 'pet_update' then 
+		pethp = tonumber(arg1)
+		if pethp > 0 then update_display(true)
+		else update_display(false) end
+		
+	else
+		change_state(command, arg1, arg2, arg3)
+	end
+end)
+
 windower.register_event('status change',function (new, old)	
 	if old == 1 and new == 0 then  -- Exit combat state
 		if is_following then 
@@ -534,58 +693,14 @@ windower.register_event('status change',function (new, old)
 end)
 
 windower.register_event('gain focus',function (new, old)
-	windower.ffxi.run(false)
+	if current_leader ~= self.name then update_leader(self.name) end
+	has_focus = true
 	enable_sound()
 	windower.send_ipc_message('multibox mute_others')
 end)
 
-function engage(new_target)
-	if not new_target then stop_engage = true return end
-	local success = false
-	stop_engage = false
-	for i = 0, 5, 1 do -- Try 5 times
-		if stop_engage then break end
-		self = windower.ffxi.get_mob_by_target('me')
-		local t = windower.ffxi.get_mob_by_target('t')
-		if t and t.id == new_target.id and self.status == 1 then 
-			success = true
-		break end
-		local attack = packets.new('outgoing', 0x01A, {
-				["Target"] = new_target.id,
-				["Target Index"] = new_target.index,
-				["Category"] = 0x02 -- Engage
-			})
-		if self.status == 1 then attack['Category'] = 0x0F end -- Switch target
-		packets.inject(attack)
-		coroutine.sleep(2)
-	end
-	if not success then
-		print('Couldn\'t Engage')
-		change_state('stop')
-	end
-end
-
-function update_leader(new_leader) -- new_leader = name
-	self = windower.ffxi.get_mob_by_target('me') 
-	if not self then return end
-	if self.name == new_leader then
-		zone = windower.ffxi.get_info().zone
-		is_leader = true
-		windower.send_ipc_message('multibox change_leader '..zone..' '..new_leader)
-		enable_sound()
-	else -- Update target to turn to if following and not fighting
-		if is_following and self.status == 0 then current_target = windower.ffxi.get_mob_by_name(new_leader) end 
-		is_leader = false
-		enable_sound(false)
-	end
-	current_leader = new_leader
-	new_waypoint = { x = self.x, y = self.y } -- Update waypoint info to stop them from running to old position
-	current_waypoint = new_waypoint
-end
-
-windower.register_event('unload', function (new, old)
-	windower.send_command('setkey a up')
-	windower.send_command('setkey d up')
+windower.register_event('lose focus',function (new, old)
+	has_focus = false
 end)
 	
 windower.register_event('load', 'login', function (new, old)
@@ -607,28 +722,28 @@ windower.register_event('load', 'login', function (new, old)
 end)
 
 windower.register_event('zone change',function (new, old)
+	check = 0
 	zone = windower.ffxi.get_info().zone
-	coroutine.sleep(2)
-	enable_sound(false)
+	self = windower.ffxi.get_mob_by_target('me')
+	if self then
+		while windower.ffxi.get_player().autorun or check < 5 do
+			stop_moving()
+			coroutine.sleep(0.5)
+		end
+	end
+	coroutine.sleep(1)
+	
+	if not has_focus then enable_sound(false) end
 	zoning = false
 end)
-
-function enable_sound(mute)
-	if mute ~= false then
-		windower.send_command('input /mutebgm off')
-		windower.send_command('input /mutese off')
-		sound_enabled = false
-	else
-		windower.send_command('input /mutebgm on')
-		windower.send_command('input /mutese on')
-		sound_enabled = true
-	end
-end
 
 windower.register_event('keyboard',function (dik, pressed, flags, blocked )
 	if not windower.ffxi.get_info().logged_in then return end
 	if not self then self = windower.ffxi.get_player() return end
-	if current_leader ~= self.name then update_leader(self.name) end
+	if not has_focus then 
+		enable_sound()
+		has_focus = true
+	end
 	
 	--print('Keyboard event dik:'..dik..'  pressed:'..tostring(pressed)..'  flags:'..flags..'  blocked:'..tostring(blocked))
 	if dik == 28 and flags == 4 and pressed then -- dik 28 = enter key, flag 4 = ctrl, not pressed = on key up
@@ -651,87 +766,6 @@ windower.register_event('keyboard',function (dik, pressed, flags, blocked )
 	end
 end)
 
-function simulate_key_press (key_to_press)
-	if keydown then return end
-	keydown = true
-	if is_leader then 
-		print('Sending ['..key_to_press..'] to others')
-		windower.send_ipc_message('multibox key_press '..zone..' '..key_to_press) 
-	end
-	
-	windower.send_command('setkey '..key_to_press..' down')
-	coroutine.sleep(0.5)
-	windower.send_command('setkey '..key_to_press..' up')
-	keydown = false
-end
-
-function interact_with_target(target)
-	if not target then print ('No target to interact with') return end
-	current_target = target	
-	trying_to_interact = true
-	event_found = false
-	
-	local success = false
-	
-	for i = 0, 5, 1 do -- Send interactions until we get some kind of response
-		if interacting or event_found then success = true break end
-		print('Interact attempt: '..i)
-		packets.inject(packets.new('outgoing', 0x01A, {
-			['Target'] = target.id,
-			['Target Index'] = target.index,
-			['Category'] = 0,
-		}))
-		coroutine.sleep(1)
-	end
-	if success then
-		if event_found then
-			change_state('interact')
-		else
-			for i = 0, 3, 1 do -- Check a few times to see if an event started, they take a bit to go through
-				if event_found then 
-					change_state('interact') 
-				break end
-				coroutine.sleep(1)
-			end
-		end
-	else
-		print('Couldn\'t interact with '..current_target.name)
-	end
-	trying_to_interact = false
-end
-
-function check_recast(check, kind)
-	if not check then return end
-	coroutine.sleep(2) -- Wait a second for recast timers to update
-	if kind == 'ability' then
-		recast =  math.round(windower.ffxi.get_ability_recasts()[check.recast_id])
-	elseif kind == 'spell' then
-		recast = math.round(windower.ffxi.get_spell_recasts()[check.recast_id] / 60)
-	else return end
-	if blocked_abilities and table.contains(blocked_abilities, check.en) or
-	recast > 1200 then return end -- Filter out all 1hrs
-	windower.send_command('send @all timers c "'..job..' : '..check.en..'" '..recast)
-end
-
-function pet_status()
-	pethp = 100
-	while pethp do
-		local pet = windower.ffxi.get_mob_by_target('pet')
-		if not pet then -- Pet dead / unsummoned
-			update_display(false)
-			windower.send_ipc_message('multibox pet_update '..zone..' 0') 
-			break 
-		elseif pet.hpp ~= pethp then -- Pet health changed, update everyone
-			pethp = pet.hpp
-			windower.send_ipc_message('multibox pet_update '..zone..' '..pethp)
-			if pethp > 0 then update_display(true)
-			else update_display(false) break end
-		end
-		coroutine.sleep(2)
-	end
-end
-
---- Check for spellcast start ---
 windower.register_event('outgoing chunk', function(id, data)
 	if id == 0x01A then -- Player action
         local packet = packets.parse('outgoing', data)
@@ -744,7 +778,6 @@ windower.register_event('outgoing chunk', function(id, data)
     end
 end)
 
---- Check for spellcast completion ---
 windower.register_event('incoming chunk', function(id, data)
 	if id == 0x028 then -- Finish casting spell
 		local packet = packets.parse('incoming', data)
@@ -765,25 +798,22 @@ windower.register_event('incoming chunk', function(id, data)
 		if current_state == 'casting' then 
 			change_state('casting')
 		end
-	elseif id == 0x00B then -- Started zoning
+	elseif id == 0x00B and not zoning then -- Started zoning
 		change_state('zoning')
 	end
 end)
 
---- Update job for timers ---
 windower.register_event('job change', function()
-	job = windower.ffxi.get_player().main_job
+	job = windower.ffxi.get_player().main_job -- Update job for timers
 end)
 
---- Forward message to leader when recieving a tell ---
 windower.register_event('chat message', function(message, sender, mode)
-	if mode == 3 and not is_leader then
+	if mode == 3 and not is_leader then -- Forward message to leader when recieving a tell
 		windower.send_command('input /tell '..current_leader..' Multibox Forward: ['..message..'] - '..sender)
 	end
 end)
  
--- Block audio change messages
-filter = S{
+filter = S{ -- Block audio change messages
 	'Sound effects:*',
 	'Background music:*',
 }
