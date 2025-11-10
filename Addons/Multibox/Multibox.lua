@@ -9,6 +9,7 @@ _addon.commands = { 'multibox', 'mb' }
 -- Removed redundant zone calls, should hopefully stop moving after zoning
 -- Set max distance to try and run to zone to 6, shouldn't run off too far if a zone is missed
 -- Tidy up and sorted functions 
+-- Added check to not engage while dead, or the target is already dead
 
 config = require('config')
 require('sets')
@@ -254,7 +255,7 @@ function interact_with_target(target)
 			end
 		end
 	else
-		print('Couldn\'t interact with '..current_target.name)
+		if current_target then print('Couldn\'t interact with '..current_target.name) end
 	end
 	trying_to_interact = false
 end
@@ -264,8 +265,8 @@ function engage(new_target)
 	local success = false
 	stop_engage = false
 	for i = 0, 5, 1 do -- Try 5 times
-		if stop_engage then break end
 		self = windower.ffxi.get_mob_by_target('me')
+		if stop_engage or self.hpp < 1 then break end
 		local t = windower.ffxi.get_mob_by_target('t')
 		if t and t.id == new_target.id and self.status == 1 then 
 			success = true
@@ -280,7 +281,7 @@ function engage(new_target)
 		coroutine.sleep(2)
 	end
 	if not success then
-		print('Couldn\'t Engage')
+		--print('Couldn\'t Engage')
 		change_state('stop')
 	end
 end
@@ -563,7 +564,6 @@ windower.register_event('postrender', function()
 		if not t then 
 			if moving then stop_moving() end
 			return end
-		print(t.name)
 			
 		local distance = t.distance:sqrt() - (t.model_size/2 + self.model_size/2 - 1)
 		
