@@ -29,9 +29,12 @@ function user_setup()
 	send_command('send @all bind  numpad4  sta Pharen /Victory Smite') 
 	send_command('send @all bind  numpad5  sta Pharen /ShijinSpiral') 
 	send_command('send @all bind  numpad6 send Pharen /boost') 
-	send_command('send @all bind !numpad4 send Pharen /Provoke') 
-	send_command('send @all bind !numpad5 send Pharen /Chakra') 
-	send_command('send @all bind !numpad6 send Pharen exec MonkDBuffs.txt') 
+	send_command('send @all bind !numpad4 send Pharen /DragonKick') 
+	send_command('send @all bind !numpad5 send Pharen /RagingFists') 
+	send_command('send @all bind !numpad6 send Pharen /AsceticsFury') 
+	send_command('send @all bind ~numpad4 send Pharen /Provoke') 
+	send_command('send @all bind ~numpad5 send Pharen /Chakra') 
+	send_command('send @all bind ~numpad6 send Pharen exec MonkDBuffs.txt') 
 	send_command('send @all bind ^numpad4 send Pharen /Counterstance') 
 	send_command('send @all bind ^numpad5 send Pharen /Impetus') 
 	send_command('send @all bind ^numpad6 send Pharen exec MonkOBuffs.txt') 
@@ -54,21 +57,23 @@ function init_gear_sets()
 	
    --- Precast Sets ---	
     sets.precast.FC = {}
-    sets.precast.WS = {}
 	sets.precast.JA['Chakra'] = { Body = "Anch. Cyclas +1","Melee Gloves"}
-	
-    sets.precast.WS['Shijin Spiral'] = set_combine(sets.precast.ws, {
-		body	= "Bhikku Cyclas +3",
-		head	= "Malignance Chapeau",
-		hands	= "Bhikku gloves +2",
-		back	= gear.TPCape,
-		})
-	sets.precast.WS['Victory Smite'] = set_combine(sets.precast.ws, {
+    sets.precast.WS = {
+		head	= "Adhemar Bonnet +1",
 		body	= "Bhikku Cyclas +3",
 		hands	= "Bhikku gloves +2",
 		back	= gear.STRCape,
 		feet	= "Herculean Boots",
 		neck	= "Republican Platinum medal",
+		}
+	
+    sets.precast.WS['Shijin Spiral'] = set_combine(sets.precast.WS, {
+		body	= "Bhikku Cyclas +3",
+		head	= "Malignance Chapeau",
+		hands	= "Bhikku gloves +2",
+		back	= gear.TPCape,
+		})
+	sets.precast.WS['Victory Smite'] = set_combine(sets.precast.WS, {
 		ear2	= "Odr Earring",
 		})
 

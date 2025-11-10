@@ -154,8 +154,13 @@ function init_gear_sets()
 	gear.FCcape = { name="Nantosuelta's Cape", augments={'MND+20','Mag. Acc+20 /Mag. Dmg.+20','"Fast Cast"+10',}}
 	
     --- Precast Sets ---	
+	sets.precast.JA['Full Circle'] = { head = "Azimuth hood +3" }
+	sets.precast.JA['Bolster'] = { body = "Bagua Tunic" }
+	
     sets.precast.FC = {
+		head	= "Nahtirah Hat",
 		neck	= "Orunmila's Torque",
+		ring1 	= "Kishar Ring",
 		ring2 	= "Jhakri Ring",
 		legs	= "Geomancy Pants +2",
 		feet  	= "Jhakri Pigaches +2",
@@ -186,6 +191,15 @@ function init_gear_sets()
     sets.midcast = { 
 		ring2  	= "Adoulin ring",
 		}
+	sets.midcast['Geomancy'] = set_combine(sets.midcast, {
+        neck     = "Bagua Charm +2",
+		})
+	sets.midcast['Indicolure'] = set_combine(sets.midcast, { 
+		main	= "Gada",
+		back	= "Lifestream Cape",
+		legs	= "Bagua Pants +3",
+		feet	= "Azimuth Gaiters +3" 
+		})
     sets.midcast['Elemental Magic'] = set_combine(sets.midcast, {
 		head  	= "Azimuth hood +3",
 		neck	= "Mizu. Kubikazari",
