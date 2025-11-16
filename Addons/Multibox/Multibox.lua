@@ -1,15 +1,11 @@
 _addon.author = 'Spikex'
 _addon.version = '0.88'
+_addon.name = 'Multibox'
 _addon.commands = { 'multibox', 'mb' }
 
 -- Changes: 
--- Sound fix, changed how current character was selected
--- Fixed turning toward leader while in combat when following
--- Stop moving when changing characters
--- Removed redundant zone calls, should hopefully stop moving after zoning
--- Set max distance to try and run to zone to 6, shouldn't run off too far if a zone is missed
--- Tidy up and sorted functions 
--- Added check to not engage while dead, or the target is already dead
+-- Fix resume follow after casting 
+-- Fix no self error on zoning
 
 config = require('config')
 require('sets')
@@ -209,7 +205,11 @@ function change_state(new_state, arg1, arg2, arg3)
 		else
 			casting = false
 			if not current_target then current_target = windower.ffxi.get_mob_by_target('t') end
-			change_state(previous_state, current_target.id)
+			if previous_state == 'follow' then
+				change_state('resume_follow', current_target.id)
+			else
+				change_state(previous_state, current_target.id)
+			end
 		return end 
 		
 	elseif new_state == 'interact' then
@@ -266,7 +266,7 @@ function engage(new_target)
 	stop_engage = false
 	for i = 0, 5, 1 do -- Try 5 times
 		self = windower.ffxi.get_mob_by_target('me')
-		if stop_engage or self.hpp < 1 then break end
+		if not self or stop_engage or self.hpp < 1 then break end
 		local t = windower.ffxi.get_mob_by_target('t')
 		if t and t.id == new_target.id and self.status == 1 then 
 			success = true
@@ -693,6 +693,15 @@ windower.register_event('status change',function (new, old)
 end)
 
 windower.register_event('gain focus',function (new, old)
+	if not self then
+		loaded = false
+		for i = 0, 5, 1 do -- Try 5 times
+			self = windower.ffxi.get_mob_by_target('me')
+			coroutine.sleep(2)
+			if self then loaded = true break end
+		end
+		if not loaded then return end
+	end
 	if current_leader ~= self.name then update_leader(self.name) end
 	has_focus = true
 	enable_sound()
