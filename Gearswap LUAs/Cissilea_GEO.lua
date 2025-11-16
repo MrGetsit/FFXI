@@ -238,17 +238,17 @@ function init_gear_sets()
     sets.engaged = {
 		range	= "Dunna",
 		head  	= "Azimuth hood +3",
-		neck  	= "Sanctity Necklace",
-		ear1  	= "Vor Earring",
+		neck  	= "Null Loop",
+		ear1  	= "Alabaster Earring",
 		ear2  	= "Flashward Earring",
 		body  	= "Azimuth Coat +3",
 		hands 	= "Geomancy mitaines +3",
 		ring1 	= "Gurebu's Ring",
 		ring2 	= "Rajas Ring",
 		back  	= gear.REGENCape,
-		waist 	= "Witful Belt",
+		waist 	= "Null Belt",
 		legs  	= "Geomancy Pants +2",
-		feet  	= "Geomancy Sandals +2",
+		feet  	= "Azimuth Gaiters +3",
 		}
 
     sets.defense = {

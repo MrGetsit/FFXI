@@ -22,9 +22,11 @@ function job_setup()
 	
     state.WeaponLock = M(false, 'Weapon Lock')	
 	state.WeaponSet = M{['description']='Weapon Set', 'Sword', 'Dagger'}
-    state.OffenseMode:options('Normal', 'Defense')
+	state.WeaponSetR = M{['description']='Ranged Weapon Set', 'TP', 'WS'}
+    state.OffenseMode:options('Defense', 'Normal' )
     send_command('bind @w gs c toggle WeaponLock')	
-    send_command('bind %capslock gs c cycle WeaponSet')		
+    send_command('bind %capslock gs c cycle WeaponSet')	
+    send_command('bind ~capslock gs c cycle WeaponSetR')		
     send_command('bind @S gs c cycle OffenseMode')
     send_command('bind ^= gs c cycle treasuremode')
 	
@@ -95,44 +97,56 @@ end
 
 function init_gear_sets()
     --- Weapon Sets ---
-    sets.Sword 	= 	{ main="Naegling", 	sub="Tauret",	range="Anarchy +2",	ammo="Bronze bullet"}
-    sets.Dagger = 	{ main="Tauret", 	sub="Naegling",}
+    sets.Sword 	= { main	= "Naegling", 		sub	= "Tauret" }
+    sets.Dagger = { main	= "Tauret", 		sub	= "Naegling" }
+    sets.TP 	= { range	= "Anarchy +2", 	ammo= "Bronze Bullet" }
+    sets.WS 	= { range	= "Death Penalty",	ammo= "Bronze Bullet" }
 
-	gear.CapeTP = { name="Camulus's Mantle", augments={'DEX+1','Accuracy+20 Attack+20','"Dbl.Atk."+10',} }
-	gear.CapeWSD= { name="Camulus's Mantle", augments={'STR+20','Accuracy+20 Attack+20','STR+10','Weapon skill damage +10%',} }
+	gear.CapeTP = { name="Camulus's Mantle", augments={'DEX+20','Accuracy+20 Attack+20','DEX+10','"Dbl.Atk."+10','Phys. dmg. taken-10%',} }
+	gear.CapeSTR= { name="Camulus's Mantle", augments={'STR+20','Accuracy+20 Attack+20','STR+10','Weapon skill damage +10%',} }
+	gear.CapeAGI= { name="Camulus's Mantle", augments={'AGI+20','Mag. Acc+20 /Mag. Dmg.+20','AGI+10','Weapon skill damage +10%',} }
 	
     sets.TreasureHunter = {head="Herculean Helm",body="Herculean Vest",ring1="Gorney Ring", waist="Chaac Belt"} 
 	
     --- Precast Sets ---
-    sets.precast.CorsairRoll = {back="Camulus's Cape",head="Lanun Tricorne", hands="Chasseur's Gants +3",ring1="Barataria Ring",legs="Desultor Tassets"}	
+    sets.precast.CorsairRoll = {
+		head	= "Lanun Tricorne", 
+		neck	= "Regal Necklace",
+		hands	= "Chasseur's Gants +3",
+		back	= "Camulus's Cape",
+		legs	= "Desultor Tassets"
+	}	
 
     sets.precast.Waltz = { head="Mummu Bonnet +2", feet="Rawhide Boots" }	
     sets.precast.FC = {}
 	sets.precast.RA = {
+		body	= "Laksa. Frac +4",
 		feet 	= "Meg. Jam. +1",		
 		}
     sets.precast.WS = { 
         neck	= "Rep. Plat. Medal",
-		ear1	= "Moonshade earring",
-		ear2	= "Ishvara Earring",
+		ear1	= "Ishvara Earring",
 		head	= "Meghanada Visor +2",
 		body	= "Meg. Cuirie +2",
 		hands	= "Chasseur's Gants +3",
 		ring1	= "Cornelia's Ring",
-		back	= gear.CapeWSD,
+		back	= gear.CapeAGI,
 		feet 	= "Lanun bottes +4",
 		}
     sets.precast.WS['Savage Blade'] = set_combine(sets.precast.WS, {
-		waist	= "Prosilio Belt +1",  	
 		ring2	= "Vehemence Ring",
+		waist	= "Prosilio Belt +1",  	
+		back	= gear.CapeSTR,
 	})
-    sets.precast.WS['Leaden Salute'] = set_combine(sets.precast.WS, {
-		head 	= "Pixie Hairpin +1",
+    sets.precast.WS['Hot Shot'] = set_combine(sets.precast.WS, {
 		neck	= "Sibyl Scarf",
 		ear2	= "Friomisi Earring",
-		body	= "Lanun frac +2",
-		ring2	= "Archon Ring",
+		body	= "Lanun frac +4",
 		waist	= "Eschan Stone",  	
+	})
+    sets.precast.WS['Leaden Salute'] = set_combine(sets.precast.WS['Hot Shot'], {
+		head 	= "Pixie Hairpin +1",
+		ring2	= "Archon Ring",
 	})
 
     --- Midcast Sets ---
@@ -141,8 +155,18 @@ function init_gear_sets()
 	sets.midcast.CorsairShot = {ammo="Animikii bullet"}
 	
 	sets.midcast.RA = {
-		head 	= "Meghanada Visor +1",
-		neck 	= "Marked Gorget",		
+		head 	= "Malignance Chapeau",
+		neck 	= "Iskur Gorget",
+		ear1 	= "Eabani Earring",
+		ear2 	= "Alabaster Earring",
+		body 	= "Malignance Tabard",
+		hands	= "Malignance Gloves",
+		ring1	= "Chirich Ring +1",
+		ring2 	= "Rajas Ring",
+		back	= "Null Shawl",
+		waist	= "Null Belt",  
+		legs 	= "Meg. Chausses +2",
+		feet 	= "Malignance Boots",
 		}
     --- Engaged Sets ---
     sets.engaged = {
@@ -162,6 +186,7 @@ function init_gear_sets()
 		}
 
     sets.defense = {
+		ammo 	= "Bronze Bullet",
 		head 	= "Malignance Chapeau",
 		neck 	= "Null Loop",
 		ear1 	= "Eabani Earring",
@@ -181,9 +206,9 @@ function init_gear_sets()
     sets.idle.Town = set_combine(sets.idle, {ring1="Warp Ring", ring2="Dim. Ring (Holla)"})	 
 	
 	sets.buff.Doom = {
-        neck="Nicander's Necklace", --30
-        ring1="Saida Ring", --15
-        waist="Gishdubar Sash", --10
+        neck	= "Nicander's Necklace", --30
+        ring1	= "Saida Ring", --15
+        waist	= "Gishdubar Sash", --10
         }
 end
 
@@ -203,12 +228,16 @@ function job_buff_change(buff,gain)
     end
 end
 function job_post_precast(spell, action, spellMap, eventArgs)
-	if spell.type == "WeaponSkill" and player.tp >= 1900 then
-		equip({ear1="Ishvara Earring"})	
+	if spell.type == "WeaponSkill" then
+		if (state.WeaponSetR.current == 'WS' and player.tp <= 2750) 
+		or player.tp <= 1750 then
+			equip({ear1="Moonshade Earring"})	
+		end
 	end
 end
 function customize_melee_set(meleeSet)
     equip(sets[state.WeaponSet.current])
+    equip(sets[state.WeaponSetR.current])
     if state.OffenseMode.value == "Defense" then
 		meleeSet = sets.defense
     end	
@@ -229,6 +258,7 @@ function job_self_command(command, eventArgs)
 end
 function job_aftercast(spell, action, spellMap, eventArgs)	
     equip(sets[state.WeaponSet.current])
+    equip(sets[state.WeaponSetR.current])
 end
 function job_state_change(field, new_value, old_value)
     if state.WeaponLock.value == true then
@@ -250,9 +280,11 @@ function job_state_change(field, new_value, old_value)
 		send_command('send @all bind !numpad1  sta Sneaksy /Evisceration ') 
 	end
     equip(sets[state.WeaponSet.current])
+    equip(sets[state.WeaponSetR.current])
 end
 function job_update(cmdParams, eventArgs)
     equip(sets[state.WeaponSet.current])
+    equip(sets[state.WeaponSetR.current])
 end
 function th_action_check(category, param)
     if category == 2 or -- any ranged attack

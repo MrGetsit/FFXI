@@ -26,8 +26,8 @@ end
 -- % Normal	^ Ctrl	! Alt	@ Win	# Apps	~ Shift
 
 function user_setup()
-	send_command('send @all bind  numpad4  sta Pharen /Victory Smite') 
-	send_command('send @all bind  numpad5  sta Pharen /ShijinSpiral') 
+	send_command('send @all bind  numpad4 send Pharen /Victory Smite') 
+	send_command('send @all bind  numpad5 send Pharen /ShijinSpiral') 
 	send_command('send @all bind  numpad6 send Pharen /boost') 
 	send_command('send @all bind !numpad4 send Pharen /DragonKick') 
 	send_command('send @all bind !numpad5 send Pharen /RagingFists') 
@@ -61,7 +61,7 @@ function init_gear_sets()
     sets.precast.WS = {
 		head	= "Adhemar Bonnet +1",
 		body	= "Bhikku Cyclas +3",
-		hands	= "Bhikku gloves +2",
+		hands	= "Bhikku gloves +3",
 		back	= gear.STRCape,
 		feet	= "Herculean Boots",
 		neck	= "Republican Platinum medal",
@@ -70,7 +70,7 @@ function init_gear_sets()
     sets.precast.WS['Shijin Spiral'] = set_combine(sets.precast.WS, {
 		body	= "Bhikku Cyclas +3",
 		head	= "Malignance Chapeau",
-		hands	= "Bhikku gloves +2",
+		hands	= "Bhikku gloves +3",
 		back	= gear.TPCape,
 		})
 	sets.precast.WS['Victory Smite'] = set_combine(sets.precast.WS, {
