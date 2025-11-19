@@ -1,11 +1,10 @@
 _addon.author = 'Spikex'
-_addon.version = '0.88'
+_addon.version = '0.89'
 _addon.name = 'Multibox'
 _addon.commands = { 'multibox', 'mb' }
 
 -- Changes: 
--- Fix resume follow after casting 
--- Fix no self error on zoning
+-- Follower no longer run forward when teleporting from a homepoint/survival guide/etc
 
 config = require('config')
 require('sets')
@@ -44,13 +43,15 @@ check = 0 -- Increment to not check every frame
 blocked_abilities = S{} 
 default_settings = {}
  
+ multibox_display_text = ''
+ 
 settings = config.load(default_settings)
 t = texts.new(settings)
 
-function update_display(show)
+function update_display(is_visible)
+	if is_visible then t:visible(true) else t:visible(false) end	
+	
 	t:text('Loupan '..pethp)
-	if show then t:visible(true)
-	else t:visible(false) end
 end
 
 function update_leader(new_leader) -- new_leader = name
@@ -77,7 +78,11 @@ function change_state(new_state, arg1, arg2, arg3)
 		current_state = 'zoning' 
 		if is_following then
 			if is_leader then
-				windower.send_ipc_message('multibox zoning '..zone)
+				if zone_teleport then -- Teleported from a homepoint/survival guide/etc, so stop
+					windower.send_ipc_message('multibox stop '..zone)
+				else -- Ran across zone line, everyone move forward
+					windower.send_ipc_message('multibox zoning '..zone)
+				end
 			else 
 				if not windower.ffxi.get_info().logged_in or not windower.ffxi.get_mob_by_target('me') then return end -- Sending run command in loading screen crashes game
 				current_leader = nil
@@ -478,7 +483,7 @@ windower.register_event('postrender', function()
 	self = windower.ffxi.get_mob_by_target('me')
 	if not self then if not zoning then change_state('zoning') end return end -- Change to zoning if not, either way return
 	if self.hpp == 0 and current_state ~= 'stop' then change_state('stop') return end -- Dead
-	if start_casting then change_state('casting') return end -- Casting	
+	if start_casting then change_state('casting') return end -- Casting
 	
 	if current_leader ~= self.name then -- Only update followers
 		player_current = windower.ffxi.get_player()
@@ -668,7 +673,7 @@ windower.register_event('ipc message', function (msg)
 	end
 end)
 
-windower.register_event('status change',function (new, old)	
+windower.register_event('status change',function (new, old)
 	if old == 1 and new == 0 then  -- Exit combat state
 		if is_following then 
 			for i = 0, 5, 1 do 
@@ -692,7 +697,7 @@ windower.register_event('status change',function (new, old)
 	end
 end)
 
-windower.register_event('gain focus',function (new, old)
+windower.register_event('Gain focus',function (new, old)
 	if not self then
 		loaded = false
 		for i = 0, 5, 1 do -- Try 5 times
@@ -722,6 +727,7 @@ windower.register_event('load', 'login', function (new, old)
 	if not self then return end
 	enable_sound(false)
 	job = windower.ffxi.get_player().main_job
+	subjob = windower.ffxi.get_player().sub_job
 	zone = windower.ffxi.get_info().zone
 	windower.send_command('input /autotarget off')
 	change_state('stop')
@@ -809,6 +815,10 @@ windower.register_event('incoming chunk', function(id, data)
 		end
 	elseif id == 0x00B and not zoning then -- Started zoning
 		change_state('zoning')
+	elseif id == 0x034 and not zone_teleport then -- Started zoning
+		zone_teleport = true
+		coroutine.sleep(4)
+		zone_teleport = false
 	end
 end)
 
