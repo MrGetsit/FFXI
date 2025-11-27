@@ -13,3 +13,4 @@ Simple multibox addon for detecting which buffs are missing from your characters
               -- ie: Indi-Fury would be "Attack Boost" - Other buffs work as usual //bc Haste or //bc "Samurai Roll"
               -- Check buff name in buff window or Windower/Res/Buffs.lua for the full list
 ```
+<img width="97" height="38" alt="BuffCheck" src="https://github.com/user-attachments/assets/f3d2e385-72d4-4928-ab71-24be45d0da60" />
