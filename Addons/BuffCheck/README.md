@@ -1,4 +1,5 @@
-Requires icons pack, extract icons.7z to the BuffCheck folder. Created by https://github.com/Tetsouo/FfxiIconsHD/releases/
+Extract icons.7z to the BuffCheck folder. Folder structure should be \Windower\addons\BuffCheck\icons
+Icons created by Tetsouo: https://github.com/Tetsouo/FfxiIconsHD/releases/
 
 # BuffCheck
 
