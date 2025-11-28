@@ -1,5 +1,5 @@
 _addon.author = 'Spikex'
-_addon.version = '0.0'
+_addon.version = '0.9'
 _addon.name = 'Multibox'
 _addon.commands = { 'multibox', 'mb' }
 
@@ -101,6 +101,7 @@ function change_state(new_state, arg1, arg2, arg3)
 					incr = incr + 1
 				end
 			end 
+			is_following = false
 			current_state = 'stop'
 		end return
 	end
