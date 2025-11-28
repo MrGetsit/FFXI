@@ -1,5 +1,5 @@
 _addon.author = 'Spikex'
-_addon.version = '0.6'
+_addon.version = '0.8'
 _addon.name = 'Buff Check'
 _addon.commands = { 'buffcheck', 'bc' }
 
@@ -29,10 +29,6 @@ config.register(settings, function(settings)
 	end
 end)
 
-BarElements = S{'Barfire','Barblizzard','Baraero','Barstone','Barthunder','Barwater'}
-BarStatuses = S{'Barsleep','Barpoison','Barparalyze','Barblind','Barvirus','Barpetrify','Baramnesia'}
-Enspells = S{'Enfire','Enblizzard','Enaero','Enstone','Enthunder','Enwater'}
-
 local job, subjob, fulljob
 local watched_buff_list = {}
 local watched_ids = S{}
@@ -47,7 +43,7 @@ local row_height = 32
 
 function first_time_setup()
 	print('BuffCheck: First time setup for '..fulljob)
-	settings.jobs[fulljob] = S{'Food', 'Phalanx','Haste'}
+	settings.jobs[fulljob] = S{'Food','Phalanx','Haste','Protect','Shell'}
 	RefreshJobs = S{'RDM','WHM','BLM','SMN','PLD','RUN','BLU','GEO','SCH'}
 	if RefreshJobs:contains(job) then
 		settings.jobs[fulljob] = settings.jobs[fulljob] + S{'Refresh'}
@@ -60,6 +56,9 @@ function first_time_setup()
 	end
 	if job == 'MNK' then
 		settings.jobs[fulljob] = settings.jobs[fulljob] + S{'Impetus'}
+	end
+	if job == 'DNC' or sub == 'DNC' then
+		settings.jobs[fulljob] = settings.jobs[fulljob] + S{'Haste Samba'}
 	end
 	
 	config.save(settings, 'all')  -- Always save to global to prevent character-specific overrides
@@ -106,23 +105,41 @@ windower.register_event('Gain focus', 'Keyboard', function (new, old)
 end)
 
 windower.register_event('ipc message', function (msg)
-	if not windower.ffxi.get_info().logged_in or not self then return end
+	if not windower.ffxi.get_info().logged_in or not self then 
+		print('BuffCheck IPC: Not logged in or no self')
+		return 
+	end
+	
+	print('BuffCheck IPC received:', msg)
 	
 	ipc_message = msg:split(' ')
 	if ipc_message[1] ~= 'buffcheck' then return end
+	
 	local command = ipc_message[2]
 	local arg = ipc_message[3]
 	
+	print('  Command:', command, 'Arg:', arg and arg:sub(1, 20) or 'nil')
+	
 	if command == 'change_leader' then
+		print('  Changing leader to:', arg)
 		update_leader(arg)
 		
 	elseif command == 'request_leader' then
+		print('  Leader request received. Current leader:', current_leader, 'Self:', self.name)
 		if current_leader == self.name then 
+			print('  Broadcasting leader status')
 			windower.send_ipc_message('buffcheck change_leader '..current_leader)
 		end
 		
 	elseif command == 'update' then
-		update_party_list(string_to_table(arg))
+		print('  Update command received')
+		local buff_table = string_to_table(arg)
+		if buff_table then
+			print('  Parsed table, length:', #buff_table, 'First entry:', buff_table[1])
+			update_party_list(buff_table)
+		else
+			print('  ERROR: Failed to parse buff table')
+		end
 	end
 end)
 
@@ -161,17 +178,28 @@ end
 
 function update_leader(new_leader)
 	current_leader = new_leader
-	update_display()
-	if current_leader == self.name then
+	
+	-- If we just became leader, don't clear party data - we want to keep what others sent us
+	-- If we're not the leader anymore, clear our display but keep the data for when we might need to send it
+	if current_leader ~= self.name then
+		-- Clear display but keep our own data in party_missing_buffs
+		for _, text_obj in pairs(name_texts) do
+			text_obj:destroy()
+		end
+		name_texts = {}
+		
+		for _, icon in pairs(buff_icons) do
+			icon:destroy()
+		end
+		buff_icons = {}
+	else
+		-- We became leader - update display with all existing data
+		update_display()
 		windower.send_ipc_message('buffcheck change_leader '..current_leader)
 	end
 end
 
-function update_display()
-	--print('update_display called')
-	--print('current_leader:', current_leader)
-	--print('self.name:', self and self.name or 'nil')
-	
+function update_display()	
 	-- Clear existing icons and text
 	for _, text_obj in pairs(name_texts) do
 		text_obj:destroy()
@@ -188,24 +216,22 @@ function update_display()
 		return
 	end
 	
-	--print('Number of party members:', table.length(party_missing_buffs))
+	print('Number of party members:', table.length(party_missing_buffs))
+	for name, buffs in pairs(party_missing_buffs) do
+		print('  ' .. name .. ':', #buffs, 'missing buffs')
+	end
 	
 	-- Sort party members by name for consistent display
 	local sorted_members = {}
 	for player_name, missing_buffs in pairs(party_missing_buffs) do
-		--print('Player:', player_name, 'Missing buffs:', #missing_buffs)
 		table.insert(sorted_members, {name = player_name, buffs = missing_buffs})
 	end
 	table.sort(sorted_members, function(a, b) return a.name < b.name end)
 	
-	--print('Creating display for', #sorted_members, 'members')
-	
 	-- Display each party member's missing buffs
 	for row_index, member_data in ipairs(sorted_members) do
-		local y_pos = settings.pos.y + ((row_index - 1) * row_height)
-		
-		--print('Row', row_index, ':', member_data.name, 'at y:', y_pos)
-		
+		local y_pos = settings.pos.y + ((row_index - 1) * row_height)		
+		-- print('Row', row_index, ':', member_data.name, 'at y:', y_pos, 'buffs:', #member_data.buffs)		
 		-- Create player name text - pass text as first argument, settings as second
 		local name_text = texts.new(member_data.name:sub(1, 5), {
 			pos = {x = settings.pos.x, y = y_pos},
@@ -214,16 +240,11 @@ function update_display()
 		})
 		name_text:show()
 		table.insert(name_texts, name_text)
-		--print('  Created name text')
-		
 		-- Display missing buff icons
 		for icon_index, buff_data in ipairs(member_data.buffs) do
 			local x_pos = settings.pos.x + name_width + ((icon_index - 1) * (icon_size + icon_spacing))
 			local icon_path = windower.windower_path .. 'addons/BuffCheck/icons/' .. buff_data.id .. '.png'
-			
 			--print('  Icon', icon_index, ':', buff_data.name, 'id:', buff_data.id, 'at x:', x_pos)
-			--print('  Path:', icon_path)
-			
 			local icon = images.new({
 				texture = {
 					path = icon_path,
@@ -244,26 +265,28 @@ function update_display()
 			table.insert(buff_icons, icon)
 		end
 	end
-	
-	--print('Display update complete')
 end
 
 function update_party_list(buff_table)
-	--print('update_party_list called')
-	--print('buff_table length:', buff_table and #buff_table or 'nil')
+	print('update_party_list called on', self.name)
+	print('  Current leader:', current_leader)
+	print('  buff_table type:', type(buff_table))
 	
+	if not buff_table or #buff_table == 0 then 
+		print('  Empty buff_table, returning')
+		return 
+	end
+	
+	print('  buff_table length:', #buff_table)
+	local player_name = buff_table[1]
+	print('  Player name from table:', player_name)
 	if not buff_table or #buff_table == 0 then 
 		--print('Empty buff_table, returning')
 		return 
 	end
 	
 	local player_name = buff_table[1]  -- First entry is player name (includes job)
-	--print('Player name from table:', player_name)
-	
-	-- Extract just the name part (before underscore)
 	local display_name = player_name:match("^(.+)_") or player_name
-	--print('Display name:', display_name)
-	
 	local missing_buffs = {}
 	
 	-- Convert buff names to buff IDs
@@ -277,9 +300,7 @@ function update_party_list(buff_table)
 			end
 		end
 	end
-	
-	--print('Total missing buffs for', display_name, ':', #missing_buffs)
-	
+	--print('Total missing buffs for', display_name, ':', #missing_buffs)	
 	party_missing_buffs[display_name] = missing_buffs
 	update_display()
 end
@@ -304,8 +325,15 @@ function missing_buff_list()
 	table.sort(missing_buffs)
 	
 	table.insert(missing_buffs, 1, string.sub(self.name, 0, 8)..'_'..job)
-	print(table_to_string(missing_buffs))
-	windower.send_ipc_message('buffcheck update '..table_to_string(missing_buffs))
+	
+	-- Always send update via IPC, regardless of leader status
+	local message = 'buffcheck update '..table_to_string(missing_buffs)
+	print('BuffCheck: Sending IPC message from', self.name)
+	print('  Message length:', #message)
+	print('  First 50 chars:', message:sub(1, 50))
+	windower.send_ipc_message(message)
+	
+	-- Update our own data in the party list
 	update_party_list(missing_buffs)
 end
 
@@ -313,7 +341,8 @@ function table_to_string(table_to_convert)
 	if type(table_to_convert) ~= 'table' then print('table_to_string requires table') return end
 	local new_string = ''
 	for i, v in pairs(table_to_convert) do
-		new_string = new_string .. v .. '//'
+		local encoded_v = v:gsub(' ', '|')
+		new_string = new_string .. encoded_v .. '//'
 	end
 	return new_string
 end
@@ -325,12 +354,16 @@ function string_to_table(string_to_convert)
 	local delim_from, delim_to = string.find(string_to_convert, '//', from)
 	
 	while delim_from do
-		table.insert(result, string.sub(string_to_convert, from, delim_from - 1))
+		local value = string.sub(string_to_convert, from, delim_from - 1)
+		value = value:gsub('|', ' ')
+		table.insert(result, value)
 		from = delim_to + 1
 		delim_from, delim_to = string.find(string_to_convert, '//', from)
 	end
 	
-	table.insert(result, string.sub(string_to_convert, from))
+	local last_value = string.sub(string_to_convert, from)
+	last_value = last_value:gsub('|', ' ')
+	table.insert(result, last_value)
 	return result
 end
 
