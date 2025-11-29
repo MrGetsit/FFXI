@@ -1,10 +1,10 @@
 _addon.author = 'Spikex'
-_addon.version = '0.911'
+_addon.version = '0.92'
 _addon.name = 'Multibox'
 _addon.commands = { 'multibox', 'mb' }
 
 -- Changes: 
--- Fixed follow activating too far away
+-- Overhaled waypoint pathing
 
 config = require('config')
 require('sets')
@@ -34,6 +34,7 @@ zone = nil -- Current zone leader is in
 zoning = false
 double_tap = false
 casting = false -- Don't start moving during a cast, Works but is messed up by sendtargets packet interception
+move_here = false
 keydown = false
 has_focus = false
 command_mode = 'all'
@@ -77,6 +78,7 @@ function change_state(new_state, arg1, arg2, arg3)
 		if is_following then
 			stop_moving()
 			is_following = false
+			last_waypoint = nil
 			
 			if is_leader then
 				if zone_teleport then -- Teleported from a homepoint/survival guide/etc, so stop
@@ -129,15 +131,17 @@ function change_state(new_state, arg1, arg2, arg3)
 			current_target = windower.ffxi.get_mob_by_name(current_leader) -- Know who to turn to when stopped
 			if moving then stop_moving() end 
 			turn_to_target(current_target)
+			
 			if arg1 then -- Getting new follow order from leader
-				new_waypoint = { x = arg1, y = arg2 }
+				new_waypoint = { x = tonumber(arg1), y = tonumber(arg2) }
 				if distance_to(new_waypoint, self) > 40 then return end
 				if arg3 then -- Double tap
+					print('Double tap follow - clearing waypoints')
 					waypoints = {}
 					move_here = true 
 				end
+				table.insert(waypoints, new_waypoint)
 			end			
-			table.insert(waypoints, new_waypoint)
 		end
 		is_following = true
 		
@@ -481,59 +485,87 @@ windower.register_event('postrender', function()
 	if not self then if not zoning then change_state('zoning') end return end -- Change to zoning if not, either way return
 	if self.hpp == 0 and current_state ~= 'stop' then change_state('stop') return end -- Dead
 	if start_casting and current_state ~= 'casting' then change_state('casting') return end -- Casting
-	
-	if current_leader ~= self.name then -- Only update followers
-		player_current = windower.ffxi.get_player()
-		if player_current.autorun then 
-			moving = true 
-		else 
-			moving = false 
-		end 
-	end
+	player_current = windower.ffxi.get_player()
 	
 	if current_state == 'follow' then
 		if not current_leader then print('No leader to follow') change_state('stop') return end
 		
 		if is_leader then -- If leader has moved far enough from last waypoint, create new waypoint
-			local distance = distance_to(new_waypoint, self)
-			if distance > 1.5 then 
-				if distance < 10 then -- Had it at 5 before, seemed to occassionally trigger within server update
-					send_new_waypoint(self) 
-				else -- Leader moved too far in a single update
-					windower.send_command('input /party Teleported, stopping '..distance)
-					windower.send_ipc_message('multibox stop '..zone)
-					change_state('stop')
+			if last_waypoint then 
+				local distance = distance_to(last_waypoint, self)
+				if distance > 2 then 
+					if distance < 10 then -- Had it at 5 before, seemed to occassionally trigger within server update
+						last_waypoint = { x = self.x, y = self.y }
+						send_new_waypoint(self) 
+					else -- Leader moved too far in a single update
+						windower.send_command('input /party Teleported, stopping '..distance)
+						windower.send_ipc_message('multibox stop '..zone)
+						change_state('stop')
+					end
 				end
+			else
+				last_waypoint = { x = self.x, y = self.y }
+				send_new_waypoint(self)
 			end
 		else -- Move follower 
 			if player_current.status == 1 then return end -- Engaged, don't turn away
-			if not waypoints[1] then return end
+			
+			if not waypoints[1] then 
+				--if check == 0 then print('No waypoints to follow') end
+				return 
+			end
 			
 			waypoint_distance = distance_to(waypoints[1], self)
 			
+			--if check == 0 then
+			--	print(string.format('WP: %d/%d | Dist: %.2f | Moving: %s | MoveHere: %s', 
+			--	1, #waypoints, waypoint_distance, tostring(moving), tostring(move_here)))
+			--end
+			
 			if moving then
-				if (move_here and waypoint_distance < 0.3) or -- Stop on position
+				if (move_here and waypoint_distance < 0.2) or -- Stop on position
 				(not move_here and waypoint_distance < 0.8) then -- Close enough
+					--print('Reached waypoint '..#waypoints..' remaining')
 					move_here = false
-					stop_moving()
 					table.remove(waypoints, 1)
 					
-				elseif last_checked_distance < waypoint_distance then -- Running the wrong direction
+					if waypoints[1] then
+						local next_distance = distance_to(waypoints[1], self)
+						--print(string.format('Next WP distance: %.2f', next_distance))
+						
+						if next_distance > 0.5 then
+							--print(string.format('Immediately moving to next WP (%.2f away)', next_distance))
+							last_checked_distance = next_distance
+							windower.ffxi.run(get_direction(waypoints[1]))
+							moving = true
+						else
+							--print('Next WP too close, will check again next frame')
+							moving = false
+						end
+					else
+						--print('No more waypoints')
+						stop_moving()
+					end
+					
+				elseif last_checked_distance and last_checked_distance < waypoint_distance then
+					--print('Running wrong direction - recalculating')
 					if waypoint_distance < 20 then 
 						stop_moving()
 						windower.ffxi.run(get_direction(waypoints[1]))
+						moving = true
 					else 
 						windower.send_command('input /party Next waypoint too far, stopping')
 						change_state('stop') 
 					end
-				elseif check == 30 then -- Update distance from waypoint
-					last_checked_distance = waypoint_distance + 0.2
+				elseif check == 30 then
+					last_checked_distance = waypoint_distance
 				end
 			else				
-				if move_here and waypoint_distance > 0.5 or
-				waypoint_distance > 1 then -- Start moving to next waypoint
-					last_checked_distance = waypoint_distance + 0.5
+				if waypoint_distance > 0.8 then  -- If we're far enough from the waypoint
+					--print(string.format('Starting movement to WP (%.2f away)', waypoint_distance))
+					last_checked_distance = waypoint_distance
 					windower.ffxi.run(get_direction(waypoints[1]))
+					moving = true
 					
 				elseif check == 30 then -- Periodic check
 					if player_current.status == 0 and player_current.target_locked then 
@@ -627,13 +659,30 @@ windower.register_event('ipc message', function (msg)
 	if ipc_zone ~= tostring(zone) then return end
 	
 	if command == 'pos_update' then 
-		new_waypoint = { x = arg1, y = arg2 }
+		--print('got pos update for '..arg1..' '..arg2)
+		if not arg1 or not arg2 then print('bad update') return end
+		new_waypoint = { x = tonumber(arg1), y = tonumber(arg2) }
+		self = windower.ffxi.get_mob_by_target('me')
+		if not self then return end
+		
 		newest_distance = distance_to(new_waypoint, self)
-		if newest_distance > 20 then return end
-		if not waypoint_distance or newest_distance < waypoint_distance then -- New waypoint is closer
+		if newest_distance > 20 then print('disregard wp - too far') return end
+		
+		-- Check if this waypoint is too close to the last waypoint in the list
+		if waypoints[#waypoints] then
+			local last_wp_distance = distance_to(new_waypoint, waypoints[#waypoints])
+			if last_wp_distance < 0.5 then 
+				--print('disregard wp - duplicate')
+				return 
+			end
+		end
+		
+		if waypoints[1] and newest_distance < distance_to(waypoints[1], self) then -- New waypoint is closer
+			--print('New waypoint closer, clearing old waypoints')
 			waypoints = {}
 			stop_moving()
 		end
+		--print('Adding waypoint: '..#waypoints + 1 ..' dist: '..string.format("%.2f", newest_distance))
 		table.insert(waypoints, new_waypoint)
 		
     elseif command == 'change_leader' then 
