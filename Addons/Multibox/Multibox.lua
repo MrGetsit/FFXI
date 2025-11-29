@@ -1,11 +1,10 @@
 _addon.author = 'Spikex'
-_addon.version = '0.91'
+_addon.version = '0.911'
 _addon.name = 'Multibox'
 _addon.commands = { 'multibox', 'mb' }
 
 -- Changes: 
--- Fix overwrite
--- Change to not always look at player
+-- Fixed follow activating too far away
 
 config = require('config')
 require('sets')
@@ -114,7 +113,6 @@ function change_state(new_state, arg1, arg2, arg3)
 	if new_state == 'follow' then
 		if command_mode == 'only_engage' then return end
 		stop_engage = true
-		is_following = true
 		waypoints = {}
 		if is_leader then
 			if double_tap then
@@ -133,18 +131,19 @@ function change_state(new_state, arg1, arg2, arg3)
 			turn_to_target(current_target)
 			if arg1 then -- Getting new follow order from leader
 				new_waypoint = { x = arg1, y = arg2 }
+				if distance_to(new_waypoint, self) > 40 then return end
 				if arg3 then -- Double tap
 					waypoints = {}
 					move_here = true 
 				end
-			end
-			
+			end			
 			table.insert(waypoints, new_waypoint)
 		end
+		is_following = true
 		
 	elseif new_state == 'resume_follow' then
 		stop_moving()
-		waypoint = {}
+		waypoints = {}
 		new_waypoint = { x = self.x, y = self.y }
 		interrupt = false
 		coroutine.sleep(1) -- Wait a few seconds in case they are in an animation
@@ -630,6 +629,7 @@ windower.register_event('ipc message', function (msg)
 	if command == 'pos_update' then 
 		new_waypoint = { x = arg1, y = arg2 }
 		newest_distance = distance_to(new_waypoint, self)
+		if newest_distance > 20 then return end
 		if not waypoint_distance or newest_distance < waypoint_distance then -- New waypoint is closer
 			waypoints = {}
 			stop_moving()
@@ -827,5 +827,4 @@ filter = S{ -- Block audio change messages
 }
 windower.register_event('incoming text', function(text)
     return filter:any(windower.wc_match+{text})
-
 end)
