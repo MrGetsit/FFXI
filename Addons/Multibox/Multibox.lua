@@ -130,7 +130,7 @@ function change_state(new_state, arg1, arg2, arg3)
 			if windower.ffxi.get_player().target_locked then windower.send_command('input /lockon') end
 			current_target = windower.ffxi.get_mob_by_name(current_leader) -- Know who to turn to when stopped
 			if moving then stop_moving() end 
-			turn_to_target(current_leader)
+			turn_to_target(current_target)
 			if arg1 then -- Getting new follow order from leader
 				new_waypoint = { x = arg1, y = arg2 }
 				if arg3 then -- Double tap
@@ -827,4 +827,5 @@ filter = S{ -- Block audio change messages
 }
 windower.register_event('incoming text', function(text)
     return filter:any(windower.wc_match+{text})
+
 end)
