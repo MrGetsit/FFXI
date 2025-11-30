@@ -1,10 +1,10 @@
 _addon.author = 'Spikex'
-_addon.version = '0.92'
+_addon.version = '0.925'
 _addon.name = 'Multibox'
 _addon.commands = { 'multibox', 'mb' }
 
 -- Changes: 
--- Overhaled waypoint pathing
+-- Fixed followers getting stuck in moving state sometimes
 
 config = require('config')
 require('sets')
@@ -58,6 +58,7 @@ function update_leader(new_leader) -- new_leader = character name
 	self = windower.ffxi.get_mob_by_target('me') 
 	if not self then return end
 	last_waypoint = nil
+	waypoints = {}
 	if self.name == new_leader then
 		zone = windower.ffxi.get_info().zone
 		is_leader = true
@@ -118,6 +119,7 @@ function change_state(new_state, arg1, arg2, arg3)
 		stop_engage = true
 		waypoints = {}
 		if is_leader then
+			last_waypoint = nil
 			if double_tap then
 				windower.add_to_chat(160, 'Move followers to current position.')
 				windower.send_ipc_message('multibox follow '..zone..' '..self.x..' '..self.y..' true')
@@ -291,8 +293,7 @@ function engage(new_target)
 		packets.inject(attack)
 		coroutine.sleep(2)
 	end
-	if not success then
-		--print('Couldn\'t Engage')
+	if not success then -- Unable to engage
 		change_state('stop')
 	end
 end
@@ -304,6 +305,7 @@ end
 
 function get_direction(target, inverse)
 	-- 0 is east, pi/2 south, -pi or pi is west, -pi/2 is north
+	if not target then return end
 	local me = windower.ffxi.get_mob_by_target('me')
 	local h = math.atan2(target.x - me.x, target.y - me.y ) -- Returns between 3.14 and -3.14
 	local tau = math.pi/2
@@ -486,7 +488,6 @@ windower.register_event('postrender', function()
 	if not self then if not zoning then change_state('zoning') end return end -- Change to zoning if not, either way return
 	if self.hpp == 0 and current_state ~= 'stop' then change_state('stop') return end -- Dead
 	if start_casting and current_state ~= 'casting' then change_state('casting') return end -- Casting
-	player_current = windower.ffxi.get_player()
 	
 	if current_state == 'follow' then
 		if not current_leader then print('No leader to follow') change_state('stop') return end
@@ -509,6 +510,7 @@ windower.register_event('postrender', function()
 				send_new_waypoint(self)
 			end
 		else -- Move follower 
+			player_current = windower.ffxi.get_player()
 			if player_current.status == 1 then return end -- Engaged, don't turn away
 			
 			if not waypoints[1] then 
@@ -521,7 +523,14 @@ windower.register_event('postrender', function()
 			--if check == 0 then
 			--	print(string.format('WP: %d/%d | Dist: %.2f | Moving: %s | MoveHere: %s', 
 			--	1, #waypoints, waypoint_distance, tostring(moving), tostring(move_here)))
-			--end
+			--end			
+			
+			if not moving and waypoint_distance < 0.8 then
+				--print('Already at waypoint, removing it ('..#waypoints..' total)')
+				table.remove(waypoints, 1)
+				if not waypoints[1] then return end
+				waypoint_distance = distance_to(waypoints[1], self)
+			end
 			
 			if moving then
 				if (move_here and waypoint_distance < 0.2) or -- Stop on position
@@ -529,6 +538,7 @@ windower.register_event('postrender', function()
 					--print('Reached waypoint '..#waypoints..' remaining')
 					move_here = false
 					table.remove(waypoints, 1)
+					last_checked_distance = nil
 					
 					if waypoints[1] then
 						local next_distance = distance_to(waypoints[1], self)
@@ -543,23 +553,25 @@ windower.register_event('postrender', function()
 							--print('Next WP too close, will check again next frame')
 							moving = false
 						end
-					else
-						--print('No more waypoints')
+					else -- No more waypoints
 						stop_moving()
 					end
 					
 				elseif last_checked_distance and last_checked_distance < waypoint_distance then
-					--print('Running wrong direction - recalculating')
+					--print(string.format('Wrong direction - was %.2f now %.2f', last_checked_distance, waypoint_distance))
+
 					if waypoint_distance < 20 then 
-						stop_moving()
-						windower.ffxi.run(get_direction(waypoints[1]))
-						moving = true
+						windower.ffxi.run(false)
+						moving = false
+						last_checked_distance = nil 
 					else 
 						windower.send_command('input /party Next waypoint too far, stopping')
 						change_state('stop') 
 					end
 				elseif check == 30 then
-					last_checked_distance = waypoint_distance
+					if not last_checked_distance or waypoint_distance < last_checked_distance then
+						last_checked_distance = waypoint_distance
+					end
 				end
 			else				
 				if waypoint_distance > 0.8 then  -- If we're far enough from the waypoint
@@ -592,7 +604,7 @@ windower.register_event('postrender', function()
 			end
 		else
 			if check == 0 or check == 30 then -- Lockon to prevent running wrong direction
-				if not player_current.target_locked then windower.send_command('input /lockon') end
+				if not windower.ffxi.get_player().target_locked then windower.send_command('input /lockon') end
 			end
 			if distance > 3 and not is_leader then
 				windower.ffxi.run(get_direction(t))
@@ -604,7 +616,7 @@ windower.register_event('postrender', function()
 	elseif current_state == 'reverse' then
 		if is_leader then return end
 		if check == 0 or check == 20 or check == 40 then
-			if player_current.target_locked then windower.send_command('input /lockon') end -- Unlock
+			if windower.ffxi.get_player().target_locked then windower.send_command('input /lockon') end -- Unlock
 			local t = windower.ffxi.get_mob_by_id(current_target.id)
 			if not t then return end 
 			turn_to_target(t, true)
@@ -617,8 +629,8 @@ windower.register_event('postrender', function()
 		if not t then return end 
 		
 		local distance = distance_to(t, self)
-		if distance < min_retreat_range and not moving then -- Too close, move back
-			if player_current.target_locked then windower.send_command('input /lockon') end -- Unlock
+		if distance < min_retreat_range and not moving then -- Too close, move back	
+			if windower.ffxi.get_player().target_locked then windower.send_command('input /lockon') end -- Unlock
 			windower.ffxi.run(get_direction(t, true))
 			
 		elseif distance > max_retreat_range and not moving then -- Too far, move forward
@@ -660,14 +672,13 @@ windower.register_event('ipc message', function (msg)
 	if ipc_zone ~= tostring(zone) then return end
 	
 	if command == 'pos_update' then 
-		--print('got pos update for '..arg1..' '..arg2)
 		if not arg1 or not arg2 then print('bad update') return end
 		new_waypoint = { x = tonumber(arg1), y = tonumber(arg2) }
 		self = windower.ffxi.get_mob_by_target('me')
 		if not self then return end
 		
 		newest_distance = distance_to(new_waypoint, self)
-		if newest_distance > 20 then print('disregard wp - too far') return end
+		if newest_distance > 30 then return end
 		
 		-- Check if this waypoint is too close to the last waypoint in the list
 		if waypoints[#waypoints] then
@@ -877,5 +888,4 @@ filter = S{ -- Block audio change messages
 }
 windower.register_event('incoming text', function(text)
     return filter:any(windower.wc_match+{text})
-
 end)
