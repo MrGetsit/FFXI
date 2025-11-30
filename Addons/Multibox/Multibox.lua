@@ -57,6 +57,7 @@ end
 function update_leader(new_leader) -- new_leader = character name
 	self = windower.ffxi.get_mob_by_target('me') 
 	if not self then return end
+	last_waypoint = nil
 	if self.name == new_leader then
 		zone = windower.ffxi.get_info().zone
 		is_leader = true
@@ -876,4 +877,5 @@ filter = S{ -- Block audio change messages
 }
 windower.register_event('incoming text', function(text)
     return filter:any(windower.wc_match+{text})
+
 end)
