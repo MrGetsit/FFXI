@@ -109,6 +109,12 @@ function init_gear_sets()
     sets.TreasureHunter = {head="Herculean Helm",body="Herculean Vest",ring1="Gorney Ring", waist="Chaac Belt"} 
 	
     --- Precast Sets ---
+    sets.precast.JA['Tactician\'s Roll']= { body  = "Chasseur's Frac" 		}
+    sets.precast.JA['Blitzer\'s Roll'] 	= { head  = "Chasseur's Tricorne" 	}
+    sets.precast.JA['Allies\' Roll'] 	= { hands = "Chasseur's Gants" 		}
+    sets.precast.JA['Caster\'s Roll'] 	= { legs  = "Chasseur's Culottes" 	}
+    sets.precast.JA['Courser\'s Roll'] 	= { feet  = "Chasseur's Bottes" 	}
+	
     sets.precast.CorsairRoll = {
 		head	= "Lanun Tricorne", 
 		neck	= "Regal Necklace",
@@ -116,7 +122,6 @@ function init_gear_sets()
 		back	= "Camulus's Cape",
 		legs	= "Desultor Tassets"
 	}	
-
     sets.precast.Waltz = { head="Mummu Bonnet +2", feet="Rawhide Boots" }	
     sets.precast.FC = {}
 	sets.precast.RA = {
@@ -130,14 +135,24 @@ function init_gear_sets()
 		body	= "Meg. Cuirie +2",
 		hands	= "Chasseur's Gants +3",
 		ring1	= "Cornelia's Ring",
+		ring2	= "Dingir",
 		back	= gear.CapeAGI,
 		feet 	= "Lanun bottes +4",
 		}
-    sets.precast.WS['Savage Blade'] = set_combine(sets.precast.WS, {
-		ring2	= "Vehemence Ring",
-		waist	= "Prosilio Belt +1",  	
+    sets.precast.WS['Savage Blade'] = {	
+		head 	= "Meghanada Visor +2",
+        neck	= "Rep. Plat. Medal",
+		ear1 	= "Alabaster Earring",
+		ear2 	= "Ishvara Earring",
+		body	= "Laksa. Frac +4",
+		hands	= "Chasseur's Gants +3",
+		ring1	= "Cornelia's Ring",
+		ring2	= "Ilibrat Ring",
 		back	= gear.CapeSTR,
-	})
+		waist	= "Prosilio Belt +1",  
+		legs 	= "Meg. Chausses +2",
+		feet 	= "Lanun Bottes +4",
+	}
     sets.precast.WS['Hot Shot'] = set_combine(sets.precast.WS, {
 		neck	= "Sibyl Scarf",
 		ear2	= "Friomisi Earring",
@@ -146,8 +161,8 @@ function init_gear_sets()
 	})
     sets.precast.WS['Leaden Salute'] = set_combine(sets.precast.WS['Hot Shot'], {
 		head 	= "Pixie Hairpin +1",
-		ring2	= "Archon Ring",
 	})
+    sets.precast.WS['Aeolian Edge'] = sets.precast.WS['Hot Shot']
 
     --- Midcast Sets ---
     sets.midcast.SpellInterrupt = {}
@@ -165,7 +180,7 @@ function init_gear_sets()
 		ring2 	= "Rajas Ring",
 		back	= "Null Shawl",
 		waist	= "Null Belt",  
-		legs 	= "Meg. Chausses +2",
+		legs 	= "Malignance Tights",
 		feet 	= "Malignance Boots",
 		}
     --- Engaged Sets ---
@@ -181,7 +196,7 @@ function init_gear_sets()
 		ring2 	= "Rajas Ring",
 		back	= "Null Shawl",
 		waist	= "Sailfi Belt +1",  
-		legs 	= "Meg. Chausses +2",
+		legs 	= "Malignance Tights",
 		feet 	= "Malignance Boots",
 		}
 
@@ -197,7 +212,7 @@ function init_gear_sets()
 		ring2 	= "Murky Ring",
 		back	= "Null Shawl",
 		waist	= "Plat. Mog. Belt",  
-		legs 	= "Meg. Chausses +2",
+		legs 	= "Malignance Tights",
 		feet 	= "Malignance Boots",
         }
 
@@ -276,7 +291,7 @@ function job_state_change(field, new_value, old_value)
 		if player.equipment.main == "Naegling" then
 			send_command('input /equip main')
 		end
-		send_command('send @all bind  numpad1 send Sneaksy /Exenterator ') 
+		send_command('send @all bind  numpad1 send Sneaksy /AeolianEdge ') 
 		send_command('send @all bind !numpad1  sta Sneaksy /Evisceration ') 
 	end
     equip(sets[state.WeaponSet.current])

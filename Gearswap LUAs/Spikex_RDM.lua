@@ -27,6 +27,7 @@ function job_setup()
     send_command('bind @e gs c toggle Immunobreak')
     send_command('bind %b gs c toggle BowMode')
     send_command('bind %capslock gs c cycle WeaponSet')
+    send_command('bind ~capslock gs c toggle WeaponLock')
     send_command('bind @S gs c cycle OffenseMode')
 	
     enfeebling_mnd = S{'Paralyze', 'Paralyze II', 'Addle', 'Addle II', 'Slow', 'Slow II'}
@@ -44,6 +45,7 @@ end
 
 function user_setup()		
 	send_command('send @all alias rb send Spikex exec RDM_Buffs.txt')
+	send_command('send @all alias rb2 send Spikex exec RDM_Buffs2.txt')
 	
 	send_command('send @all bind %1   sta Spikex /SavageBlade')
 	send_command('send @all bind !1   sta Spikex /EmpyrealArrow')
@@ -62,7 +64,7 @@ function user_setup()
 	send_command('send @all bind ~%2 send Spikex /Phalanx')
 	send_command('send @all bind ^%2 send Spikex /Phalanx2 <stpc>')
 	send_command('send @all bind ~%3 send Spikex /GainStr')
-	send_command('send @all bind ~%4 send Spikex /Enthunder')
+	send_command('send @all bind ~%4 send Spikex /Enaero')
 	send_command('send @all bind %7 send Spikex /Blink')
 	send_command('send @all bind %8 send Spikex /Stoneskin')
 	send_command('send @all bind %9  send Spikex /Protect5 <stpc>')
@@ -89,7 +91,7 @@ function user_setup()
 		send_command('send @all bind %x send Spikex /Accession')
 		send_command('send @all bind !x send Spikex /LightArts')
 		send_command('send @all bind @x send Spikex /AddendumWhite')
-		send_command('send @all bind @4 send Spikex /Thunderstorm')
+		send_command('send @all bind @4 send Spikex /Windstorm')
 		send_command('send @all bind ^x  send Spikex /stna <stpc>')
 		send_command('send @all bind %c send Spikex /Manifestation')
 		send_command('send @all bind !c send Spikex /DarkArts')
@@ -117,22 +119,23 @@ function user_setup()
 		send_command('gs c set WeaponSet Sword')
 	end
 	
-	send_command('wait 5; input /lockstyleset 3')
+	send_command('wait 5; input /lockstyleset 4')
 end
 
 function init_gear_sets()
     --- Weapon Sets ---
     sets.Sword		= 	{ main="Naegling", 			sub="Diamond Aspis"}
-    sets.Dagger		= 	{ main="Tauret", 			sub="Diamond Aspis"}
-    sets.Dual 		= 	{ main="Naegling", 			sub="Daybreak"}
+    sets.Dagger		= 	{ main="Tauret", 			sub="Ammurapi Shield"}
     sets.Enspell	= 	{ main="Qutrub Knife", 		sub="Diamond Aspis"}
+    sets.Dual 		= 	{ main="Naegling", 			sub="Daybreak"}
     sets.EnspellDW	= 	{ main="Qutrub Knife", 		sub="Ceremonial Dagger"}
     sets.Bow		= 	{ range="Ullr", 			ammo="Stone Arrow"}
 		
-	gear.CapeMND = { name="Sucellos's Cape", augments={'MND+20','Mag. Acc+20 /Mag. Dmg.+20','MND+10','"Fast Cast"+10','Phys. dmg. taken-10%',} }
-	gear.CapeINT = { name="Sucellos's Cape", augments={'INT+20','Mag. Acc+20 /Mag. Dmg.+20','INT+10','"Mag.Atk.Bns."+10',} }
-	gear.CapeIWS = { name="Sucellos's Cape", augments={'INT+20','Mag. Acc+20 /Mag. Dmg.+20','INT+10','Weapon skill damage +10%',} }
-	gear.CapeSWS = { name="Sucellos's Cape", augments={'STR+20','Accuracy+20 Attack+20','STR+10','Weapon skill damage +10%',} }
+	gear.CapeMND 	= { name="Sucellos's Cape", augments={'MND+20','Mag. Acc+20 /Mag. Dmg.+20','MND+10','"Fast Cast"+10','Phys. dmg. taken-10%',} }
+	gear.CapeINT 	= { name="Sucellos's Cape", augments={'INT+20','Mag. Acc+20 /Mag. Dmg.+20','INT+10','"Mag.Atk.Bns."+10',} }
+	gear.CapeIWS 	= { name="Sucellos's Cape", augments={'INT+20','Mag. Acc+20 /Mag. Dmg.+20','INT+10','Weapon skill damage +10%',} }
+	gear.CapeSWS 	= { name="Sucellos's Cape", augments={'STR+20','Accuracy+20 Attack+20','STR+10','Weapon skill damage +10%',} }	
+    gear.Obi 		= { waist = "Hachirin-no-Obi" }
 	
     sets.precast.JA['Saboteur'] = { sub = "Diamond Aspis" }
 	
@@ -144,7 +147,7 @@ function init_gear_sets()
 		ear2	= "Friomisi Earring",
 		body	= "Lethargy Sayon +3",
 		hands	= "Leth. Ganth. +3",
-		ring1	= "Gurebu's Ring",
+		ring1	= "Cornelia's Ring",
 		ring2 	= "Metamor. Ring +1",
 		back	= gear.CapeSWS,
 		waist	= "Eschan Stone",
@@ -156,42 +159,58 @@ function init_gear_sets()
 		ammo	= "Oshasha's Treatise",
 		head  	= "Viti. Chapeau +4",
 		neck	= "Rep. Plat. Medal",
-		ear1	= "Ishvara earring",
-		ear2	= "Malignance earring",
-		body	= "Lethargy Sayon +3",
-		hands	= "Jhakri cuffs +2",
-		ring1	= "Rufescent Ring",
-		ring2	= "Rajas Ring",
+		ear1	= "Sherida earring",
+		ear2	= "Ishvara earring",
+		body  	= "Vitiation Tabard +4",
+		hands	= "Atrophy Gloves +4",
+		ring1	= "Cornelia's Ring",
+		ring2	= "Rufescent Ring",
 		back	= gear.CapeSWS,
 		waist	= "Sailfi Belt +1",
 		legs	= "Leth. Fuseau +3",
 		feet  	= "Leth. Houseaux +3",
 		}
-		
-	sets.precast.WS['Sanguine Blade'] = set_combine(sets.precast.WS, { })
-	
+			
 	sets.precast.WS['Aeolian Edge'] = {
-		ammo	= "Oshasha's Treatise",
+		ammo	= "Sroda Tathlum",
 		head  	= "Leth. Chappel +2",
 		neck	= "Sibyl Scarf",
 		ear1	= "Malignance earring",
 		ear2	= "Friomisi Earring",
 		body	= "Lethargy Sayon +3",
-		hands	= "Leth. Ganth. +3",
-		ring1	= "Metamor. Ring +1",
+		hands	= "Jhakri Cuffs +2",
+		ring1	= "Cornelia's Ring",
 		ring2 	= "Freke Ring",
 		back	= gear.CapeIWS, -- Beats int MAB
-		waist	= "Eschan Stone",
+		waist	= "Sacro Cord",
 		legs	= "Leth. Fuseau +3",
 		feet  	= "Leth. Houseaux +3",
 		}
-		
-    sets.precast.FC = {						-- 42 + 38
+	sets.precast.WS['Seraph Blade'] = set_combine(sets.precast.WS['Aeolian Edge'], { neck	= "Fotia Gorget", })
+	
+	sets.precast.WS['Chant du Cygne'] = {
+		ammo	= "Yetshila +1",
+		head  	= "Blistering Sallet +1",
+		neck	= "Fotia Gorget",
+		ear1	= "Sherida Earring",
+		ear2	= "Cessance Earring",
+		body	= "Lethargy Sayon +3",
+		hands	= "Leth. Ganth. +3",
+		ring1	= "Begrudging Ring",
+		ring2	= "Ilabrat Ring",
+		back	= gear.CapeSWS,
+		waist	= "Sailfi Belt +1",
+		legs	= "Leth. Fuseau +3",
+		feet  	= "Leth. Houseaux +3", 
+		}		
+	sets.precast.WS['Evisceration'] = sets.precast.WS['Chant du Cygne']
+	sets.precast.WS['Sanguine Blade'] = set_combine(sets.precast.WS['Aeolian Edge'], { head = "Pixie Hairpin +1" })
+	
+    sets.precast.FC = {						-- 43 + 38
 		ammo  	= "Sapience Orb",			-- 2
 		head  	= "Atrophy Chapeau +3",		-- 16
 		ear1  	= "Tuisto Earring",			-- HP
-		ear2  	= "Lethargy Earring",		-- 7
-		--hands	= "Leyline Gloves",       	-- 7
+		body  	= "Vitiation Tabard +4",	-- 15
 		ring1	= "Eihwaz Ring",			-- HP
 		ring2	= "Etana Ring",				-- HP
 		back  	= gear.CapeMND,				-- 10
@@ -211,7 +230,7 @@ function init_gear_sets()
 		ring1 	= "Freke Ring",
 		ring2 	= "Metamor. Ring +1",
 		back  	= gear.CapeINT,
-		waist 	= "Acuity Belt +1",
+		waist 	= "Sacro Cord",
 		legs  	= "Leth. Fuseau +3",
 		feet  	= "Vitiation boots +4",
 		}
@@ -241,68 +260,81 @@ function init_gear_sets()
 		--ring2 	= "Stikini Ring +1",
 		})
 	sets.EnfAcc = set_combine(sets.EnfMND, { -- Frazzle II, Dispel 
-		range	= "Ullr",
-		ammo	= "",	-- Make sure to unequip gem
+        range	= {name="Ullr",			priority= 1},
+        ammo	= {name="Regal Gem",	priority= 2}, -- Equip if weapon locked
 		--neck	= "Null Loop",
 		body	= "Atrophy Tabard +4",
 		back	= "Null Shawl",
-		legs	= "Atrophy Tights +3",
+		legs	= "Atrophy Tights +4",
 		waist	= "Null Belt",
+		feet  	= "Atro. Boots +4",
 		})
-	sets.EnfDur = set_combine(sets.EnfMND, { -- Sleep, Sleep II, Bind, Break, Silence
+	sets.EnfDur = set_combine(sets.EnfAcc, { -- Sleep, Sleep II, Bind, Break, Silence
         main	= "Naegling",
-		range	= "Ullr",
-		ammo	= "",	-- Make sure to unequip gem
-		--head  	= "Leth. Chappel +2",
-		neck	= "Null Loop",
-		back	= "Null Shawl",
 		ring2	= "Kishar Ring",
-		back	= "Null Shawl",
-		waist	= "Acuity Belt +1",
-		feet  	= "Leth. Houseaux +3",
 		})
 	
     sets.midcast['Enhancing Magic'] = {
+		sub		= "Forfend +1",
         ammo	= "Homiliary",
 		head  	= "Leth. Chappel +2",
 		neck  	= "Dls. Torque +2",
 		ear1  	= "Mimir Earring",
 		ear2  	= "Lethargy Earring",
 		body  	= "Lethargy Sayon +3",
-		hands 	= "Leth. Ganth. +3",
+		hands	= "Leth. Ganth. +3", 
 		ring1 	= "Stikini Ring +1",
 		ring2 	= "Kishar Ring",
 		back  	= gear.CapeMND,
-		waist 	= "Null Belt",
+		waist 	= "Embla Sash",
 		legs  	= "Leth. Fuseau +3",
 		feet  	= "Leth. Houseaux +3",
 		}
+	sets.midcast.EnhSkill = set_combine(sets.midcast['Enhancing Magic'], {
+		neck  	= "Melic Torque",		-- 10
+		body  	= "Vitiation Tabard +4",-- 23 / 24
+		hands	= "Viti. Gloves +3",  	-- 24 / 25
+		back  	= "Ghostfyre Cape",		-- 9 / 10
+		waist 	= "Olympus Sash",		-- 5
+		legs	= "Atrophy Tights +4", 	-- 22 / 22
+		})
 	sets.midcast.GainSpell = set_combine(sets.midcast['Enhancing Magic'], {
 		hands	= "Viti. Gloves +3", })
 	sets.midcast.BarStatus = set_combine(sets.midcast['Enhancing Magic'], { 
 		neck	= "Sroda Necklace", }) 
 	sets.midcast.BarElement = set_combine(sets.midcast['Enhancing Magic'], { 
 		neck	= "Shedir Seraweels", }) 
+		
     sets.midcast['Refresh'] = set_combine(sets.midcast['Enhancing Magic'], {
 		head  	= "Amalric Coif +1",		-- +2
 		body  	= "Atrophy Tabard +4",		-- +2
 		legs  	= "Leth. Fuseau +3", })		-- +4
+		
     sets.midcast['Stoneskin'] = set_combine(sets.midcast['Enhancing Magic'], {
 		neck  	= "Nodens Gorget",			-- +30
 		ear1	= "Earthcry Earring",		-- +10
 		hands	= "Stone Mufflers",			-- +30
 		legs  	= "Shedir Seraweels", })	-- +35
+		
     sets.midcast['Aquaveil'] = set_combine(sets.midcast['Enhancing Magic'], {
 		head  	= "Amalric Coif +1",		-- +2
 		hands  	= "Regal Cuffs",			-- +2
 		waist	= "Emphatikos Rope",		-- +1
 		legs  	= "Shedir Seraweels", })	-- +1
+		
     sets.midcast.Cure = set_combine(sets.midcast['Enhancing Magic'], {
         main	= "Daybreak",			-- 30
         sub		= "Ammurapi Shield",	-- 
 		neck  	= "Nodens Gorget",		-- 5
-		legs  	= "Atrophy Tights +3",})-- 12
+		legs  	= "Atrophy Tights +4",})-- 12
 	
+    sets.midcast.CureWeather = set_combine(sets.midcast.Cure, {
+        main	= "Chatoyant Staff",
+        sub		= "Enki Strap",
+        back	= "Twilight Cape",
+        waist	= "Hachirin-no-Obi",
+        })
+		
     --- Engaged Sets ---
     sets.engaged = {
 		ammo 	= "Coiste Bodhar",
@@ -310,26 +342,25 @@ function init_gear_sets()
 		neck  	= "Anu Torque",
 		ear1  	= "Sherida Earring",
 		ear2  	= "Dedition Earring",
-		body  	= "Lethargy Sayon +3",
+		body  	= "Malignance Tabard",
 		hands 	= "Leth. Ganth. +3",
 		ring1 	= "Petrov Ring", 
 		ring2 	= "Rajas Ring",
 		back  	= "Null Shawl",
-		waist 	= "Null Belt",
-		legs  	= "Leth. Fuseau +3",
+		waist	= "Sailfi Belt +1",
+		legs  	= "Malignance Tights",
 		feet  	= "Leth. Houseaux +3",
 		}
 		
     sets.defense = {
-		sub		= "Sacro Bulwark",
         ammo	= "Homiliary",
 		head  	= "Null Masque",		-- 10
-		neck  	= "Null Loop",			-- 5
+		neck  	= "Warder's Charm +1",	
 		ear1  	= "Tuisto Earring",
 		ear2  	= "Alabaster Earring",	-- 10
 		body  	= "Lethargy Sayon +3",	-- 14
 		hands 	= "Leth. Ganth. +3",	-- 11
-		ring1 	= "Gurebu's Ring", 
+		ring1 	= "Stikini Ring +1", 	-- Gurebu's Ring
 		ring2 	= "Murky Ring",			-- 10
 		back  	= "Null Shawl",
 		waist 	= "Null belt",
@@ -360,6 +391,9 @@ function job_post_midcast(spell, action, spellMap, eventArgs)
 		if spell.skill == 'Enhancing Magic' then
 			if spell.english:startswith('Gain') then
 				equip(sets.midcast.GainSpell)
+			elseif spell.english:startswith('Phalanx') or
+			spell.english:startswith('Temper') then
+				equip(sets.midcast.EnhSkill)
 			elseif barstatus:contains(spell.english) then
 				equip(sets.midcast.BarStatus)
 			elseif barelement:contains(spell.english) then
@@ -377,8 +411,42 @@ function job_post_midcast(spell, action, spellMap, eventArgs)
             end
 			if state.Immunobreak.value == true then
 				equip(sets.Immunobreak)
-			end
+			end			
+		elseif spell.skill == 'Healing Magic' then
+            if world.weather_element == 'Light' or 
+			world.day_element == 'Light' then
+				equip(sets.midcast.CureWeather)
+            end
+        elseif spell.skill == 'Elemental Magic' then
+            if spell.element == world.weather_element and 
+			(get_weather_intensity() == 2 and 
+			spell.element ~= elements.weak_to[world.day_element]) then
+                equip(gear.Obi)
+            --[[ Target distance under 1.7 yalms.
+            elseif spell.target.distance < (1.7 + spell.target.model_size) then
+                equip({waist="Orpheus's Sash"})
+            -- Matching day and weather.
+            elseif spell.element == world.day_element and spell.element == world.weather_element then
+                equip(gear)
+            -- Target distance under 8 yalms.
+            elseif spell.target.distance < (8 + spell.target.model_size) then
+                equip({waist="Orpheus's Sash"})
+            ]]-- Match day or weather.
+            elseif spell.element == world.day_element or 
+			spell.element == world.weather_element then
+                equip(gear.Obi)
+            end
         end
+    elseif spell.type == 'WeaponSkill' then
+		if spell.name == "Aeolian Edge" or
+		spell.name == "Seraph Blade" or
+		spell.name == "Red Lotus Blade" or
+		spell.name == "Sanguine Blade" then
+			if spell.element == world.day_element or 
+			spell.element == world.weather_element then
+				equip(gear.Obi)
+			end
+		end	
 	end
 end
 
@@ -418,20 +486,20 @@ function job_state_change(field, new_value, old_value)
         disable('main','sub','range')
     else
         enable('main','sub','range')
+		if state.WeaponSet.value == "Sword" then	
+			if player.equipment.main == "Tauret" then
+				send_command('input /equip main')
+			end
+			send_command('send @all bind %1 send Spikex /SavageBlade ') 
+			send_command('send @all bind %2 send Spikex /ChantDuCygne ') 
+		elseif state.WeaponSet.value == "Dagger" then
+			if player.equipment.main == "Naegling" then
+				send_command('input /equip main')
+			end
+			send_command('send @all bind %1 send Spikex /Evisceration ') 
+			send_command('send @all bind %2 send Spikex /AeolianEdge ') 
+		end
     end
-	if state.WeaponSet.value == "Sword" then	
-		if player.equipment.main == "Tauret" then
-			send_command('input /equip main')
-		end
-		send_command('send @all bind %1 send Spikex /SavageBlade ') 
-		send_command('send @all bind %2 send Spikex /ChantDuCygne ') 
-	elseif state.WeaponSet.value == "Dagger" then
-		if player.equipment.main == "Naegling" then
-			send_command('input /equip main')
-		end
-		send_command('send @all bind %1 send Spikex /Evisceration ') 
-		send_command('send @all bind %2 send Spikex /AeolianEdge ') 
-	end
     equip(sets[state.WeaponSet.current])
 	equip(customize_melee_set())
 end
