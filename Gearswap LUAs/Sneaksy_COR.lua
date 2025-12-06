@@ -23,7 +23,7 @@ function job_setup()
     state.WeaponLock = M(false, 'Weapon Lock')	
 	state.WeaponSet = M{['description']='Weapon Set', 'Sword', 'Dagger'}
 	state.WeaponSetR = M{['description']='Ranged Weapon Set', 'TP', 'WS'}
-    state.OffenseMode:options('Defense', 'Normal' )
+    state.OffenseMode:options('Normal', 'Defense' )
     send_command('bind @w gs c toggle WeaponLock')	
     send_command('bind %capslock gs c cycle WeaponSet')	
     send_command('bind ~capslock gs c cycle WeaponSetR')		
@@ -76,6 +76,7 @@ function user_setup()
 		send_command('send @all bind %pagedown send Sneaksy /Boxstep ') 
 		send_command('send @all bind ~pagedown send Sneaksy /Quickstep ') 
 		send_command('send @all bind ^pagedown send Sneaksy /StutterStep ') 
+		send_command('send @all bind %end send Sneaksy /BuildingFlourish ') 
 	elseif player.sub_job == 'THF' then
 		send_command('send @all bind ^numpad1 send Sneaksy /Steal ') 
 		send_command('send @all bind ^numpad2 send Sneaksy /TrickAttack ') 
