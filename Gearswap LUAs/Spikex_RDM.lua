@@ -387,8 +387,8 @@ function init_gear_sets()
 end
 
 function job_post_precast(spell, action, spellMap, eventArgs)
-
-	if player.tp <= 350 or state.WeaponLock.value == false then
+	if player.tp <= 350 or state.WeaponLock.value == false or 
+	player.equipment.main ~= sets[state.WeaponSet].main then
         enable('main','sub','range')
 	else
         disable('main','sub','range')
