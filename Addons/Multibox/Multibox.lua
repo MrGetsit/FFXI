@@ -1,10 +1,11 @@
 _addon.author = 'Spikex'
-_addon.version = '0.925'
+_addon.version = '0.93'
 _addon.name = 'Multibox'
 _addon.commands = { 'multibox', 'mb' }
 
 -- Changes: 
--- Fixed followers getting stuck in moving state sometimes
+-- Change ctrl commands to not need to keep pressing down ctrl
+-- Only show first message of interact attempt
 
 config = require('config')
 require('sets')
@@ -24,7 +25,7 @@ waypoints = {} -- List of waypoints to follow
 min_retreat_range = 12 
 max_retreat_range =  15
 is_following = false
-engage_distance = 1.2
+engage_distance = 2.5
 current_leader = nil
 is_leader = false
 moving = false
@@ -108,7 +109,7 @@ function change_state(new_state, arg1, arg2, arg3)
 		end return
 	end
 	self = windower.ffxi.get_mob_by_target('me')
-	if not self then print('No self') return end
+	if not self then return end
 	if not zone then zone = windower.ffxi.get_info().zone end
 	if not current_leader then windower.send_ipc_message('multibox request_leader '..zone) end
 	interrupt = true
@@ -151,12 +152,14 @@ function change_state(new_state, arg1, arg2, arg3)
 	elseif new_state == 'resume_follow' then
 		stop_moving()
 		waypoints = {}
-		new_waypoint = { x = self.x, y = self.y }
 		interrupt = false
+		if is_leader then -- Give leader a waypoint to not instantly send update
+			last_waypoint = { x = self.x, y = self.y }
+		end
 		coroutine.sleep(1) -- Wait a few seconds in case they are in an animation
 		current_target = windower.ffxi.get_mob_by_name(current_leader)
-		new_state = 'follow'
 		stop_moving()
+		new_state = 'follow'
 		
 	elseif new_state == 'stop' then
 		stop_engage = true
@@ -219,7 +222,8 @@ function change_state(new_state, arg1, arg2, arg3)
 		else
 			casting = false
 			if not current_target then current_target = windower.ffxi.get_mob_by_target('t') end
-			if previous_state == 'follow' then
+			if previous_state == 'follow' or
+			self.status == 0 and previous_state == 'engage' then
 				change_state('resume_follow', current_target.id)
 			else
 				change_state(previous_state, current_target.id)
@@ -246,9 +250,10 @@ function interact_with_target(target)
 	
 	local success = false
 	
+	print('Attempting to interact with '..target.name)
 	for i = 0, 5, 1 do -- Send interactions until we get some kind of response
 		if interacting or event_found then success = true break end
-		print('Interact attempt: '..i)
+		--print('Interact attempt: '..i)
 		packets.inject(packets.new('outgoing', 0x01A, {
 			['Target'] = target.id,
 			['Target Index'] = target.index,
@@ -511,8 +516,13 @@ windower.register_event('postrender', function()
 			end
 		else -- Move follower 
 			player_current = windower.ffxi.get_player()
-			if player_current.status == 1 then return end -- Engaged, don't turn away
-			
+			if player_current.status == 1 then  -- Engaged, don't turn away
+				if moving then
+					windower.ffxi.run(false)
+					moving = false
+				end
+				return 
+			end			
 			if not waypoints[1] then 
 				--if check == 0 then print('No waypoints to follow') end
 				return 
@@ -607,6 +617,7 @@ windower.register_event('postrender', function()
 				if not windower.ffxi.get_player().target_locked then windower.send_command('input /lockon') end
 			end
 			if distance > 3 and not is_leader then
+				moving = true
 				windower.ffxi.run(get_direction(t))
 			elseif check == 0 or check == 20 or check == 40 then
 				turn_to_target(t)
@@ -631,9 +642,11 @@ windower.register_event('postrender', function()
 		local distance = distance_to(t, self)
 		if distance < min_retreat_range and not moving then -- Too close, move back	
 			if windower.ffxi.get_player().target_locked then windower.send_command('input /lockon') end -- Unlock
+			moving = true
 			windower.ffxi.run(get_direction(t, true))
 			
 		elseif distance > max_retreat_range and not moving then -- Too far, move forward
+			moving = true
 			windower.ffxi.run(get_direction(t))
 			
 		elseif distance < max_retreat_range and distance > min_retreat_range then -- In range, stop
@@ -721,12 +734,17 @@ end)
 
 windower.register_event('status change',function (new, old)
 	if old == 1 and new == 0 then  -- Exit combat state
-		if is_following then 
-			for i = 0, 5, 1 do 
-				if current_state == 'follow' then break end
-				change_state('resume_follow')
-				coroutine.sleep(2)
-			end
+		waypoints = {}
+		moving = false
+		windower.ffxi.run(false)
+		if is_following then
+			-- Wait a moment for the stop command to process before resuming follow
+			coroutine.schedule(function()
+				local player = windower.ffxi.get_player()
+				if player and player.status == 0 and is_following then
+					change_state('resume_follow')
+				end
+			end, 1) -- Wait 1 second before resuming
 		else
 			change_state('stop')
 		end
@@ -796,7 +814,7 @@ windower.register_event('zone change',function (new, old)
 	if not has_focus then enable_sound(false) end
 	zoning = false
 end)
-
+ctrl_down = false
 windower.register_event('keyboard',function (dik, pressed, flags, blocked )
 	if not windower.ffxi.get_info().logged_in then return end
 	if not self then self = windower.ffxi.get_player() return end
@@ -804,9 +822,13 @@ windower.register_event('keyboard',function (dik, pressed, flags, blocked )
 		enable_sound()
 		has_focus = true
 	end
-	
+	if flags == 4 then
+		if not ctrl_down then ctrl_down = true end
+	else
+		if ctrl_down then ctrl_down = false end
+	end
 	--print('Keyboard event dik:'..dik..'  pressed:'..tostring(pressed)..'  flags:'..flags..'  blocked:'..tostring(blocked))
-	if dik == 28 and flags == 4 and pressed then -- dik 28 = enter key, flag 4 = ctrl, not pressed = on key up
+	if dik == 28 and pressed and ctrl_down then -- dik 28 = enter key, flag 4 = ctrl, not pressed = on key up
 		if interacting then -- In event (Dialog open)
 			simulate_key_press('enter')
 		else
