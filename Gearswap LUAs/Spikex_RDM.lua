@@ -297,7 +297,7 @@ function init_gear_sets()
 		body	= "Atrophy Tabard +4",
 		hands 	= "Leth. Ganth. +3",
 		ring1 	= "Stikini Ring +1",
-		ring2 	= "Metamor. Ring +1",
+		ring2 	= "Stikini Ring +1",
 		back  	= gear.CapeMND,				
 		waist 	= "Sacro Cord",
 		legs  	= "Leth. Fuseau +3",
@@ -316,7 +316,7 @@ function init_gear_sets()
 		body	= "Atrophy Tabard +4",
 		hands 	= "Leth. Ganth. +3",
 		ring1 	= "Stikini Ring +1",
-		ring2 	= "Metamor. Ring +1",
+		ring2 	= "Stikini Ring +1",
 		back	= "Null Shawl",	
 		waist	= "Null Belt",
 		legs	= "Atrophy Tights +4",
@@ -350,29 +350,29 @@ function init_gear_sets()
 		body  	= "Lethargy Sayon +3",	-- 10
 		hands	= "Atro. Gloves +4", 	-- 20
 		ring1 	= "Stikini Ring +1",
-		ring2 	= "Kishar Ring",
+		ring2 	= "Stikini Ring +1",
 		back  	= "Ghostfyre Cape",		-- 16 / 20*	
 		waist 	= "Embla Sash",			-- 10
 		legs  	= "Leth. Fuseau +3",	-- 10
 		feet  	= "Leth. Houseaux +3",	-- 40 + 15
 		}
-	sets.midcast.EnhSkill = { -- Temper, Phalanx(Other)
-		sub		= "Forfend +1",
-        ammo	= "Homiliary",
-		head  	= "Leth. Chappel +3",	
+	sets.midcast.MaxSkill = { 
+		sub		= "Forfend +1",			-- 10
+        ammo	= "Homiliary",	
+		head  	= "Befouled Crown",		-- 16
 		neck  	= "Melic Torque",		-- 10
-		ear1  	= "Mimir Earring",
-		ear2  	= "Lethargy Earring",	
+		ear1  	= "Mimir Earring",		-- 10
+		ear2  	= "Andoaa Earring",		-- 5
 		body  	= "Vitiation Tabard +4",-- 24
 		hands	= "Viti. Gloves +3",  	-- 24 / 25
-		ring1 	= "Stikini Ring +1",
-		ring2 	= "Kishar Ring",
+		ring1 	= "Stikini Ring +1",	-- 8
+		ring2 	= "Stikini Ring +1",	-- 8
 		back  	= "Ghostfyre Cape",		-- 9 / 10	
 		waist 	= "Olympus Sash",		-- 5
 		legs	= "Atrophy Tights +4", 	-- 22 / 22
-		feet  	= "Leth. Houseaux +3",			
+		feet  	= "Leth. Houseaux +3",	-- 35	
 		}
-    sets.midcast.SelfPhalanx = {
+    sets.midcast.PhalanxSelf = {
 		sub		= "Forfend +1",
         ammo	= "Homiliary",
 		head  	= "Taeon Chapeau",		-- +3	
@@ -387,6 +387,22 @@ function init_gear_sets()
 		waist 	= "Embla Sash",		
 		legs	= "Taeon Tights", 		-- +3	
 		feet  	= "Taeon Boots",		-- +3	
+		}
+	sets.midcast.PhalanxOther = { 
+		sub		= "Forfend +1",
+        ammo	= "Homiliary",
+		head  	= "Leth. Chappel +3",	
+		neck  	= "Dls. Torque +2",		
+		ear1  	= "Mimir Earring",
+		ear2  	= "Lethargy Earring",	
+		body  	= "Lethargy Sayon +3",	
+		hands	= "Atro. Gloves +4",  	
+		ring1 	= "Stikini Ring +1",
+		ring2 	= "Murky Ring",
+		back  	= "Ghostfyre Cape",		-- 9 / 10	
+		waist 	= "Embla Sash",			-- 10
+		legs  	= "Leth. Fuseau +3",	
+		feet  	= "Leth. Houseaux +3",			
 		}
 	sets.midcast.GainSpell = set_combine(sets.midcast['Enhancing Magic'], {
 		hands	= "Viti. Gloves +3", })
@@ -429,12 +445,12 @@ function init_gear_sets()
 		ear2  	= "Dedition Earring",
 		body  	= "Malignance Tabard",
 		hands 	= "Leth. Ganth. +3",
-		ring1 	= "Petrov Ring", 
-		ring2 	= "Rajas Ring",
+		ring1 	= "Chirich Ring +1", 
+		ring2 	= "Chirich Ring +1",
 		back  	= "Null Shawl",
 		waist	= "Sailfi Belt +1",
 		legs  	= "Malignance Tights",
-		feet  	= "Leth. Houseaux +3",
+		feet  	= "Malignance Boots",
 		}		
     sets.defense = {
         ammo	= "Homiliary",
@@ -444,7 +460,7 @@ function init_gear_sets()
 		ear2  	= "Alabaster Earring",	-- 10
 		body  	= "Lethargy Sayon +3",	-- 14
 		hands 	= "Leth. Ganth. +3",	-- 11
-		ring1 	= "Stikini Ring +1", 	-- Gurebu's Ring
+		ring1 	= "Fortified Ring", 	-- Gurebu's Ring
 		ring2 	= "Murky Ring",			-- 10
 		back  	= "Null Shawl",
 		waist 	= "Null belt",
@@ -461,7 +477,7 @@ function init_gear_sets()
         ring1="Blenmot's Ring", --5
         ring2="Blenmot's Ring", --5
         waist="Gishdubar Sash", --10
-        }
+	}
 end
 
 function check_weapon()
@@ -471,10 +487,54 @@ function check_weapon()
 	end
 end
 
+function update_gear()
+    check_weapon()
+    if state.OffenseMode.value == "Defense" or
+	windower.ffxi.get_player().status == 0 then
+		equip(sets.defense)
+	else
+		equip(sets.engaged)
+    end	
+end
+
+function job_buff_change(buff,gain)
+    if buff == "terror" or buff == "petrification" or buff == "stun" then
+        if gain then
+            equip(sets.defense)
+        end
+	elseif buff == "sleep" then
+		equip(sets.Caliburnus)
+    elseif buff == "doom" then
+        if gain then
+            equip(sets.buff.Doom)
+            send_command('@input /p Doomed.')
+            disable('ring1','ring2','waist','neck')
+        else
+            send_command('@input /p Doom Removed')
+            enable('ring1','ring2','waist','neck')
+        end
+    end
+end
+
 function job_post_precast(spell, action, spellMap, eventArgs)
+	if spell.action_type == 'Magic' then -- Don't change gear on CD
+		if windower.ffxi.get_spell_recasts()[spell.recast_id] >= 1 then
+			cancel_spell()
+			update_gear()
+			return
+		end
+	elseif spell.action_type == 'JobAbility' then
+		if windower.ffxi.get_ability_recasts()[spell.recast_id] >= 1 then
+			cancel_spell()
+			update_gear()
+			return
+		end
+    end
+	
 	if spell.type == "WeaponSkill" and player.tp >= 2750 then
 		equip({ear2="Moonshade Earring"})
 	end
+	
 	if player.tp <= 350 or state.WeaponLock.value == false or 
 	player.equipment.main ~= sets[state.WeaponSet].main then
 		if lock then return end
@@ -483,24 +543,23 @@ function job_post_precast(spell, action, spellMap, eventArgs)
 	else
         disable('main','sub','range')
 	end
-	if spell.type == "WeaponSkill" and player.tp >= 2750 then
-		equip({ear2="Moonshade Earring"})
-	end
 end
+
 function job_post_midcast(spell, action, spellMap, eventArgs)
-    if spell.action_type == 'Magic' then
+    if spell.action_type == 'Magic' then	
 		if spell.skill == 'Enhancing Magic' then
 			if spell.english:startswith('Gain') then
 				equip(sets.midcast.GainSpell)
 				
-			elseif spell.english:startswith('Temper') then
-				equip(sets.midcast.EnhSkill)
+			elseif spell.english:startswith('Temper') or 
+			spell.english:startswith('En') then
+				equip(sets.midcast.MaxSkill)
 				
 			elseif spell.english:startswith('Phalanx') then
 				if spell.target.type == 'SELF' then
-					equip(sets.midcast.SelfPhalanx)
+					equip(sets.midcast.PhalanxSelf)
 				else
-					equip(sets.midcast.EnhSkill)
+					equip(sets.midcast.PhalanxOther)
 				end
 			elseif barstatus:contains(spell.english) then
 				equip(sets.midcast.BarStatus)
@@ -559,37 +618,8 @@ function job_post_midcast(spell, action, spellMap, eventArgs)
 	end
 end
 
-function job_buff_change(buff,gain)
-    if buff == "terror" or buff == "petrification" or buff == "stun" then
-        if gain then
-            equip(sets.defense)
-        end
-	elseif buff == "sleep" then
-		equip(sets.Caliburnus)
-    elseif buff == "doom" then
-        if gain then
-            equip(sets.buff.Doom)
-            send_command('@input /p Doomed.')
-            disable('ring1','ring2','waist','neck')
-        else
-            send_command('@input /p Doom Removed')
-            enable('ring1','ring2','waist','neck')
-        end
-    end
-end
-
-function customize_melee_set(meleeSet)
-    equip(sets[state.WeaponSet])
-    if state.OffenseMode.value == "Defense" then
-		meleeSet = sets.defense
-    end	
-	
-    return meleeSet
-end
-
 function job_aftercast(spell, action, spellMap, eventArgs)	
-    check_weapon()
-	equip(customize_melee_set())
+	update_gear()
 end
 
 function job_state_change(field, new_value, old_value)
@@ -606,12 +636,11 @@ function job_state_change(field, new_value, old_value)
 		send_command('send @all bind %1 send Spikex /SavageBlade ') 
 		send_command('send @all bind %2 send Spikex /ChantDuCygne ') 
 	end
-    check_weapon()
-	equip(customize_melee_set())
+	update_gear()
 end
 
 function job_update(cmdParams, eventArgs)
-    check_weapon()
+	update_gear()
 end
 
 function job_self_command(cmdParams, eventArgs)
@@ -641,17 +670,21 @@ function job_self_command(cmdParams, eventArgs)
 			end
 		else
 			if state.WeaponSet == 'DW' then
-				state.WeaponSet = 'DW_AOE'
-			elseif state.WeaponSet == 'DW_AOE' then
 				state.WeaponSet = 'DW_ACC'
 			elseif state.WeaponSet == 'DW_ACC' then
 				state.WeaponSet = 'DW_MWS'
 			elseif state.WeaponSet == 'DW_MWS' then
 				state.WeaponSet = 'DW_RLB'
 			elseif state.WeaponSet == 'DW_RLB' then
+				state.WeaponSet = 'DW_AOE'
+				send_command('send @all bind %1 send Spikex /Evisceration ') 
+				send_command('send @all bind %2 send Spikex /AeolianEdge ') 
+			elseif state.WeaponSet == 'DW_AOE' then
 				state.WeaponSet = 'DW_ENS'
 			else
 				state.WeaponSet = 'DW'
+				send_command('send @all bind %1 send Spikex /SavageBlade ') 
+				send_command('send @all bind %2 send Spikex /ChantDuCygne ') 
 			end
 		end
 		windower.add_to_chat(259, 'Current Weapon Set: '..state.WeaponSet)

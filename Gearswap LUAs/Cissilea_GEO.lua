@@ -17,14 +17,14 @@ function job_setup()
 	windower.send_command('sta !packets on') -- For SendTarget to work
 	
     state.WeaponLock = M(false, 'Weapon Lock')	
-	state.WeaponSet = M{['description']='Weapon Set', 'Club', 'Staff'}
+	state.WeaponSet = M{['description']='Weapon Set', 'Staff', 'Club'}
     state.OffenseMode:options('Normal', 'Defense')
     send_command('bind @w gs c toggle WeaponLock')	
     send_command('bind %capslock gs c cycle WeaponSet')	
     send_command('bind @S gs c cycle OffenseMode')
 	
-	indiBuff	= 'IndiHaste'
-	entrustBuff = 'IndiFury'
+	indiBuff	= 'IndiFury'
+	entrustBuff = 'IndiHaste'
 	geoBuff		= 'GeoFrailty'
 	cleanse 	= 'Cursna'
 	cleanse2 	= 'Paralyna'
@@ -41,8 +41,8 @@ function user_setup()
 	send_command('send @all alias imab send Cissilea /IndiAcumen') 
 	send_command('send @all alias imev send Cissilea /IndiAttunement') 
 	send_command('send @all alias idef send Cissilea /IndiBarrier') 
-	send_command('send @all alias imbd send Cissilea /IndiFade') 
-	send_command('send @all alias imdb send Cissilea /IndiFend') 
+	send_command('send @all alias imad send Cissilea /IndiFade') 
+	send_command('send @all alias imde send Cissilea /IndiFend') 
 	send_command('send @all alias imac send Cissilea /IndiFocus') 
 	send_command('send @all alias ided send Cissilea /IndiFrailty') 
 	send_command('send @all alias iatt send Cissilea /IndiFury') 
@@ -58,7 +58,7 @@ function user_setup()
 	send_command('send @all alias iacd send Cissilea /IndiSlip') 
 	send_command('send @all alias islo send Cissilea /IndiSlow') 
 	send_command('send @all alias ievd send Cissilea /IndiTorpor') 
-	send_command('send @all alias imad send Cissilea /IndiVex') 
+	send_command('send @all alias imcd send Cissilea /IndiVex') 
 	send_command('send @all alias ieva send Cissilea /IndiVoidance') 
 	send_command('send @all alias iatd send Cissilea /IndiWilt') 
 	send_command('send @all alias iagi send Cissilea /IndiAgi') 
@@ -71,8 +71,8 @@ function user_setup()
 	send_command('send @all alias gmab send Cissilea /GeoAcumen') 
 	send_command('send @all alias gmev send Cissilea /GeoAttunement') 
 	send_command('send @all alias gdef send Cissilea /GeoBarrier') 
-	send_command('send @all alias gmbd send Cissilea /GeoFade') 
-	send_command('send @all alias gmdb send Cissilea /GeoFend') 
+	send_command('send @all alias gmad send Cissilea /GeoFade') 
+	send_command('send @all alias gmde send Cissilea /GeoFend') 
 	send_command('send @all alias gmac send Cissilea /GeoFocus') 
 	send_command('send @all alias gded send Cissilea /GeoFrailty') 
 	send_command('send @all alias gatt send Cissilea /GeoFury') 
@@ -88,7 +88,7 @@ function user_setup()
 	send_command('send @all alias gacd send Cissilea /GeoSlip') 
 	send_command('send @all alias gslo send Cissilea /GeoSlow') 
 	send_command('send @all alias gevd send Cissilea /GeoTorpor') 
-	send_command('send @all alias gmad send Cissilea /GeoVex') 
+	send_command('send @all alias gmcd send Cissilea /GeoVex') 
 	send_command('send @all alias geva send Cissilea /GeoVoidance') 
 	send_command('send @all alias gatd send Cissilea /GeoWilt') 
 	send_command('send @all alias gagi send Cissilea /GeoAgi') 
@@ -98,29 +98,29 @@ function user_setup()
 	send_command('send @all alias gstr send Cissilea /GeoStr') 
 	send_command('send @all alias gvit send Cissilea /GeoVit') 
 	
-	send_command('send @all alias s4 send Cissilea /Stone4') 
-	send_command('send @all alias s5 send Cissilea /Stone5') 
-	send_command('send @all alias sga send Cissilea /Stonera3') 
-	send_command('send @all alias w4 send Cissilea /Water4') 
-	send_command('send @all alias w5 send Cissilea /Water5') 
-	send_command('send @all alias wga send Cissilea /Watera3') 
-	send_command('send @all alias a4 send Cissilea /Aero4') 
-	send_command('send @all alias a5 send Cissilea /Aero5') 
-	send_command('send @all alias aga send Cissilea /Aera3') 
-	send_command('send @all alias f4 send Cissilea /Fire4') 
-	send_command('send @all alias f5 send Cissilea /Fire5') 
-	send_command('send @all alias fga send Cissilea /Fira3') 
-	send_command('send @all alias b4 send Cissilea /Blizzard4') 
-	send_command('send @all alias b5 send Cissilea /Blizzard5') 
-	send_command('send @all alias bga send Cissilea /Blizzara3') 
-	send_command('send @all alias t4 send Cissilea /Thunder4') 
-	send_command('send @all alias t5 send Cissilea /Thunder5') 
-	send_command('send @all alias tga send Cissilea /Thundara3') 
+	send_command('send @all alias s4 sa /Stone4') 
+	send_command('send @all alias s5 sa /Stone5') 
+	send_command('send @all alias sga sa /Stonera3') 
+	send_command('send @all alias w4 sa /Water4') 
+	send_command('send @all alias w5 sa /Water5') 
+	send_command('send @all alias wga sa /Watera3') 
+	send_command('send @all alias a4 sa /Aero4') 
+	send_command('send @all alias a5 sa /Aero5') 
+	send_command('send @all alias aga sa /Aera3') 
+	send_command('send @all alias f4 sa /Fire4') 
+	send_command('send @all alias f5 sa /Fire5') 
+	send_command('send @all alias fga sa /Fira3') 
+	send_command('send @all alias b4 sa /Blizzard4') 
+	send_command('send @all alias b5 sa /Blizzard5') 
+	send_command('send @all alias bga sa /Blizzara3') 
+	send_command('send @all alias t4 sa /Thunder4') 
+	send_command('send @all alias t5 sa /Thunder5') 
+	send_command('send @all alias tga sa /Thundara3') 
 	
-	send_command('send @all bind  numpad7  sta Cissilea Realmrazer') 
-	send_command('send @all bind !numpad7  sta Cissilea Moonlight') 
+	send_command('send @all bind  numpad7  sta Cissilea ShellCrusher') 
+	send_command('send @all bind !numpad7  sta Cissilea SpiritTaker') 
 	send_command('send @all bind  numpad8 send Cissilea '..indiBuff) 
-	send_command('send @all bind  numpad9 send Cissilea '..geoBuff) 
+	send_command('send @all bind  numpad9  sta Cissilea GeoFrailty') 
 	send_command('send @all bind !numpad8 send Cissilea gs c entrustbuff')
 	send_command('send @all bind !numpad9 send Cissilea gs c superbuff')	
 	send_command('send @all bind ~numpad7  sta Cissilea Dia2')		
@@ -139,6 +139,11 @@ function user_setup()
 		send_command('send @all bind ^numpad7  sta Cissilea Slow <stnpc>') 
 		send_command('send @all bind ^numpad8  sta Cissilea Paralyze <stnpc>') 
 		send_command('send @all bind ^numpad9  sta Cissilea Silence <stnpc>') 
+	elseif player.sub_job == 'SCH' then
+		send_command('lua l StratagemCounter')
+		send_command('send @all bind ^numpad7 send Cissilea gs c sleep') 
+		send_command('send @all bind ^numpad8  sta Cissilea Windstorm <stpc>') 
+		send_command('send @all bind ^numpad9 send Cissilea gs c aoecure') 
 	end
 	
 	send_command('wait 5; input /lockstyleset 1')
@@ -217,7 +222,7 @@ function init_gear_sets()
 	sets.midcast['Enfeebling Magic'] = set_combine(sets.midcast, {
 		head	= "Geomancy Galero +2",
 		body	= "Geomancy Tunic +2",
-		hands	= "Geomancy mitaines +3",
+		hands	= "Geomancy mitaines +4",
 		legs	= "Geomancy Pants +2",
 		feet	= "Geomancy Sandals +2",
 		ear1	= "Vor Earring",
@@ -225,8 +230,7 @@ function init_gear_sets()
 		ring1	= "Etana Ring",
 		ring2	= "Jhakri Ring",
 		back	= gear.MDcape,
-    })
-	
+    })	
 	
 	sets.midcast.Cure = set_combine(sets.midcast, {
 		head	= "Vanya Hood",
@@ -242,7 +246,7 @@ function init_gear_sets()
 		ear1  	= "Alabaster Earring",
 		ear2  	= "Flashward Earring",
 		body  	= "Azimuth Coat +3",
-		hands 	= "Geomancy mitaines +3",
+		hands 	= "Geomancy mitaines +4",
 		ring1 	= "Gurebu's Ring",
 		ring2 	= "Rajas Ring",
 		back  	= gear.REGENCape,
@@ -258,7 +262,7 @@ function init_gear_sets()
 		ear1  	= "Vor Earring",
 		ear2  	= "Flashward Earring",
 		body  	= "Geomancy Tunic +2",
-		hands 	= "Geomancy mitaines +3",
+		hands 	= "Geomancy mitaines +4",
 		ring1 	= "Etana Ring",
 		ring2  	= "Gurebu's Ring",
 		back  	= gear.REGENCape, 
@@ -286,8 +290,35 @@ function job_self_command(cmdParams, eventArgs)
 		send_command('wait 1; Blizzara2')
 		send_command('wait 2; Fira2')
 		send_command('wait 3; Aera2')
+    elseif cmdParams[1]:lower() == 'sleep' then
+		if buffactive["Dark Arts"] == 1 then
+			local recasts = windower.ffxi.get_spell_recasts()
+			if recasts[253] > 0 and recasts[259] > 0 then return end
+			if buffactive["Manifestation"] == 1 then
+				if recasts[259] <= 0 then -- Sleep 2
+					send_command('Sleep2')
+				else
+					send_command('Sleep')
+				end
+			else
+				send_command('Manifestation')
+			end
+		else
+			send_command('DarkArts')
+		end
+    elseif cmdParams[1]:lower() == 'aoecure' then
+		if buffactive["Light Arts"] == 1 then
+			if buffactive["Accession"] == 1 then
+				send_command('Cure4')				
+			else
+				send_command('Accession')
+			end
+		else
+			send_command('LightArts')
+		end
     end
 end
+
 function customize_melee_set(meleeSet)
     equip(sets[state.WeaponSet.current])
     if state.OffenseMode.value == "Defense" then
