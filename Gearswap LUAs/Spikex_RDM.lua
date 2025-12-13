@@ -22,24 +22,23 @@ function job_setup()
     enfeebling_duration = S{'Sleep', 'Sleep II', 'Sleepga', 'Bind', 'Break', 'Silence', 'Inundation'}
 	magic_weaponskills = S{'Aeolian Edge','Burning Blade','Red Lotus Blade','Shining Blade','Seraph Blade','Sanguine Blade'}
 	
-    state.WeaponLock = M(true, 'Weapon Lock')
     state.Immunobreak = M(false, 'Immunobreak')	
     state.OffenseMode:options('Normal', 'Defense')
 	state.WeaponSet = M{'SW_Sword', 'SW_Dagger', 'SW_MWS', 'SW_Enspell', 'DW', 'DW_AOE', 'DW_ACC', 'DW_MWS', 'DW_RLB', 'DW_ENS'}
     state.Runes = M{['description']='Runes', 'Lux', 'Tenebrae','Ignis', 'Gelus', 'Flabra', 'Tellus', 'Sulpor', 'Unda' }
-    send_command('bind @w gs c toggle WeaponLock')
+    send_command('bind @w gs c lock')
     send_command('bind @e gs c toggle Immunobreak')
     send_command('bind %capslock gs c change_weapon')
-    send_command('bind ~capslock gs c toggle WeaponLock')
     send_command('bind @S gs c cycle OffenseMode')	
 	
 	dual_wield = false
-	lock = false
+	WeaponLock = false
 end
 
 function user_setup()		
 	send_command('send @all alias rb  exec RDM_Buffs.txt')
 	send_command('send @all alias rb2 exec RDM_Buffs2.txt')
+	send_command('send @all alias av aquaveil')
 	
 	send_command('send @all bind %1   sta Spikex /SavageBlade')
 	send_command('send @all bind !1   sta Spikex /EmpyrealArrow')
@@ -142,9 +141,22 @@ function init_gear_sets()
 	gear.CapeSWS 	= { name="Sucellos's Cape", augments={'STR+20','Accuracy+20 Attack+20','STR+10','Weapon skill damage +10%',} }	
     gear.Obi 		= { waist = "Hachirin-no-Obi" }
 	
-	--- Job Abilities ---
-    sets.precast.JA['Saboteur'] = { sub = "Diamond Aspis" }
+	--- Precast Sets ---
+    sets.precast.JA['Chainspell'] = {body="Viti. Tabard +4"}
+    sets.precast.JA['Convert'] = {main="Murgleis"}
+    sets.precast.JA['Saboteur'] = {sub="Diamond Aspis",hands="Leth. Ganth. +3"}
 	
+    sets.precast.FC = {						-- 43 + 38
+		ammo  	= "Sapience Orb",			-- 2
+		head  	= "Atrophy Chapeau +3",		-- 16
+		ear1  	= "Tuisto Earring",			-- HP
+		body  	= "Vitiation Tabard +4",	-- 15
+		ring1	= "Eihwaz Ring",			-- HP
+		ring2	= "Etana Ring",				-- HP
+		back  	= gear.CapeMND,				-- 10
+		waist	= "Plat. Mog. Belt",		-- HP
+		}
+		
 	--- WS Sets ---
 	sets.precast.WS = {
 		ammo	= "Oshasha's Treatise",
@@ -176,6 +188,8 @@ function init_gear_sets()
 		legs	= "Leth. Fuseau +3",
 		feet  	= "Leth. Houseaux +3",
 		}	
+	sets.precast.WS['Black Halo'] = sets.precast.WS['Savage Blade']
+	
 	sets.precast.WS['Chant du Cygne'] = {
 		ammo	= "Yetshila +1",
 		head  	= "Blistering Sallet +1",
@@ -239,18 +253,7 @@ function init_gear_sets()
 		feet  	= "Leth. Houseaux +3",
 		}
 	sets.precast.WS['Red Lotus Blade'] = sets.precast.WS['Seraph Blade']	
-	
-	--- Fast Cast ---
-    sets.precast.FC = {						-- 43 + 38
-		ammo  	= "Sapience Orb",			-- 2
-		head  	= "Atrophy Chapeau +3",		-- 16
-		ear1  	= "Tuisto Earring",			-- HP
-		body  	= "Vitiation Tabard +4",	-- 15
-		ring1	= "Eihwaz Ring",			-- HP
-		ring2	= "Etana Ring",				-- HP
-		back  	= gear.CapeMND,				-- 10
-		waist	= "Plat. Mog. Belt",		-- HP
-		}
+	sets.precast.WS['Requiescat'] = set_combine(sets.precast.WS, {neck="Fotia Gorget"})
 		
     --- Midcast Sets ---	
     sets.midcast['Elemental Magic'] = {
@@ -444,7 +447,7 @@ function init_gear_sets()
 		ear1  	= "Sherida Earring",
 		ear2  	= "Dedition Earring",
 		body  	= "Malignance Tabard",
-		hands 	= "Leth. Ganth. +3",
+		hands 	= "Malignance Gloves",
 		ring1 	= "Chirich Ring +1", 
 		ring2 	= "Chirich Ring +1",
 		back  	= "Null Shawl",
@@ -481,20 +484,22 @@ function init_gear_sets()
 end
 
 function check_weapon()
-	if player.equipment.main ~= sets[state.WeaponSet].main or 
-	player.equipment.sub ~= sets[state.WeaponSet].sub then
-		equip(sets[state.WeaponSet])
+	if not WeaponLock then
+		if player.equipment.main ~= sets[state.WeaponSet].main or 
+		player.equipment.sub ~= sets[state.WeaponSet].sub then
+			equip(sets[state.WeaponSet])
+		end
 	end
 end
 
 function update_gear()
-    check_weapon()
     if state.OffenseMode.value == "Defense" or
 	windower.ffxi.get_player().status == 0 then
 		equip(sets.defense)
 	else
 		equip(sets.engaged)
     end	
+    check_weapon()
 end
 
 function job_buff_change(buff,gain)
@@ -523,25 +528,30 @@ function job_post_precast(spell, action, spellMap, eventArgs)
 			update_gear()
 			return
 		end
-	elseif spell.action_type == 'JobAbility' then
-		if windower.ffxi.get_ability_recasts()[spell.recast_id] >= 1 then
+	elseif spell.type == 'WeaponSkill' then
+		if player.tp <= 1000 then
 			cancel_spell()
 			update_gear()
 			return
+		elseif player.equipment.sub == "Thibron" then
+			if player.tp <= 1750 then 
+				equip({ear2="Moonshade Earring"})
+			end
+		elseif player.tp <= 2750 then
+			equip({ear2="Moonshade Earring"})
 		end
-    end
-	
-	if spell.type == "WeaponSkill" and player.tp >= 2750 then
-		equip({ear2="Moonshade Earring"})
 	end
 	
-	if player.tp <= 350 or state.WeaponLock.value == false or 
-	player.equipment.main ~= sets[state.WeaponSet].main then
-		if lock then return end
-        enable('main','sub','range')
-		check_weapon()
-	else
-        disable('main','sub','range')
+	if not WeaponLock then
+		if player.tp <= 350 or  
+		player.equipment.main ~= sets[state.WeaponSet].main then
+			print('enable 1')
+			enable('main','sub','range')
+			check_weapon()
+		else
+			print('disable 1')
+			disable('main','sub','range')
+		end
 	end
 end
 
@@ -618,7 +628,7 @@ function job_post_midcast(spell, action, spellMap, eventArgs)
 	end
 end
 
-function job_aftercast(spell, action, spellMap, eventArgs)	
+function job_aftercast()
 	update_gear()
 end
 
@@ -648,15 +658,17 @@ function job_self_command(cmdParams, eventArgs)
         send_command('@input /ja '..state.Runes.value..' <me>')
 		
     elseif cmdParams[1]:lower() == 'lock' then
-        lock = not lock
-		if lock then
+		WeaponLock = not WeaponLock
+		if WeaponLock then
 			disable('main','sub','range')
+		windower.add_to_chat(206, 'Weapon Lock: On')
 		else
 			enable('main','sub','range')
-		end			
-		windower.add_to_chat(259, 'Lock: '..tostring(lock))
+		windower.add_to_chat(206, 'Weapon Lock: Off')
+		end
 		
     elseif cmdParams[1]:lower() == 'change_weapon' then
+			print('enable 3')
 		enable('main','sub','range')
         if not dual_wield then
 			if state.WeaponSet == 'SW_Sword' then
@@ -687,7 +699,35 @@ function job_self_command(cmdParams, eventArgs)
 				send_command('send @all bind %2 send Spikex /ChantDuCygne ') 
 			end
 		end
-		windower.add_to_chat(259, 'Current Weapon Set: '..state.WeaponSet)
+		windower.add_to_chat(206, 'Current Weapon Set: '..state.WeaponSet)
 		check_weapon()
 	end
+end
+
+function tprint(tbl, indent)
+    if not indent then indent = 0 end
+    local spaces = string.rep("  ", indent) -- Use two spaces for indentation
+
+    for k, v in pairs(tbl) do
+        local key_str
+        if type(k) == "number" then
+            key_str = "[" .. k .. "]"
+        else
+            key_str = "['" .. k .. "']"
+        end
+
+        if type(v) == "table" then
+            -- Recursively call the function for nested tables
+           print(2, spaces .. key_str .. " = {") -- Use windower.comm.message(2, ...) for console output in Windower
+            tprint(v, indent + 1)
+           print(2, spaces .. "}")
+        else
+            -- Print non-table values
+            local value_str = tostring(v)
+            if type(v) == "string" then
+                value_str = "'" .. value_str .. "'"
+            end
+            print(2, spaces .. key_str .. " = " .. value_str .. ",")
+        end
+    end
 end
