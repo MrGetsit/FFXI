@@ -545,11 +545,9 @@ function job_post_precast(spell, action, spellMap, eventArgs)
 	if not WeaponLock then
 		if player.tp <= 350 or  
 		player.equipment.main ~= sets[state.WeaponSet].main then
-			print('enable 1')
 			enable('main','sub','range')
 			check_weapon()
 		else
-			print('disable 1')
 			disable('main','sub','range')
 		end
 	end
@@ -668,7 +666,6 @@ function job_self_command(cmdParams, eventArgs)
 		end
 		
     elseif cmdParams[1]:lower() == 'change_weapon' then
-			print('enable 3')
 		enable('main','sub','range')
         if not dual_wield then
 			if state.WeaponSet == 'SW_Sword' then
