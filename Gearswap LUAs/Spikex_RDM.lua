@@ -225,13 +225,13 @@ function init_gear_sets()
 	sets.precast.WS['Sanguine Blade'] = {
 		ammo	= "Sroda Tathlum",
 		head 	= "Pixie Hairpin +1",
-		neck 	= "Fotia Gorget",
+		neck 	= "Sibyl Scarf",
 		ear1	= "Malignance earring",
 		ear2	= "Friomisi Earring",
 		body	= "Lethargy Sayon +3",
-		hands	= "Jhakri Cuffs +2",
+		hands	= "Leth. Ganth. +3",
 		ring1	= "Cornelia's Ring",
-		ring2 	= "Freke Ring",
+		ring2 	= "Archon Ring",
 		back	= gear.CapeSWS,
 		waist	= "Sacro Cord",
 		legs	= "Leth. Fuseau +3",
@@ -483,11 +483,16 @@ function init_gear_sets()
 	}
 end
 
-function check_weapon()
+function check_weapon(check_number)
 	if not WeaponLock then
 		if player.equipment.main ~= sets[state.WeaponSet].main or 
 		player.equipment.sub ~= sets[state.WeaponSet].sub then
-			equip(sets[state.WeaponSet])
+			if check_number then -- Gearswap is out of sync
+				--print('Check: ' .. check_number .. ' | ' .. player.equipment.main ..' / '.. sets[state.WeaponSet].main ..' ::: '.. player.equipment.sub  ..' / '..sets[state.WeaponSet].sub)
+				send_command('gs equip sets.'..state.WeaponSet)
+			else
+				equip(sets[state.WeaponSet])
+			end
 		end
 	end
 end
@@ -505,7 +510,8 @@ end
 function job_buff_change(buff,gain)
     if buff == "terror" or buff == "petrification" or buff == "stun" then
         if gain then
-            equip(sets.defense)
+            --equip(sets.defense)
+			send_command('gs equip sets.defense'))
         end
 	elseif buff == "sleep" then
 		equip(sets.Caliburnus)
@@ -533,6 +539,8 @@ function job_post_precast(spell, action, spellMap, eventArgs)
 			cancel_spell()
 			update_gear()
 			return
+		elseif spell.name == 'Sanguine Blade' then -- No moonshade for Sanguine
+			return
 		elseif player.equipment.sub == "Thibron" then
 			if player.tp <= 1750 then 
 				equip({ear2="Moonshade Earring"})
@@ -544,7 +552,8 @@ function job_post_precast(spell, action, spellMap, eventArgs)
 	
 	if not WeaponLock then
 		if player.tp <= 350 or  
-		player.equipment.main ~= sets[state.WeaponSet].main then
+		player.equipment.main ~= sets[state.WeaponSet].main or 
+		player.equipment.sub ~= sets[state.WeaponSet].sub then
 			enable('main','sub','range')
 			check_weapon()
 		else
@@ -626,8 +635,15 @@ function job_post_midcast(spell, action, spellMap, eventArgs)
 	end
 end
 
-function job_aftercast()
+function job_aftercast(spell)
+	if not WeaponLock then
+		enable('main','sub','range')
+	end
 	update_gear()
+	-- Double check weapons are actually correct
+	if spell.action_type == 'Magic' and not WeaponLock then
+		coroutine.schedule(function() check_weapon(3) end, 3)
+	end
 end
 
 function job_state_change(field, new_value, old_value)
@@ -714,12 +730,10 @@ function tprint(tbl, indent)
         end
 
         if type(v) == "table" then
-            -- Recursively call the function for nested tables
-           print(2, spaces .. key_str .. " = {") -- Use windower.comm.message(2, ...) for console output in Windower
+           print(2, spaces .. key_str .. " = {") 
             tprint(v, indent + 1)
            print(2, spaces .. "}")
         else
-            -- Print non-table values
             local value_str = tostring(v)
             if type(v) == "string" then
                 value_str = "'" .. value_str .. "'"
