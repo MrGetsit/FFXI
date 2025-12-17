@@ -1,11 +1,11 @@
 _addon.author = 'Spikex'
-_addon.version = '0.93'
+_addon.version = '0.94'
 _addon.name = 'Multibox'
 _addon.commands = { 'multibox', 'mb' }
 
 -- Changes: 
--- Change ctrl commands to not need to keep pressing down ctrl
--- Only show first message of interact attempt
+-- Removed casting state to help simplify logic and get stuck less often
+-- Removed resume_follow and updated follow to work better exiting combat
 
 config = require('config')
 require('sets')
@@ -50,8 +50,7 @@ settings = config.load(default_settings)
 t = texts.new(settings)
 
 function update_display(is_visible)
-	if is_visible then t:visible(true) else t:visible(false) end	
-	
+	if is_visible then t:visible(true) else t:visible(false) return end	
 	t:text('Loupan '..pethp)
 end
 
@@ -121,12 +120,14 @@ function change_state(new_state, arg1, arg2, arg3)
 		waypoints = {}
 		if is_leader then
 			last_waypoint = nil
-			if double_tap then
+			if double_tap and not wait_for_seconds then
 				windower.add_to_chat(160, 'Move followers to current position.')
 				windower.send_ipc_message('multibox follow '..zone..' '..self.x..' '..self.y..' true')
+				wait_for_seconds = true
+				coroutine.schedule(function() wait_for_seconds = false end, 1)
 			else
 				double_tap = true
-				coroutine.schedule(end_double_tap, 2)
+				coroutine.schedule(function() double_tap = false end, 2)
 				windower.send_ipc_message('multibox follow '..zone..' '..self.x..' '..self.y)
 			end
 		else
@@ -148,19 +149,7 @@ function change_state(new_state, arg1, arg2, arg3)
 			end			
 		end
 		is_following = true
-		
-	elseif new_state == 'resume_follow' then
-		stop_moving()
-		waypoints = {}
-		interrupt = false
-		if is_leader then -- Give leader a waypoint to not instantly send update
-			last_waypoint = { x = self.x, y = self.y }
-		end
-		coroutine.sleep(1) -- Wait a few seconds in case they are in an animation
-		current_target = windower.ffxi.get_mob_by_name(current_leader)
-		stop_moving()
-		new_state = 'follow'
-		
+	
 	elseif new_state == 'stop' then
 		stop_engage = true
 		stop_moving()
@@ -195,7 +184,7 @@ function change_state(new_state, arg1, arg2, arg3)
 			else
 				windower.add_to_chat(160, 'Order: Turn around.')
 				double_tap = true
-				coroutine.schedule(end_double_tap, 2)
+				coroutine.schedule(function() double_tap = false end, 2)
 				windower.send_ipc_message('multibox reverse '..zone..' '..current_target.id) 
 				if windower.ffxi.get_player().target_locked then windower.send_command('input /lockon') end
 				turn_to_target(current_target, true)
@@ -211,31 +200,12 @@ function change_state(new_state, arg1, arg2, arg3)
 		stop_moving()
 		current_target = windower.ffxi.get_mob_by_id(arg1)
 		
-	elseif new_state == 'casting' then
-		if current_state ~= 'casting' then -- Save state to switch back to after cast
-			previous_state = current_state
-		end
-		if not casting then
-			casting = true
-			start_casting = false
-			stop_moving()
-		else
-			casting = false
-			if not current_target then current_target = windower.ffxi.get_mob_by_target('t') end
-			if previous_state == 'follow' or
-			self.status == 0 and previous_state == 'engage' then
-				change_state('resume_follow', current_target.id)
-			else
-				change_state(previous_state, current_target.id)
-			end
-		return end 
-		
 	elseif new_state == 'interact' then
 		interacting = true
 		
 	elseif new_state == 'end_interact' then
 		interacting = false
-		if is_following then change_state('resume_follow')
+		if is_following then change_state('follow')
 		else change_state('stop') end return
 	end
 	
@@ -381,10 +351,6 @@ function enable_sound(mute)
 	end
 end
 
-function end_double_tap()
-	double_tap = false
-end
-
 function simulate_key_press (key_to_press)
 	if keydown then return end
 	keydown = true
@@ -492,7 +458,6 @@ windower.register_event('postrender', function()
 	self = windower.ffxi.get_mob_by_target('me')
 	if not self then if not zoning then change_state('zoning') end return end -- Change to zoning if not, either way return
 	if self.hpp == 0 and current_state ~= 'stop' then change_state('stop') return end -- Dead
-	if start_casting and current_state ~= 'casting' then change_state('casting') return end -- Casting
 	
 	if current_state == 'follow' then
 		if not current_leader then print('No leader to follow') change_state('stop') return end
@@ -583,7 +548,7 @@ windower.register_event('postrender', function()
 						last_checked_distance = waypoint_distance
 					end
 				end
-			else				
+			elseif not casting then				
 				if waypoint_distance > 0.8 then  -- If we're far enough from the waypoint
 					--print(string.format('Starting movement to WP (%.2f away)', waypoint_distance))
 					last_checked_distance = waypoint_distance
@@ -612,7 +577,7 @@ windower.register_event('postrender', function()
 			if distance < engage_distance then
 				stop_moving()
 			end
-		else
+		elseif not casting then
 			if check == 0 or check == 30 then -- Lockon to prevent running wrong direction
 				if not windower.ffxi.get_player().target_locked then windower.send_command('input /lockon') end
 			end
@@ -739,12 +704,11 @@ windower.register_event('status change',function (new, old)
 		windower.ffxi.run(false)
 		if is_following then
 			-- Wait a moment for the stop command to process before resuming follow
-			coroutine.schedule(function()
-				local player = windower.ffxi.get_player()
-				if player and player.status == 0 and is_following then
-					change_state('resume_follow')
-				end
-			end, 1) -- Wait 1 second before resuming
+			for i = 0, 5, 1 do -- Try 5 times
+				change_state('follow')
+				coroutine.sleep(2)
+				if current_state == 'follow' then break end
+			end
 		else
 			change_state('stop')
 		end
@@ -851,8 +815,9 @@ end)
 windower.register_event('outgoing chunk', function(id, data)
 	if id == 0x01A then -- Player action
         local packet = packets.parse('outgoing', data)
-		if packet.Category == 3 and not start_casting and not casting then -- Spellcast
-			start_casting = true 
+		if packet.Category == 3 then -- Spellcast
+			casting = true 
+			update_display()
 		
 		elseif packet.Category == 9 then -- Ability
 			check_recast(res.job_abilities:id(packet.Param)[packet.Param], 'ability')
@@ -870,7 +835,7 @@ windower.register_event('incoming chunk', function(id, data)
 		local packet = packets.parse('incoming', data)
 		if packet.Actor ~= self.id then return end
 		if packet['Category'] == 4 then -- Casting Finish
-			if casting then change_state('casting') end
+			casting = false
 			local sp = res.spells:id(packet.Param)[packet.Param]
 			if not sp then return end
 			check_recast(sp, 'spell')
@@ -878,13 +843,8 @@ windower.register_event('incoming chunk', function(id, data)
 			if sp.requirements == 32 then pet_status() end
 			
 		elseif packet['Target 1 Action 1 Message'] == 0 and casting then
-			change_state('casting')
+			casting = false
 		end
-	--elseif id == 0x029 then -- Spell interrupted, seemed to be interrupting spells while following?
-	--	if current_state == 'casting' then 
-	--		print('029')
-	--		change_state('casting')
-	--	end
 	elseif id == 0x00B and not zoning then -- Started zoning
 		change_state('zoning')
 	elseif id == 0x034 and not zone_teleport then -- Started zoning
