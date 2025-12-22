@@ -18,18 +18,21 @@ function job_setup()
 	barelement = S{'Barfire', 'Barblizzard', 'Baraero', 'Barstone', 'Barthunder', 'Barwater'} 	
     enfeebling_mnd = S{'Paralyze', 'Paralyze II', 'Addle', 'Addle II', 'Slow', 'Slow II'}
     enfeebling_skill = S{'Distract III', 'Frazzle III', 'Poison', 'Poison II'}
-    enfeebling_accuracy = S{'Frazzle II', 'Dispel', 'Bind', 'Gravity'}
-    enfeebling_duration = S{'Sleep', 'Sleep II', 'Sleepga', 'Bind', 'Break', 'Silence', 'Inundation'}
+    enfeebling_accuracy = S{'Frazzle II', 'Dispel', 'Gravity', 'Stun'}
+    enfeebling_duration = S{'Sleep', 'Sleep II', 'Sleepga', 'Sleepga II', 'Bind', 'Break', 'Silence', 'Inundation'}
 	magic_weaponskills = S{'Aeolian Edge','Burning Blade','Red Lotus Blade','Shining Blade','Seraph Blade','Sanguine Blade'}
 	
     state.Immunobreak = M(false, 'Immunobreak')	
-    state.OffenseMode:options('Normal', 'Defense')
-	state.WeaponSet = M{'SW_Sword', 'SW_Dagger', 'SW_MWS', 'SW_Enspell', 'DW', 'DW_AOE', 'DW_ACC', 'DW_MWS', 'DW_RLB', 'DW_ENS'}
+    state.OffenseMode:options('Normal', 'Hybrid', 'Defense')
+	state.WeaponSet = M{'SW_Sword', 'SW_Dagger', 'SW_MWS', 'SW_Enspell', 'DW', 'DW_AOE', 'DW_CLB', 'DW_MWS', 'DW_RLB', 'DW_ENS'}
     state.Runes = M{['description']='Runes', 'Lux', 'Tenebrae','Ignis', 'Gelus', 'Flabra', 'Tellus', 'Sulpor', 'Unda' }
     send_command('bind @w gs c lock')
     send_command('bind @e gs c toggle Immunobreak')
     send_command('bind %capslock gs c change_weapon')
     send_command('bind @S gs c cycle OffenseMode')	
+	
+    send_command('lua u debuffed')	
+    send_command('lua l debuffgrid')	
 	
 	dual_wield = false
 	WeaponLock = false
@@ -117,6 +120,11 @@ function user_setup()
 	send_command('wait 5; input /lockstyleset 4')
 end
 
+function user_unload()
+    send_command('lua u debuffgrid')	
+    send_command('lua l debuffed')	
+end
+
 function init_gear_sets()
     --- Gear Sets ---
     sets.SW_Sword	= 	{ main = "Naegling", 		sub = "Diamond Aspis"		}
@@ -126,7 +134,7 @@ function init_gear_sets()
 
     sets.DW 		= 	{ main = "Naegling", 		sub = "Thibron"				}
     sets.DW_AOE		= 	{ main = "Tauret", 			sub = "Thibron"				}
-    sets.DW_ACC		= 	{ main = "Naegling", 		sub = "Tauret"				}
+    sets.DW_CLB		= 	{ main = "Maxentius", 		sub = "Thibron"				}
     sets.DW_MWS		= 	{ main = "Crocea Mors", 	sub = "Daybreak"			}
     sets.DW_RLB 	= 	{ main = "Crocea Mors", 	sub = "Thibron"				}
     sets.DW_ENS		= 	{ main = "Qutrub Knife", 	sub = "Ceremonial Dagger"	}
@@ -139,6 +147,7 @@ function init_gear_sets()
 	gear.CapeINT 	= { name="Sucellos's Cape", augments={'INT+20','Mag. Acc+20 /Mag. Dmg.+20','INT+10','"Mag.Atk.Bns."+10',} }
 	gear.CapeIWS 	= { name="Sucellos's Cape", augments={'INT+20','Mag. Acc+20 /Mag. Dmg.+20','INT+10','Weapon skill damage +10%',} }
 	gear.CapeSWS 	= { name="Sucellos's Cape", augments={'STR+20','Accuracy+20 Attack+20','STR+10','Weapon skill damage +10%',} }	
+	gear.CapeDW 	= { name="Sucellos's Cape", augments={'DEX+20','Accuracy+20 Attack+20','Accuracy+10','"Dual Wield"+10','Phys. dmg. taken-10%',} }	
     gear.Obi 		= { waist = "Hachirin-no-Obi" }
 	
 	--- Precast Sets ---
@@ -169,7 +178,7 @@ function init_gear_sets()
 		ring1	= "Cornelia's Ring",
 		ring2 	= "Metamor. Ring +1",
 		back	= gear.CapeSWS,
-		waist	= "Eschan Stone",
+		waist	= "Sacro Cord",
 		legs	= "Leth. Fuseau +3",
 		feet  	= "Leth. Houseaux +3",
 		}	
@@ -246,7 +255,7 @@ function init_gear_sets()
 		body	= "Lethargy Sayon +3",
 		hands	= "Jhakri Cuffs +2",
 		ring1	= "Cornelia's Ring",
-		ring2 	= "Freke Ring",
+		ring2 	= "Weather. Ring",
 		back	= gear.CapeSWS,
 		waist	= "Sacro Cord",
 		legs	= "Leth. Fuseau +3",
@@ -272,7 +281,7 @@ function init_gear_sets()
 		legs  	= "Leth. Fuseau +3",
 		feet  	= "Vitiation boots +4",
 		}		
-	sets.EnfMND = { -- Paralyze, Paralyze II, Addle, Addle II, Slow, Slow II
+	sets.midcast.EnfMND = { -- Paralyze, Paralyze II, Addle, Addle II, Slow, Slow II
         main	= "Daybreak",
         sub		= "Ammurapi Shield",		
         ammo	= "Regal Gem",				-- 10
@@ -289,7 +298,7 @@ function init_gear_sets()
 		legs  	= "Leth. Fuseau +3",
 		feet  	= "Vitiation boots +4",		-- 10
 		}
-	sets.EnfSkill = { -- Frazzle III, Distract III, Poison, Poison II 
+	sets.midcast.EnfSkill = { -- Frazzle III, Distract III, Poison, Poison II 
         main	= "Daybreak",
         sub		= "Ammurapi Shield",		
         ammo	= "Regal Gem",				
@@ -306,7 +315,7 @@ function init_gear_sets()
 		legs  	= "Leth. Fuseau +3",
 		feet  	= "Vitiation boots +4",		
 		}
-	sets.EnfAcc = { -- Frazzle II, Dispel, Bind, Gravity
+	sets.midcast.EnfAcc = { -- Frazzle II, Dispel, Bind, Gravity
         main	= "Daybreak",
         sub		= "Ammurapi Shield",
         range	= {name="Ullr",			priority= 1},
@@ -325,7 +334,7 @@ function init_gear_sets()
 		legs	= "Atrophy Tights +4",
 		feet  	= "Atro. Boots +4",
 		}
-	sets.EnfDur = { -- Sleep, Sleep II, Break, Silence
+	sets.midcast.EnfDur = { -- Sleep, Sleep II, Break, Silence
         main	= "Naegling",
         sub		= "Ammurapi Shield",	
         range	= {name="Ullr",			priority= 1},
@@ -344,6 +353,7 @@ function init_gear_sets()
 		feet  	= "Atro. Boots +4",
 		}	
     sets.midcast['Enhancing Magic'] = {
+		main	= "Pukulatmuj +1",		-- 10
 		sub		= "Ammurapi Shield",	-- 10
         ammo	= "Homiliary",
 		head  	= "Leth. Chappel +3",	-- 10
@@ -427,7 +437,9 @@ function init_gear_sets()
 		hands  	= "Regal Cuffs",			-- +2
 		waist	= "Emphatikos Rope",		-- +1
 		legs  	= "Shedir Seraweels", })	-- +1			
-    sets.midcast.Cure = set_combine(sets.midcast['Enhancing Magic'], {
+	sets.midcast['Regen II'] = set_combine(sets.midcast['Enhancing Magic'], {
+		main	= "Bolelabunga", })	  
+	sets.midcast.Cure = set_combine(sets.midcast['Enhancing Magic'], {
         main	= "Daybreak",			-- 30
         sub		= "Ammurapi Shield",	-- 
 		neck  	= "Nodens Gorget",		-- 5
@@ -451,6 +463,51 @@ function init_gear_sets()
 		ring1 	= "Chirich Ring +1", 
 		ring2 	= "Chirich Ring +1",
 		back  	= "Null Shawl",
+		waist	= "Sailfi Belt +1",
+		legs  	= "Malignance Tights",
+		feet  	= "Malignance Boots",
+		}		
+    sets.engaged.DW = {
+		ammo 	= "Coiste Bodhar",
+		head  	= "Malignance Chapeau",
+		neck  	= "Anu Torque",
+		ear1  	= "Sherida Earring",
+		ear2  	= "Dedition Earring",
+		body  	= "Malignance Tabard",
+		hands 	= "Malignance Gloves",
+		ring1 	= "Chirich Ring +1", 
+		ring2 	= "Chirich Ring +1",
+		back  	= gear.CapeDW,
+		waist	= "Sailfi Belt +1",
+		legs  	= "Malignance Tights",
+		feet  	= "Malignance Boots",
+		}		
+    sets.hybrid = {
+		ammo 	= "Coiste Bodhar",
+		head  	= "Malignance Chapeau",
+		neck  	= "Anu Torque",
+		ear1  	= "Sherida Earring",
+		ear2  	= "Dedition Earring",
+		body  	= "Malignance Tabard",
+		hands 	= "Malignance Gloves",
+		ring1 	= "Chirich Ring +1", 
+		ring2 	= "Murky Ring",
+		back  	= "Null Shawl",
+		waist	= "Sailfi Belt +1",
+		legs  	= "Malignance Tights",
+		feet  	= "Malignance Boots",
+		}		
+    sets.hybrid.DW = {
+		ammo 	= "Coiste Bodhar",
+		head  	= "Malignance Chapeau",
+		neck  	= "Anu Torque",
+		ear1  	= "Sherida Earring",
+		ear2  	= "Dedition Earring",
+		body  	= "Malignance Tabard",
+		hands 	= "Malignance Gloves",
+		ring1 	= "Chirich Ring +1", 
+		ring2 	= "Murky Ring",
+		back  	= gear.CapeDW,
 		waist	= "Sailfi Belt +1",
 		legs  	= "Malignance Tights",
 		feet  	= "Malignance Boots",
@@ -483,41 +540,56 @@ function init_gear_sets()
 	}
 end
 
-function check_weapon(check_number)
-	if not WeaponLock then
-		if player.equipment.main ~= sets[state.WeaponSet].main or 
-		player.equipment.sub ~= sets[state.WeaponSet].sub then
-			if check_number then -- Gearswap is out of sync
-				--print('Check: ' .. check_number .. ' | ' .. player.equipment.main ..' / '.. sets[state.WeaponSet].main ..' ::: '.. player.equipment.sub  ..' / '..sets[state.WeaponSet].sub)
-				send_command('gs equip sets.'..state.WeaponSet)
-			else
-				equip(sets[state.WeaponSet])
-			end
-		end
-	end
+function check_weapon()
+	if WeaponLock or player.tp >= 350 then return end
+	
+	enable('main','sub','range')
+	equip(sets[state.WeaponSet])
 end
 
-function update_gear()
+function customize_melee_set()
     if state.OffenseMode.value == "Defense" or
-	windower.ffxi.get_player().status == 0 then
+	player.status == 'Idle' or incapacitated then
+		send_command('gs equip sets.defense')
 		equip(sets.defense)
+    elseif state.OffenseMode.value == "Hybrid" then
+		if dual_wield then
+			equip(sets.hybrid.DW)
+		else
+			equip(sets.hybrid)
+		end
 	else
-		equip(sets.engaged)
+		if dual_wield then
+			equip(sets.engaged.DW)
+		else
+			equip(sets.engaged)
+		end
     end	
-    check_weapon()
+	check_weapon()
 end
 
 function job_buff_change(buff,gain)
     if buff == "terror" or buff == "petrification" or buff == "stun" then
         if gain then
-            --equip(sets.defense)
-			send_command('gs equip sets.defense'))
+			incapacitated = true
+			equip(sets.defense)
+		else
+			incapacitated = false
         end
 	elseif buff == "sleep" then
-		equip(sets.Caliburnus)
-    elseif buff == "doom" then
         if gain then
-            equip(sets.buff.Doom)
+			incapacitated = true
+			enable('main')
+			equip(sets.Caliburnus)
+			disable('main')
+		else
+			incapacitated = false
+			enable('main')
+        end
+	end
+	if buff == "doom" then
+        if gain then
+			send_command('gs equip sets.buff.Doom')
             send_command('@input /p Doomed.')
             disable('ring1','ring2','waist','neck')
         else
@@ -527,19 +599,28 @@ function job_buff_change(buff,gain)
     end
 end
 
-function job_post_precast(spell, action, spellMap, eventArgs)
+function job_post_pretarget(spell, action, spellMap, eventArgs)
 	if spell.action_type == 'Magic' then -- Don't change gear on CD
 		if windower.ffxi.get_spell_recasts()[spell.recast_id] >= 1 then
 			cancel_spell()
-			update_gear()
+			eventArgs.handled = true
 			return
 		end
 	elseif spell.type == 'WeaponSkill' then
 		if player.tp <= 1000 then
 			cancel_spell()
-			update_gear()
+			eventArgs.handled = true
 			return
-		elseif spell.name == 'Sanguine Blade' then -- No moonshade for Sanguine
+		end
+	end
+	if WeaponLock or player.tp >= 350 then
+		disable('main','sub','range')
+	end
+end
+
+function job_post_precast(spell, action, spellMap, eventArgs)
+	if spell.type == 'WeaponSkill' then
+		if spell.name == 'Sanguine Blade' then -- No moonshade for Sanguine
 			return
 		elseif player.equipment.sub == "Thibron" then
 			if player.tp <= 1750 then 
@@ -547,17 +628,6 @@ function job_post_precast(spell, action, spellMap, eventArgs)
 			end
 		elseif player.tp <= 2750 then
 			equip({ear2="Moonshade Earring"})
-		end
-	end
-	
-	if not WeaponLock then
-		if player.tp <= 350 or  
-		player.equipment.main ~= sets[state.WeaponSet].main or 
-		player.equipment.sub ~= sets[state.WeaponSet].sub then
-			enable('main','sub','range')
-			check_weapon()
-		else
-			disable('main','sub','range')
 		end
 	end
 end
@@ -586,16 +656,16 @@ function job_post_midcast(spell, action, spellMap, eventArgs)
 			end
 		elseif spell.skill == 'Enfeebling Magic' then
 			if enfeebling_skill:contains(spell.english) then
-                equip(sets.EnfSkill)
+				equip(sets.midcast.EnfSkill)
 				
 			elseif enfeebling_accuracy:contains(spell.english) then
-                equip(sets.EnfAcc)
+				equip(sets.midcast.EnfAcc)
 				
 			elseif enfeebling_duration:contains(spell.english) then
-                equip(sets.EnfDur)
+				equip(sets.midcast.EnfDur)
 				
 			else
-               equip(sets.EnfMND)
+				equip(sets.midcast.EnfMND)
             end
 			if state.Immunobreak.value == true then
 				equip(sets.Immunobreak)
@@ -636,14 +706,11 @@ function job_post_midcast(spell, action, spellMap, eventArgs)
 end
 
 function job_aftercast(spell)
-	if not WeaponLock then
+	if not WeaponLock and player.tp < 350 then
 		enable('main','sub','range')
+		equip(sets[state.WeaponSet])
 	end
-	update_gear()
-	-- Double check weapons are actually correct
-	if spell.action_type == 'Magic' and not WeaponLock then
-		coroutine.schedule(function() check_weapon(3) end, 3)
-	end
+	customize_melee_set()
 end
 
 function job_state_change(field, new_value, old_value)
@@ -660,59 +727,75 @@ function job_state_change(field, new_value, old_value)
 		send_command('send @all bind %1 send Spikex /SavageBlade ') 
 		send_command('send @all bind %2 send Spikex /ChantDuCygne ') 
 	end
-	update_gear()
+	customize_melee_set()
 end
 
-function job_update(cmdParams, eventArgs)
-	update_gear()
+function job_update(cmdParams, eventArgs)	
+	customize_melee_set()
 end
 
 function job_self_command(cmdParams, eventArgs)
     if cmdParams[1]:lower() == 'rune' then
         send_command('@input /ja '..state.Runes.value..' <me>')
 		
+    elseif cmdParams[1]:lower() == 'test' then
+		check_weapon()
+	
     elseif cmdParams[1]:lower() == 'lock' then
 		WeaponLock = not WeaponLock
 		if WeaponLock then
 			disable('main','sub','range')
-		windower.add_to_chat(206, 'Weapon Lock: On')
+			windower.add_to_chat(206, 'Weapon Lock: On')
 		else
 			enable('main','sub','range')
-		windower.add_to_chat(206, 'Weapon Lock: Off')
+			windower.add_to_chat(206, 'Weapon Lock: Off')
+			send_command('gs equip sets.'..state.WeaponSet)
 		end
 		
     elseif cmdParams[1]:lower() == 'change_weapon' then
+		WeaponLock = false
 		enable('main','sub','range')
         if not dual_wield then
 			if state.WeaponSet == 'SW_Sword' then
+				msg = string.char(0x87, 0x41) .. ' AOE'
 				state.WeaponSet = 'SW_Dagger'
 			elseif state.WeaponSet == 'SW_Dagger' then
+				msg = string.char(0x87, 0x41) .. ' Magical'
 				state.WeaponSet = 'SW_MWS'
 			elseif state.WeaponSet == 'SW_MWS' then
+				msg = string.char(0x87, 0x41) .. ' Enspell'
 				state.WeaponSet = 'SW_Enspell'
 			else
+				msg = string.char(0x87, 0x40) .. ' Physical'
 				state.WeaponSet = 'SW_Sword'
 			end
 		else
 			if state.WeaponSet == 'DW' then
-				state.WeaponSet = 'DW_ACC'
-			elseif state.WeaponSet == 'DW_ACC' then
-				state.WeaponSet = 'DW_MWS'
-			elseif state.WeaponSet == 'DW_MWS' then
+				msg = string.char(0x87, 0x41) .. ' Red Lotus Blade'
 				state.WeaponSet = 'DW_RLB'
+				send_command('send @all bind %1 send Spikex /RedLotusBlade ') 
+				send_command('send @all bind %2 send Spikex /SeraphBlade ') 
+				send_command('send @all bind !1 send Spikex /SavageBlade ') 
+				send_command('send @all bind !2 send Spikex /ChantDuCygne ') 
 			elseif state.WeaponSet == 'DW_RLB' then
+				msg = string.char(0x87, 0x42) .. ' Black Halo'
+				state.WeaponSet = 'DW_CLB'
+				send_command('send @all bind %1 send Spikex /BlackHalo ') 
+			elseif state.WeaponSet == 'DW_CLB' then
+				msg = string.char(0x87, 0x43) .. ' Aeolian Edge'
 				state.WeaponSet = 'DW_AOE'
 				send_command('send @all bind %1 send Spikex /Evisceration ') 
 				send_command('send @all bind %2 send Spikex /AeolianEdge ') 
-			elseif state.WeaponSet == 'DW_AOE' then
-				state.WeaponSet = 'DW_ENS'
 			else
+				msg = string.char(0x87, 0x40) .. ' Savage Blade'
 				state.WeaponSet = 'DW'
 				send_command('send @all bind %1 send Spikex /SavageBlade ') 
 				send_command('send @all bind %2 send Spikex /ChantDuCygne ') 
+				send_command('send @all bind !1 send Spikex /RedLotusBlade ') 
+				send_command('send @all bind !2 send Spikex /SeraphBlade ') 
 			end
 		end
-		windower.add_to_chat(206, 'Current Weapon Set: '..state.WeaponSet)
+		windower.add_to_chat(206, 'Weapon Set '..msg)
 		check_weapon()
 	end
 end
