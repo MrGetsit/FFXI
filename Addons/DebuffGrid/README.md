@@ -3,6 +3,11 @@
 
 Shows a grid of debuffs for Red Mage to see what you have applied and what is still missing.
 
+|    **Dia**   | **Frazzle** |  **Addle**  |  **Distract**  |
+|:------------:|:-----------:|:-----------:|:--------------:|
+| **Paralyze** |   **Slow**  |  **Blind**  |   **Silence**  |
+|   **Sleep**  |  **Poison** | **Gravity** | **Inundation** |
+
 ### Command Usage:
 ```
   dbg pos <x> <y>    -- Set position of grid
