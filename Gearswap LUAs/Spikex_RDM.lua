@@ -550,7 +550,6 @@ end
 function customize_melee_set()
     if state.OffenseMode.value == "Defense" or
 	player.status == 'Idle' or incapacitated then
-		send_command('gs equip sets.defense')
 		equip(sets.defense)
     elseif state.OffenseMode.value == "Hybrid" then
 		if dual_wield then
@@ -569,14 +568,18 @@ function customize_melee_set()
 end
 
 function job_buff_change(buff,gain)
-    if buff == "terror" or buff == "petrification" or buff == "stun" then
+	if buff == "doom" then
         if gain then
-			incapacitated = true
-			equip(sets.defense)
-		else
-			incapacitated = false
+            enable('ring1','ring2','waist','neck')
+			equip(sets.buff.Doom)
+            send_command('@input /p Doomed.')
+            disable('ring1','ring2','waist','neck')
+        else
+            send_command('@input /p Doom Removed')
+            enable('ring1','ring2','waist','neck')
         end
-	elseif buff == "sleep" then
+    end
+	if buff == "sleep" then
         if gain then
 			incapacitated = true
 			enable('main')
@@ -587,16 +590,14 @@ function job_buff_change(buff,gain)
 			enable('main')
         end
 	end
-	if buff == "doom" then
+	if buff == "terror" or buff == "petrification" or buff == "stun" then
         if gain then
-			send_command('gs equip sets.buff.Doom')
-            send_command('@input /p Doomed.')
-            disable('ring1','ring2','waist','neck')
-        else
-            send_command('@input /p Doom Removed')
-            enable('ring1','ring2','waist','neck')
+			incapacitated = true
+		else
+			incapacitated = false
         end
-    end
+		customize_melee_set()
+	end
 end
 
 function job_post_pretarget(spell, action, spellMap, eventArgs)
@@ -771,23 +772,23 @@ function job_self_command(cmdParams, eventArgs)
 			end
 		else
 			if state.WeaponSet == 'DW' then
-				msg = string.char(0x87, 0x41) .. ' Red Lotus Blade'
+				msg = string.char(0x87, 0x41) .. ' Sword Magical'
 				state.WeaponSet = 'DW_RLB'
 				send_command('send @all bind %1 send Spikex /RedLotusBlade ') 
 				send_command('send @all bind %2 send Spikex /SeraphBlade ') 
 				send_command('send @all bind !1 send Spikex /SavageBlade ') 
 				send_command('send @all bind !2 send Spikex /ChantDuCygne ') 
 			elseif state.WeaponSet == 'DW_RLB' then
-				msg = string.char(0x87, 0x42) .. ' Black Halo'
+				msg = string.char(0x87, 0x42) .. ' Club'
 				state.WeaponSet = 'DW_CLB'
 				send_command('send @all bind %1 send Spikex /BlackHalo ') 
 			elseif state.WeaponSet == 'DW_CLB' then
-				msg = string.char(0x87, 0x43) .. ' Aeolian Edge'
+				msg = string.char(0x87, 0x43) .. ' Dagger'
 				state.WeaponSet = 'DW_AOE'
 				send_command('send @all bind %1 send Spikex /Evisceration ') 
 				send_command('send @all bind %2 send Spikex /AeolianEdge ') 
 			else
-				msg = string.char(0x87, 0x40) .. ' Savage Blade'
+				msg = string.char(0x87, 0x40) .. ' Sword Physical'
 				state.WeaponSet = 'DW'
 				send_command('send @all bind %1 send Spikex /SavageBlade ') 
 				send_command('send @all bind %2 send Spikex /ChantDuCygne ') 
