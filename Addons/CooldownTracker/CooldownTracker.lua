@@ -215,9 +215,9 @@ windower.register_event('action', function(act)
 	elseif act.category == 4 then
 		local spell = res.spells[act.param]
 		
-		if spell.type == 'Trust' then return end
+		if not spell or spell.type == 'Trust' then return end
 		
-		if spell and spell.recast_id then
+		if spell.recast_id then
 			local spell_name = spell.name
 			
 			-- Check filter
@@ -395,4 +395,5 @@ windower.register_event('addon command', function(command, ...)
 end)
 
 -- Initial setup
+
 initialize()
