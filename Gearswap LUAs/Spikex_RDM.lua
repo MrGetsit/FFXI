@@ -309,8 +309,6 @@ function init_gear_sets()
 		waist	= "Stikini Ring +1",
 		legs	= "Null Shawl",
 		feet	= "Null Belt",
-		= "Atrophy Tights +4",
-		= "Atro. Boots +4",
 		}
 	sets.midcast.EnfDur = { -- Sleep, Sleep II, Break, Silence
 		main	= "Naegling",
@@ -780,4 +778,5 @@ function tprint(tbl, indent)
 			print(2, spaces .. key_str .. " = " .. value_str .. ",")
 		end
 	end
+
 end
