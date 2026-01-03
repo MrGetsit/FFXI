@@ -1,6 +1,6 @@
 _addon.name = 'CooldownTracker'
 _addon.author = 'Spikex'
-_addon.version = '1.0'
+_addon.version = '1.1'
 _addon.commands = {'cooldown', 'cd'}
 
 config = require('config')
@@ -44,6 +44,9 @@ function initialize()
 			cooldowns[current_char] = {}
 		end
 		windower.send_ipc_message('cooldown request_leader')
+		
+		-- Refresh cooldowns after a short delay to ensure player data is loaded
+		coroutine.schedule(refresh_cooldowns, 1)
 	end
 end
 
@@ -111,6 +114,97 @@ function format_time(seconds)
 	local mins = math.floor(seconds / 60)
 	local secs = math.floor(seconds % 60)
 	return string.format('%02d:%02d', mins, secs)
+end
+
+-- Scan all current ability and spell recasts and add them to tracking
+function refresh_cooldowns()
+	if not current_char then
+		print('CooldownTracker: Character not loaded yet')
+		return
+	end
+	
+	local player = windower.ffxi.get_player()
+	if not player then return end
+	
+	local added_count = 0
+	
+	-- Scan ability recasts
+	local ability_recasts = windower.ffxi.get_ability_recasts()
+	local job_abilities_list = windower.ffxi.get_abilities()
+	if ability_recasts then
+		for recast_id, recast_time in pairs(ability_recasts) do
+			if recast_time > 5 then -- Only track if more than 5 seconds
+				-- Find abilities with this recast_id
+				for id, ability in pairs(res.job_abilities) do
+					if ability.recast_id == recast_id then
+						-- Check filter
+						if settings.filter:empty() or not settings.filter:contains(ability.name) then
+							if not cooldowns[current_char] then
+								cooldowns[current_char] = {}
+							end
+							
+							cooldowns[current_char][ability.name] = {
+								ready_time = os.clock() + recast_time
+							}
+							
+							-- Send IPC message to other characters
+							local message = string.format('cooldown add %s~%s~%.2f', 
+								current_char:gsub(' ', '_'), 
+								ability.name:gsub(' ', '_'), 
+								recast_time)
+							windower.send_ipc_message(message)
+							
+							added_count = added_count + 1
+							break -- Only add once per recast_id
+						end
+					end
+				end
+			end
+		end
+	end
+	
+	-- Scan spell recasts
+	local spell_recasts = windower.ffxi.get_spell_recasts()
+	if spell_recasts then
+		for recast_id, recast_time_ms in pairs(spell_recasts) do
+			local recast_time = math.floor(recast_time_ms / 60) -- Convert to seconds
+			
+			if recast_time > 5 then -- Only track if more than 5 seconds
+				-- Find spells with this recast_id
+				for id, spell in pairs(res.spells) do
+					if spell.recast_id == recast_id and spell.type ~= 'Trust' then
+						-- Check filter
+						if settings.filter:empty() or not settings.filter:contains(spell.name) then
+							-- Check if player knows this spell
+							local known_spells = windower.ffxi.get_spells()
+							if known_spells[id] then
+								if not cooldowns[current_char] then
+									cooldowns[current_char] = {}
+								end
+								
+								cooldowns[current_char][spell.name] = {
+									ready_time = os.clock() + recast_time
+								}
+								
+								-- Send IPC message to other characters
+								local message = string.format('cooldown add %s~%s~%.2f', 
+									current_char:gsub(' ', '_'), 
+									spell.name:gsub(' ', '_'), 
+									recast_time)
+								windower.send_ipc_message(message)
+								
+								added_count = added_count + 1
+								break -- Only add once per recast_id
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+	
+	update_display()
+	print('CooldownTracker: Refreshed cooldowns, found ' .. added_count .. ' active cooldowns')
 end
 
 -- Add a cooldown for tracking
@@ -205,7 +299,7 @@ windower.register_event('action', function(act)
 				local recast_id = ability.recast_id
 				local recast_time = windower.ffxi.get_ability_recasts()[recast_id]
 				
-				if recast_time and recast_time > 0 then
+				if recast_time and recast_time > 5 then
 					add_cooldown(char_name, ability_name, recast_time)
 				end
 			end
@@ -226,7 +320,7 @@ windower.register_event('action', function(act)
 				local recast_id = spell.recast_id
 				local recast_time = math.floor(windower.ffxi.get_spell_recasts()[recast_id] / 60)
 				
-				if recast_time and recast_time > 0 then
+				if recast_time and recast_time > 5 then
 					add_cooldown(char_name, spell_name, recast_time)
 				end
 			end
@@ -371,6 +465,9 @@ windower.register_event('addon command', function(command, ...)
 		config.save(settings)
 		print('CooldownTracker: Filter cleared (now tracking all abilities)')
 		
+	elseif command == 'refresh' or command == 'scan' then
+		refresh_cooldowns()
+		
 	elseif command == 'clearcd' then
 		cooldowns = {}
 		if current_char then
@@ -388,6 +485,7 @@ windower.register_event('addon command', function(command, ...)
 		print('  //cd remove <name> - Remove ability/spell from filter')
 		print('  //cd list - Show filtered abilities')
 		print('  //cd clear - Clear filter (track all abilities)')
+		print('  //cd refresh - Scan and add all current cooldowns')
 		print('  //cd clearcd - Clear all current cooldowns')
 		print('')
 		print('Note: Empty filter = track all abilities')
@@ -395,5 +493,4 @@ windower.register_event('addon command', function(command, ...)
 end)
 
 -- Initial setup
-
 initialize()
