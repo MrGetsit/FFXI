@@ -1,6 +1,6 @@
 _addon.name = 'CooldownTracker'
 _addon.author = 'Spikex'
-_addon.version = '1.1'
+_addon.version = '1.2'
 _addon.commands = {'cooldown', 'cd'}
 
 config = require('config')
@@ -18,10 +18,12 @@ defaults.text.size = 12
 defaults.text.font = 'Consolas'
 defaults.padding = 8
 defaults.filter = S{}  -- Abilities to track
+defaults.visible = true
 
 settings = config.load(defaults)
 
 -- Display window
+show_display = true
 local display_box = texts.new('${content}', settings)
 display_box:show()
 
@@ -52,7 +54,7 @@ end
 
 -- Update the display with current cooldowns
 function update_display()
-	if not current_char or current_char ~= current_leader then
+	if not current_char or current_char ~= current_leader or not settings.visible then
 		display_box.content = ''
 		return
 	end
@@ -475,6 +477,11 @@ windower.register_event('addon command', function(command, ...)
 		end
 		update_display()
 		print('CooldownTracker: All cooldowns cleared')
+		
+	elseif command == 'toggle' or command == 't' then
+		settings.visible = not settings.visible
+		config.save(settings)
+		update_display()
 		
 	else
 		print('CooldownTracker v' .. _addon.version)
