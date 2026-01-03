@@ -132,13 +132,17 @@ function refresh_cooldowns()
 	
 	-- Scan ability recasts
 	local ability_recasts = windower.ffxi.get_ability_recasts()
-	local job_abilities_list = windower.ffxi.get_abilities()
+	local job_abilities_list = windower.ffxi.get_abilities().job_abilities or {}
+
 	if ability_recasts then
 		for recast_id, recast_time in pairs(ability_recasts) do
 			if recast_time > 5 then -- Only track if more than 5 seconds
-				-- Find abilities with this recast_id
-				for id, ability in pairs(res.job_abilities) do
-					if ability.recast_id == recast_id then
+				-- First, find which abilities the player actually has with this recast
+				for _, ability_id in ipairs(job_abilities_list) do
+					-- Look up the ability details in resources
+					local ability = res.job_abilities[ability_id]
+					
+					if ability and ability.recast_id == recast_id then
 						-- Check filter
 						if settings.filter:empty() or not settings.filter:contains(ability.name) then
 							if not cooldowns[current_char] then
@@ -206,7 +210,7 @@ function refresh_cooldowns()
 	end
 	
 	update_display()
-	print('CooldownTracker: Refreshed cooldowns, found ' .. added_count .. ' active cooldowns')
+	--print('CooldownTracker: Refreshed cooldowns, found ' .. added_count .. ' active cooldowns')
 end
 
 -- Add a cooldown for tracking
@@ -501,3 +505,29 @@ end)
 
 -- Initial setup
 initialize()
+
+function tprint(tbl, indent)
+	if not indent then indent = 0 end
+	local spaces = string.rep("  ", indent) -- Use two spaces for indentation
+
+	for k, v in pairs(tbl) do
+		local key_str
+		if type(k) == "number" then
+			key_str = "[" .. k .. "]"
+		else
+			key_str = "['" .. k .. "']"
+		end
+
+		if type(v) == "table" then
+		   print(2, spaces .. key_str .. " = {") 
+			tprint(v, indent + 1)
+		   print(2, spaces .. "}")
+		else
+			local value_str = tostring(v)
+			if type(v) == "string" then
+				value_str = "'" .. value_str .. "'"
+			end
+			print(2, spaces .. key_str .. " = " .. value_str .. ",")
+		end
+	end
+end
