@@ -70,7 +70,7 @@ function init_gear_sets()
 		--ring1	= "Gorney Ring", 			-- 1
 		waist	= "Chaac Belt", 			-- 1
 		hands	= "Plun. Armlets +1", 		-- 3
-		feet	= "Skulk. Poulaines +3", 	-- 4
+		feet	= "Skulk. Poulaines +3", 	-- 5
 		ammo	= "Per. Lucky Egg"			-- 1
 	} 
 	
@@ -82,20 +82,26 @@ function init_gear_sets()
 	
     sets.precast.WS = { 
 		ammo	= "Oshasha's Treatise",
+		head	= "Meghanada Visor +2",
         neck	= "Rep. Plat. Medal",
-		ear1	= "Moonshade earring",
-		ring1	= "Cornelia's Ring",
+		ear1 	= "Sherida Earring",
+		ear2 	= "Moonshade Earring",
+		body	= "Meg. Cuirie +2",
 		hands	= "Meg. Gloves +2",
+		ring1	= "Cornelia's Ring",
+		ring2	= "Ilabrat Ring",
 		back	= "Toutatis's Cape",
+		waist	= "Sailfi Belt +1",  
+		legs	= "Meg. Chausses +2",  	
+		feet 	= "Skulk. Poulaines +3",
 		}
-    sets.precast.WS['Savage Blade'] = set_combine(sets.WS, {
-		neck 	= "Anu Torque",	
-		ear2 	= "Ishvara Earring",
-	})
+		
     sets.precast.WS['Aeolian Edge'] = set_combine(sets.WS, {
 		neck	= "Sibyl Scarf",
-		ear2 	= "Friomisi Earring",
-		waist	= "Eschan Stone",  		
+		ear1	= "Ishvara Earring",
+		ear2	= "Friomisi Earring",
+		ring2	= "Dingir Ring",
+		waist	= "Eschan Stone",  	
 	})
 	
     --- Engaged Sets ---
@@ -103,7 +109,7 @@ function init_gear_sets()
 		ammo	= "Ginsen",
 		head 	= "Malignance Chapeau",	--  	Adhemar Bonnet +1 8
 		neck 	= "Anu Torque",			--  	Erudit. Necklace  6
-		ear1 	= "Odr Earring",
+		ear1 	= "Sherida Earring",
 		ear2 	= "Skulker's Earring",	-- 5
 		body 	= "Malignance Tabard",
 		hands	= "Adhemar Wrist. +1",	-- 8
@@ -111,7 +117,7 @@ function init_gear_sets()
 		ring2	= "Chirich Ring +1",	-- 10
 		back	= "Null Shawl",
 		waist	= "Sailfi Belt +1",  
-		legs 	= "Meg. Chausses +2",
+		legs 	= "Malignance Tights",
 		feet 	= "Skulk. Poulaines +3",
 		}
 
@@ -119,14 +125,14 @@ function init_gear_sets()
 		head 	= "Malignance Chapeau",
 		neck 	= "Null Loop",
 		ear1 	= "Eabani Earring",
-		ear2 	= "Allegro Earring",
+		ear2 	= "Sherida Earring",
 		body 	= "Malignance Tabard",
 		hands	= "Malignance Gloves",
 		ring1	= "Murky Ring",
 		ring2	= "Chirich Ring +1",
 		back	= "Null Shawl",
 		waist	= "Plat. Mog. Belt",  
-		legs 	= "Meg. Chausses +2",
+		legs 	= "Malignance Tights",
 		feet 	= "Skulk. Poulaines +3",
         }
 
