@@ -693,6 +693,7 @@ function job_post_precast(spell, action, spellMap, eventArgs)
 end
 
 function job_post_midcast(spell, action, spellMap, eventArgs)
+	if spell.name == 'Impact' then casting_impact = false return end
 	local midcast_update = nil
 	if spell.action_type == 'Magic' then
 		if spell.skill == 'Enhancing Magic' then
@@ -762,7 +763,6 @@ function job_post_midcast(spell, action, spellMap, eventArgs)
 end
 
 function job_aftercast(spell)
-	if casting_impact then casting_impact = false end
 	check_weapon()
 	--coroutine.schedule(function() check_weapon(3) end, 3)
 end
@@ -817,6 +817,8 @@ end
 
 function cast_impact()	
 	if casting_impact and attempts < 15 then
+		print('imp attempt '..attempts)
+		send_command('Spontaneity')
 		send_command('Impact')
 		attempts = attempts + 1
 		coroutine.schedule(function() cast_impact() end, 0.5)
