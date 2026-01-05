@@ -7,20 +7,14 @@ function job_setup()
 	
 	rune_enchantments = S{'Lux','Tenebrae', 'Ignis', 'Gelus', 'Flabra', 'Tellus', 'Sulpor', 'Unda' }
 	barstatus = S{'Baramnesia', 'Barvirus', 'Barparalyze', 'Barsilence', 'Barpetrify', 'Barpoison', 'Barblind', 'Barsleep'} 
-	barelement = S{'Barfire', 'Barblizzard', 'Baraero', 'Barstone', 'Barthunder', 'Barwater'} 	
-	enfeebling_mnd = S{'Paralyze', 'Paralyze II', 'Addle', 'Addle II', 'Slow', 'Slow II'}
-	enfeebling_skill = S{'Distract III', 'Frazzle III', 'Poison', 'Poison II'}
-	enfeebling_accuracy = S{'Frazzle II', 'Dispel', 'Gravity', 'Stun'}
-	enfeebling_duration = S{'Sleep', 'Sleep II', 'Sleepga', 'Sleepga II', 'Bind', 'Break', 'Silence', 'Inundation'}
 	magic_weaponskills = S{'Aeolian Edge','Burning Blade','Red Lotus Blade','Shining Blade','Seraph Blade','Sanguine Blade'}
 	
+	state.Runes = M{['description']='Runes', 'Lux', 'Tenebrae','Ignis', 'Gelus', 'Flabra', 'Tellus', 'Sulpor', 'Unda' }
 	state.Immunobreak = M(false, 'Immunobreak')	
 	state.OffenseMode:options('Normal', 'Hybrid', 'Defense')
 	
 	state.MainWeapon = M{'Naegling', 'Crocea Mors', 'Maxentius', 'Tauret' }
-	state.SubWeapon = M{'Thibron', 'Daybreak' }
-	
-	state.Runes = M{['description']='Runes', 'Lux', 'Tenebrae','Ignis', 'Gelus', 'Flabra', 'Tellus', 'Sulpor', 'Unda' }
+	state.SubWeapon = M{'Thibron', 'Daybreak' }	
 	
 	send_command('bind @w gs c lock')
 	send_command('bind @e gs c toggle Immunobreak')
@@ -41,6 +35,7 @@ function job_setup()
 end
 
 function user_setup()
+	send_command('send @all alias imp gs c impact') -- exec RDM_Impact.txt
 	send_command('send @all alias rb  exec RDM_Buffs.txt')
 	send_command('send @all alias rb2 exec RDM_Buffs2.txt')
 	send_command('send @all alias av aquaveil')
@@ -60,7 +55,7 @@ function user_setup()
 	send_command('send @all bind ~%2 send Spikex /Phalanx')
 	send_command('send @all bind ^%2  sta Spikex /Phalanx2 <stpc>')
 	send_command('send @all bind ~%3 send Spikex /GainStr')
-	send_command('send @all bind ~%4 send Spikex /Enaero')
+	send_command('send @all bind ~%4 send Spikex gs c enspell')
 	send_command('send @all bind %7  send Spikex /Blink')
 	send_command('send @all bind %8  send Spikex /Stoneskin')
 	send_command('send @all bind %9  send Spikex /Protect5 <stpc>')
@@ -113,7 +108,7 @@ function user_setup()
 	else
 		dual_wield = false
 	end	
-	send_command('wait 5; input /lockstyleset 4')
+	send_command('wait 5; input /lockstyleset 5')
 	send_command('wait 1; gs c startup')
 end
 
@@ -124,7 +119,7 @@ end
 
 function init_gear_sets()
 	--- Gear Sets ---
-	sets.Immunobreak=	{ legs = "Chironic Hose"}
+	sets.Immunobreak =	{ legs = "Chironic Hose" }
 	
 	gear.CapeMND 	= { name="Sucellos's Cape", augments={'MND+20','Mag. Acc+20 /Mag. Dmg.+20','MND+10','"Fast Cast"+10','Phys. dmg. taken-10%',} }
 	gear.CapeINT 	= { name="Sucellos's Cape", augments={'INT+20','Mag. Acc+20 /Mag. Dmg.+20','INT+10','"Mag.Atk.Bns."+10',} }
@@ -180,6 +175,7 @@ function init_gear_sets()
 		legs	= "Leth. Fuseau +3",
 		feet	= "Leth. Houseaux +3",
 		}	
+	sets.precast.WS['Death Blossom'] = sets.precast.WS['Savage Blade']
 	sets.precast.WS['Black Halo'] = sets.precast.WS['Savage Blade']
 	
 	sets.precast.WS['Chant du Cygne'] = {
@@ -264,6 +260,7 @@ function init_gear_sets()
 		legs	= "Leth. Fuseau +3",
 		feet	= "Vitiation boots +4",
 		}
+		
 	sets.midcast['Enfeebling Magic'] = { -- Paralyze/2, Addle/2, Slow/2,
 		main	= "Daybreak",
 		sub		= "Ammurapi Shield",
@@ -281,7 +278,8 @@ function init_gear_sets()
 		legs	= "Leth. Fuseau +3",
 		feet	= "Vitiation boots +4",		-- 10
 		}
-	sets.midcast.EnfSkill = { -- Frazzle3, Distract3, Poison/2
+		
+	sets.midcast.EnfSkill = {
 		main	= "Daybreak",
 		sub		= "Ammurapi Shield",
 		ammo	= "Regal Gem",
@@ -298,25 +296,36 @@ function init_gear_sets()
 		legs	= "Leth. Fuseau +3",
 		feet	= "Vitiation boots +4",
 		}
-	sets.midcast.EnfAcc = { -- Frazzle2, Dispel, Bind, Gravity
-		main	= "Daybreak",
+	sets.midcast['Distract III'] = sets.midcast.EnfSkill
+	sets.midcast['Frazzle III'] = sets.midcast.EnfSkill
+	sets.midcast['Poison II'] = sets.midcast.EnfSkill
+	
+	sets.midcast.EnfAcc = {
+		main	= "Crocea Mors",
 		sub		= "Ammurapi Shield",
-		ammo	= {name="Ullr",			priority= 1},
-		head	= {name="Regal Gem",	priority= 2}, -- Equip when locked
-		neck	= "Regal Gem",
-		ear1	= "Viti. Chapeau +4",
-		ear2	= "Dls. Torque +2",
-		body	= "Vor Earring",
-		hands	= "Snotra Earring",
-		ring1	= "Atrophy Tabard +4",
-		ring2	= "Leth. Ganth. +3",
-		back	= "Stikini Ring +1",
-		waist	= "Stikini Ring +1",
-		legs	= "Null Shawl",
-		feet	= "Null Belt",
+		range	= {name="Ullr",			priority= 1},
+		ammo	= {name="Regal Gem",	priority= 2}, -- Equip when locked
+		head	= "Viti. Chapeau +4",
+		neck	= "Null Loop",
+		ear1	= "Vor Earring",
+		ear2	= "Snotra Earring",
+		body	= "Atrophy Tabard +4",
+		hands	= "Leth. Ganth. +3",
+		ring1	= "Stikini Ring +1",
+		ring2	= "Stikini Ring +1",
+		back	= "Aurist's Cape +1",
+		waist	= "Null Belt",
+		legs	= "Atrophy Tights +4",
+		feet	= "Atro. Boots +4",
 		}
-	sets.midcast.EnfDur = { -- Sleep/2, Break, Silence
-		main	= "Naegling",
+	sets.midcast['Frazzle II'] = sets.midcast.EnfAcc
+	sets.midcast['Dispel'] = sets.midcast.EnfAcc
+	sets.midcast['Gravity'] = sets.midcast.EnfAcc
+	sets.midcast['Stun'] = sets.midcast.EnfAcc
+	sets.midcast['Impact'] = sets.midcast.EnfAcc
+	
+	sets.midcast.EnfDur = {
+		main	= "Crocea Mors",
 		sub		= "Ammurapi Shield",	
 		range	= {name="Ullr",			priority= 1},
 		ammo	= {name="Regal Gem",	priority= 2}, -- Equip when locked
@@ -333,9 +342,16 @@ function init_gear_sets()
 		legs	= "Atrophy Tights +4",
 		feet	= "Atro. Boots +4",
 		}
+	sets.midcast['Sleep'] = sets.midcast.EnfAcc
+	sets.midcast['Sleep II'] = sets.midcast.EnfAcc
+	sets.midcast['Sleepga'] = sets.midcast.EnfAcc
+	sets.midcast['Sleepga II'] = sets.midcast.EnfAcc
+	sets.midcast['Bind'] = sets.midcast.EnfAcc
+	sets.midcast['Break'] = sets.midcast.EnfAcc
+	sets.midcast['Silence'] = sets.midcast.EnfAcc
+	sets.midcast['Inundation'] = sets.midcast.EnfAcc
+	
 	sets.midcast['Enhancing Magic'] = {
-		main	= "Pukulatmuj +1",		-- 10
-		sub		= "Ammurapi Shield",	-- 10
 		ammo	= "Homiliary",
 		head	= "Leth. Chappel +3",	-- 10
 		neck	= "Dls. Torque +2",		-- 17/25
@@ -350,7 +366,8 @@ function init_gear_sets()
 		legs	= "Leth. Fuseau +3",	-- 10
 		feet	= "Leth. Houseaux +3",	-- 40 + 15
 		}
-	sets.midcast.EnhSkill = { 
+	sets.midcast.EnhSkill = { -- Temper/2, Enspells
+		main	= "Pukulatmuj +1",		-- 10
 		sub		= "Forfend +1",			-- 10
 		ammo	= "Homiliary",
 		head	= "Befouled Crown",		-- 16
@@ -367,9 +384,8 @@ function init_gear_sets()
 		feet  	= "Leth. Houseaux +3",	-- 35
 		}
 	sets.midcast.PhalanxSelf = {
-		sub		= "Forfend +1",
 		ammo	= "Homiliary",
-		head	= "Taeon Chapeau",		-- +3
+		head	= "Merlinic Hood",		-- +4
 		neck	= "Dls. Torque +2",
 		ear1	= "Mimir Earring",
 		ear2	= "Lethargy Earring",
@@ -379,11 +395,10 @@ function init_gear_sets()
 		ring2	= "Murky Ring",
 		back	= "Ghostfyre Cape",
 		waist	= "Embla Sash",
-		legs	= "Taeon Tights", 		-- +3
+		legs	= "Chironic Hose", 		-- +4
 		feet	= "Taeon Boots",		-- +3
 		}
 	sets.midcast.PhalanxOther = { 
-		sub		= "Forfend +1",
 		ammo	= "Homiliary",
 		head	= "Leth. Chappel +3",
 		neck	= "Dls. Torque +2",
@@ -398,6 +413,8 @@ function init_gear_sets()
 		legs	= "Leth. Fuseau +3",
 		feet	= "Leth. Houseaux +3",
 		}
+	sets.midcast.SelfProt = set_combine(sets.midcast['Enhancing Magic'], {
+		ear1	= "Brachyura Earring", })
 	sets.midcast.GainSpell = set_combine(sets.midcast['Enhancing Magic'], {
 		hands	= "Viti. Gloves +3", })
 	sets.midcast.BarStatus = set_combine(sets.midcast['Enhancing Magic'], { 
@@ -410,14 +427,16 @@ function init_gear_sets()
 		legs	= "Leth. Fuseau +3", })		-- +4
 	sets.midcast['Stoneskin'] = set_combine(sets.midcast['Enhancing Magic'], {
 		neck	= "Nodens Gorget",			-- +30
-		ear1	= "Earthcry Earring",		-- +10
-		hands	= "Stone Mufflers",			-- +30
+		--ear1	= "Earthcry Earring",		-- +10
+		--hands	= "Stone Mufflers",			-- +30
+		waist	= "Siegel Sash",			-- +20
 		legs	= "Shedir Seraweels", })	-- +35
 	sets.midcast['Aquaveil'] = set_combine(sets.midcast['Enhancing Magic'], {
 		head	= "Amalric Coif +1",		-- +2
 		hands	= "Regal Cuffs",			-- +2
 		waist	= "Emphatikos Rope",		-- +1
 		legs	= "Shedir Seraweels", })	-- +1
+		
 	sets.midcast.Cure = {
 		main	= "Daybreak",			-- 30
 		ammo	= "Staunch Tathlum",
@@ -434,14 +453,14 @@ function init_gear_sets()
 		legs	= "Atrophy Tights +4",
 		feet	= "Leth. Houseaux +3",
 		}
-	sets.midcast['Regen II'] = set_combine(sets.midcast.Cure, {
-		main	= "Bolelabunga", })	  
 	sets.midcast.CureWeather = set_combine(sets.midcast.Cure, {
 		main	= "Chatoyant Staff",
 		sub		= "Enki Strap",
 		back	= "Twilight Cape",
 		waist	= "Hachirin-no-Obi",
 		})
+	sets.midcast['Regen II'] = set_combine(sets.midcast.Cure, {
+		main	= "Bolelabunga", })	  
 		
 	--- Engaged Sets ---
 	sets.engaged = {
@@ -557,10 +576,22 @@ function setup_weapon_keybinds()
 end
 
 function check_weapon(bypass)
-	if bypass or not WeaponLock and
-	(player.equipment.main ~= state.MainWeapon.value or
-	player.equipment.sub ~= state.MainWeapon.sub or 
-	player.tp < 350) then
+	if temp_weapons then
+		enable('main','sub')
+		equip({main = tempmain, sub = tempsub})
+		toggle_weapon_lock(true)
+		temp_weapons = false
+		return
+	end
+
+	if not bypass and WeaponLock then return end
+
+	local main_matches = player.equipment.main == state.MainWeapon.value
+	local sub_matches = dual_wield and 
+		(player.equipment.sub == state.SubWeapon.value) or
+		(player.equipment.sub == 'Diamond Aspis')
+	
+	if bypass or not main_matches or not sub_matches then
 		enable('main','sub','range')
 		if dual_wield then
 			equip({main = state.MainWeapon.value, sub = state.SubWeapon.value})
@@ -601,17 +632,21 @@ function job_buff_change(buff,gain)
 			send_command('@input /p Doom Removed')
 			enable('ring1','ring2','waist','neck')
 		end
+	elseif buff == "charm" then
+		if gain then
+			send_command('@input /p Charmed.')
+		end
 	end
 	if buff == "sleep" then
 		if gain then
 			incapacitated = true
+			save_temp_weapons()
 			enable('main')
-			WeaponLock = false
 			equip({main = 'Caliburnus'})
-			disable('main')
+			toggle_weapon_lock(false)
 		else
 			incapacitated = false
-			enable('main')
+			if temp_weapons then check_weapon() end
 		end
 	end
 	if buff == "terror" or buff == "petrification" or buff == "stun" then
@@ -625,30 +660,25 @@ function job_buff_change(buff,gain)
 end
 
 function job_post_pretarget(spell, action, spellMap, eventArgs)
+	cancel = false
 	if spell.action_type == 'Magic' then -- Don't change gear on CD
-		if windower.ffxi.get_spell_recasts()[spell.recast_id] >= 1 then
-			cancel_spell()
-			eventArgs.handled = true
-			return
-		end
+		local recast = windower.ffxi.get_spell_recasts()[spell.recast_id]
+		if recast and recast >= 1 then cancel = true end
 	elseif spell.type == 'WeaponSkill' then
-		if player.tp <= 1000 then
-			cancel_spell()
-			eventArgs.handled = true
-			return
-		end
+		if player.tp <= 1000 then cancel = true	end
+	end
+	if cancel or incapacitated then
+		cancel_spell()
+		eventArgs.handled = true
+		return
 	end
 	
-	if enfeebling_mnd:contains(spell.english) then print('returned') return end
-	
-	if WeaponLock or player.tp >= 350 then
+	if WeaponLock then
 		disable('main','sub','range')
 	end
 end
 
 function job_post_precast(spell, action, spellMap, eventArgs)
-	precastmain = player.equipment.main
-	precastsub = player.equipment.sub
 	if spell.type == 'WeaponSkill' then
 		if spell.name == 'Sanguine Blade' then -- No moonshade for Sanguine
 			return
@@ -663,52 +693,48 @@ function job_post_precast(spell, action, spellMap, eventArgs)
 end
 
 function job_post_midcast(spell, action, spellMap, eventArgs)
-	local midset_override = nil
+	local midcast_update = nil
 	if spell.action_type == 'Magic' then
 		if spell.skill == 'Enhancing Magic' then
 			if spell.english:startswith('Gain') then
-				midset_override = sets.midcast.GainSpell
+				midcast_update = sets.midcast.GainSpell
 			
 			elseif spell.english:startswith('Temper') or 
 			spell.english:startswith('En') then
-				if not WeaponLock then enable('main','sub') end
-				midset_override = sets.midcast.EnhSkill
+				if WeaponLock and (player.equipment.main ~= state.MainWeapon.value or player.equipment.sub ~= state.SubWeapon.sub) then
+					save_temp_weapons()
+					toggle_weapon_lock(false)
+				end
+				midcast_update = sets.midcast.EnhSkill
 			
+			elseif spell.target.type == 'SELF' and
+			(spell.english:startswith('Shell') or 
+			spell.english:startswith('Protect')) then
+				midcast_update = sets.midcast.SelfProt
+				
 			elseif spell.english:startswith('Phalanx') then
 				if spell.target.type == 'SELF' then
-					midset_override = sets.midcast.PhalanxSelf
+					midcast_update = sets.midcast.PhalanxSelf
 				else
-					midset_override = sets.midcast.PhalanxOther
+					midcast_update = sets.midcast.PhalanxOther
 				end
 			elseif barstatus:contains(spell.english) then
-				midset_override = sets.midcast.BarStatus
-			
-			elseif barelement:contains(spell.english) then
-				midset_override = sets.midcast.BarElement
+				midcast_update = sets.midcast.BarStatus
 			end
 		elseif spell.skill == 'Enfeebling Magic' then
-			if enfeebling_skill:contains(spell.english) then
-				midset_override = sets.midcast.EnfSkill
-			
-			elseif enfeebling_accuracy:contains(spell.english) then
-				midset_override = sets.midcast.EnfAcc
-			
-			elseif enfeebling_duration:contains(spell.english) then
-				midset_override = sets.midcast.EnfDur
-			end
 			if state.Immunobreak.value == true then
-				midset_override = sets.Immunobreak
+				midcast_update = sets.Immunobreak
 			end
 		elseif spell.english:startswith('Cure') then
 			if world.weather_element == 'Light' or 
 			world.day_element == 'Light' then
-				midset_override = sets.midcast.CureWeather
+				midcast_update = sets.midcast.CureWeather
 			end
 		elseif spell.skill == 'Elemental Magic' then
 			if spell.element == world.weather_element and 
 			(get_weather_intensity() == 2 and 
 			spell.element ~= elements.weak_to[world.day_element]) then
-				midset_override = gear.Obi
+				midcast_update = gear.Obi
 			--[[ Target distance under 1.7 yalms.
 			elseif spell.target.distance < (1.7 + spell.target.model_size) then
 				equip({waist="Orpheus's Sash"})
@@ -721,28 +747,23 @@ function job_post_midcast(spell, action, spellMap, eventArgs)
 			]]-- Match day or weather.
 			elseif spell.element == world.day_element or 
 			spell.element == world.weather_element then
-				midset_override = gear.Obi
+				midcast_update = gear.Obi
 			end
 		end
 	elseif spell.type == 'WeaponSkill' then
 		if magic_weaponskills:contains(spell.name) then
 			if spell.element == world.day_element or 
 			spell.element == world.weather_element then
-				midset_override = gear.Obi
+				midcast_update = gear.Obi
 			end
 		end	
 	end
-	if midset_override then 
-		if WeaponLock then
-			midset_override.main = precastmain
-			midset_override.sub = precastsub
-		end
-		equip(midset_override) 
-	end
+	if midcast_update then equip(midcast_update) end
 end
 
 function job_aftercast(spell)
-	customize_melee_set()
+	if casting_impact then casting_impact = false end
+	check_weapon()
 	--coroutine.schedule(function() check_weapon(3) end, 3)
 end
 
@@ -757,29 +778,77 @@ function job_state_change(field, new_value, old_value)
 	customize_melee_set()
 end
 
-function job_update(cmdParams, eventArgs)
-	customize_melee_set()
-end
-
 function job_self_command(cmdParams, eventArgs)
 	if cmdParams[1]:lower() == 'rune' then
 		send_command('@input /ja '..state.Runes.value..' <me>')
 	
 	elseif cmdParams[1]:lower() == 'startup' then
 		customize_melee_set()
-	
+		
+	elseif cmdParams[1]:lower() == 'impact' then
+		local target = windower.ffxi.get_mob_by_target('t')
+		if target then	
+			enable('head', 'body')
+			equip({head = "empty", body = "Crepuscular Cloak"})
+			disable('head', 'body')
+			attempts = 0
+			casting_impact = true
+			coroutine.schedule(function() cast_impact() end, 0.5)
+		end				
+	elseif cmdParams[1]:lower() == 'enspell' then
+		if world.day_element == 'Fire' then
+			send_command('Enfire')
+		elseif world.day_element == 'Earth' then
+			send_command('Enstone')
+		elseif world.day_element == 'Water' then
+			send_command('Enwater')
+		elseif world.day_element == 'Wind' then
+			send_command('Enaero')
+		elseif world.day_element == 'Ice' then
+			send_command('Enblizzard')
+		else
+			send_command('Enthunder')
+		end	
 	elseif cmdParams[1]:lower() == 'lock' then
 		WeaponLock = not WeaponLock
-		if WeaponLock then
-			disable('main','sub','range')
-			windower.add_to_chat(206, 'Weapon Lock: On')
-		else
-			enable('main','sub','range')
+		toggle_weapon_lock(WeaponLock, true)
+	end
+end
+
+function cast_impact()	
+	if casting_impact and attempts < 15 then
+		send_command('Impact')
+		attempts = attempts + 1
+		coroutine.schedule(function() cast_impact() end, 0.5)
+	else
+		enable('head', 'body')
+	end
+end
+
+function save_temp_weapons()
+	temp_weapons = true
+	tempmain = player.equipment.main
+	tempsub = player.equipment.sub
+end
+
+function toggle_weapon_lock(should_enable, report)
+	if should_enable then
+		WeaponLock = true
+		disable('main','sub','range')
+		if report then windower.add_to_chat(206, 'Weapon Lock: On') end
+	else
+		WeaponLock = false
+		enable('main','sub','range')
+		if report then 
+			windower.add_to_chat(206, 'Weapon Lock: Off') 
 			check_weapon()
-			windower.add_to_chat(206, 'Weapon Lock: Off')
 		end
 	end
 end
+
+windower.register_event('zone change', function()
+	toggle_weapon_lock(false)
+end)
 
 function tprint(tbl, indent)
 	if not indent then indent = 0 end
@@ -805,5 +874,4 @@ function tprint(tbl, indent)
 			print(2, spaces .. key_str .. " = " .. value_str .. ",")
 		end
 	end
-
 end
