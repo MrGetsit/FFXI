@@ -20,6 +20,9 @@ function user_setup()
 	send_command('send @all alias brd1 exec BRD1.txt')
 	send_command('send @all alias brd2 exec BRD2.txt')
 	send_command('send @all alias brdsv exec BRDSV.txt')
+	send_command('send @all alias hon send Cissilea hb on')
+	send_command('send @all alias hoff send Cissilea hb off')
+    send_command('send @all alias s4 gs c 4song')
 	
 	send_command('send @all alias sst send Cissilea /Pianissimo')
 	
@@ -131,7 +134,9 @@ function init_gear_sets()
 		feet	= "Fili Cothurnes +3",			-- 13
 		}
 
-	sets.precast.WS = {	}
+	sets.precast.WS = {	
+		body	= "Brioso Just. +4",
+		}
 
 	--- Midcast Sets ---
 	sets.midcast = {
@@ -233,6 +238,10 @@ function customize_melee_set()
 end
 
 function job_aftercast(spell, action, spellMap, eventArgs)
+	if slot4 then
+		slot4 = false
+		enable('range')
+	end
 	customize_melee_set()
 end
 
@@ -289,6 +298,38 @@ function job_self_command(cmdParams, eventArgs)
 			windower.add_to_chat(206, 'Weapon Lock: Off')
 			send_command('gs equip sets.'..state.WeaponSet)
 		end
+		
+	elseif cmdParams[1]:lower() == '4song' then
+		slot4 = true
+		enable('range')
+		equip({range="Daurdabla"})
+		disable('range')
+		return
 	end
 	check_weapon()
+end
+function tprint(tbl, indent)
+	if not indent then indent = 0 end
+	local spaces = string.rep("  ", indent) -- Use two spaces for indentation
+
+	for k, v in pairs(tbl) do
+		local key_str
+		if type(k) == "number" then
+			key_str = "[" .. k .. "]"
+		else
+			key_str = "['" .. k .. "']"
+		end
+
+		if type(v) == "table" then
+		   print(2, spaces .. key_str .. " = {") 
+			tprint(v, indent + 1)
+		   print(2, spaces .. "}")
+		else
+			local value_str = tostring(v)
+			if type(v) == "string" then
+				value_str = "'" .. value_str .. "'"
+			end
+			print(2, spaces .. key_str .. " = " .. value_str .. ",")
+		end
+	end
 end

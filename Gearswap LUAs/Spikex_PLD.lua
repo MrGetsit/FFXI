@@ -132,9 +132,9 @@ function init_gear_sets()
 		ear2  	= {name="Moonshade earring",    priority= 3},
 		body  	= {name="Sulevia\'s Plate. +2",	priority=10},	-- 70
 		hands 	= {name="Chev. Gauntlets +2",	priority= 7},	-- 54
-		ring1 	= {name="Etana Ring",           priority= 9},	-- 60
-		--ring1 	= {name="Cornelia's Ring",      priority= 9},	-- 60
-		ring2 	= {name="Rajas Ring",           priority= 2},
+		--ring1 	= {name="Etana Ring",           priority= 9},	-- 60
+		ring1 	= {name="Cornelia's Ring",      priority= 9},	-- 60
+		ring2 	= {name="Rufescent Ring",       priority= 2},
 		back  	= gear.CapeDT,            						-- 60
 		waist 	= {name="Plat. Mog. Belt",      priority=20},	-- 10%
 		legs  	= {name="Chev. Cuisses +2", 	priority=11},	-- 117
@@ -202,23 +202,23 @@ function init_gear_sets()
 		ear2	= {name="Eabani Earring", 		priority= 6},	-- 45
 		body  	= {name="Reverence Surcoat +3", priority=13},	-- 254
 		hands 	= {name="Sulev. Gauntlets +2",  priority= 4},	-- 30
-		ring1 	= {name="Etana Ring",           priority= 9},	-- 60
-		ring2 	= {name="Rajas Ring",           priority= 2},
+		ring1 	= {name="Chirich Ring +1",      priority= 9},	-- 60
+		ring2 	= {name="Chirich Ring +1",      priority= 2},
 		back  	= "Null Shawl",
 		waist 	= {name="Sailfi Belt +1",       priority= 1},
 		legs  	= {name="Chev. Cuisses +2",     priority=11},	-- 117
 		feet  	= {name="Flam. Gambieras +2",   priority= 5},	-- 40
 		}
 	sets.engaged.Offense = {
-        ammo	= {name="Focal Orb",            priority= 3},
+        ammo	= {name="Coiste Bodhar",        priority= 3},
 		head  	= {name="Flam. Zucchetto +2",   priority=11},	-- 80
 		neck  	= {name="Anu Torque",           priority= 8},	-- 50
 		ear1  	= {name="Cessance Earring",     priority=12},	-- 150
 		ear2  	= {name="Eabani Earring",       priority= 6},	-- 45
 		body  	= {name="Reverence Surcoat +3",	priority=13},	-- 254
 		hands 	= {name="Sulev. Gauntlets +2",	priority= 4},	-- 30
-		ring1 	= {name="Etana Ring",           priority=10},	-- 60
-		ring2 	= {name="Rajas Ring",           priority= 2},
+		ring1 	= {name="Chirich Ring +1",      priority= 9},	-- 60
+		ring2 	= {name="Chirich Ring +1",      priority= 2},
 		back  	= "Null Shawl",
 		waist 	= {name="Sailfi Belt +1",       priority= 1},
 		legs  	= {name="Sulev. Cuisses +2", 	priority= 7},	-- 50

@@ -30,13 +30,19 @@ function job_setup()
     send_command('bind @S gs c cycle OffenseMode')
     send_command('bind ^= gs c cycle treasuremode')
 	
-	send_command('lua l autora') 
 	send_command('sa lua l rolltracker') 
-	autora_on = false
+	
+	engaged_ammo = 'Bronze Bullet'
+	ammo_case = 'Brz. Bull. Pouch'
+	
+	auto = false
+	autofire = nil
+	last_shot_time = 0
 end
 
 function user_setup()
 
+	send_command('send @all alias sj send Sneaksy /SpectralJig') 
 	send_command('send @all alias rxp send Sneaksy /CorsairsRoll') 
 	send_command('send @all alias rtp send Sneaksy /TacticiansRoll') 
 	send_command('send @all alias rda send Sneaksy /FightersRoll') 
@@ -52,21 +58,20 @@ function user_setup()
 	send_command('send @all alias rpat send Sneaksy /BeastRoll') 
 	send_command('send @all alias rpac send Sneaksy /DrachenRoll') 
 	send_command('send @all alias rpma send Sneaksy /PuppetRoll') 
-	send_command('send @all alias sj send Sneaksy /SpectralJig') 
 
 	send_command('send @all bind  numpad1 send Sneaksy /SavageBlade ') 
 	send_command('send @all bind  numpad2  sta Sneaksy /LeadenSalute ') 
-	send_command('send @all bind  numpad3 send Sneaksy /LightShot ') 
+	--send_command('send @all bind  numpad3 send Sneaksy /LightShot ') 
 	send_command('send @all bind !numpad1  sta Sneaksy /Requiescat ') 
 	send_command('send @all bind !numpad2  sta Sneaksy /LastStand ') 
 	send_command('send @all bind !numpad3 send Sneaksy /DarkShot ') 
-	send_command('send @all bind ~numpad1 send Sneaksy /SamuraiRoll ') 
-	send_command('send @all bind ~numpad2 send Sneaksy /ChaosRoll ') 
+	send_command('send @all bind ~numpad1 send Sneaksy /ChaosRoll ') 
+	send_command('send @all bind ~numpad2 send Sneaksy /SamuraiRoll ') 
 	send_command('send @all bind ~numpad3 send Sneaksy /DoubleUp ') 
 	send_command('send @all bind @numpad1 send Sneaksy /CrookedCards ') 
 	send_command('send @all bind @numpad2 send Sneaksy /Fold ') 
 	send_command('send @all bind @numpad3 send Sneaksy /SnakeEye ') 
-	--send_command('send @all bind  numpad3 send Sneaksy gs c toggle_autora ') 
+	send_command('send @all bind  numpad3 send Sneaksy gs c auto ') 
 	
 	if player.sub_job == 'DNC' then
 		send_command('send @all bind ^numpad1  sta Sneaksy /HealingWaltz <stpc> ') 
@@ -92,7 +97,6 @@ function user_setup()
 end
 
 function user_unload()
-	send_command('lua u autora') 
 	send_command('sa lua u rolltracker') 
 end
 
@@ -103,6 +107,8 @@ function init_gear_sets()
     sets.TP 	= { range	= "Anarchy +2", 	ammo= "Bronze Bullet" }
     sets.WS 	= { range	= "Death Penalty",	ammo= "Bronze Bullet" }
 
+	sets.Comp	= { range	= "Compensator" }
+	
 	gear.CapeTP = { name="Camulus's Mantle", augments={'DEX+20','Accuracy+20 Attack+20','DEX+10','"Dbl.Atk."+10','Phys. dmg. taken-10%',} }
 	gear.CapeSTR= { name="Camulus's Mantle", augments={'STR+20','Accuracy+20 Attack+20','STR+10','Weapon skill damage +10%',} }
 	gear.CapeAGI= { name="Camulus's Mantle", augments={'AGI+20','Mag. Acc+20 /Mag. Dmg.+20','AGI+10','Weapon skill damage +10%',} }
@@ -112,7 +118,7 @@ function init_gear_sets()
     --- Precast Sets ---
     sets.precast.JA['Tactician\'s Roll']= { body  = "Chasseur's Frac" 		}
     sets.precast.JA['Blitzer\'s Roll'] 	= { head  = "Chasseur's Tricorne" 	}
-    sets.precast.JA['Allies\' Roll'] 	= { hands = "Chasseur's Gants" 		}
+    sets.precast.JA['Allies\' Roll'] 	= { hands = "Chasseur's Gants +3" 		}
     sets.precast.JA['Caster\'s Roll'] 	= { legs  = "Chasseur's Culottes" 	}
     sets.precast.JA['Courser\'s Roll'] 	= { feet  = "Chasseur's Bottes" 	}
 	
@@ -120,19 +126,23 @@ function init_gear_sets()
 		head	= "Lanun Tricorne", 
 		neck	= "Regal Necklace",
 		hands	= "Chasseur's Gants +3",
-		back	= "Camulus's Cape",
+		back	= "Camulus's Mantle",
 		legs	= "Desultor Tassets"
 	}	
     sets.precast.Waltz = { head="Mummu Bonnet +2", feet="Rawhide Boots" }	
     sets.precast.FC = {}
-	sets.precast.RA = {
-		body	= "Laksa. Frac +4",
-		feet 	= "Meg. Jam. +1",		
+	sets.precast.RA = {					-- SNP	RPD
+		head	= "Ikenga's Hat",		-- 06
+		body	= "Laksa. Frac +4",		--		20
+		hands	= "Ikenga's Gloves",	-- 07
+		ring1	= "Crepuscular Ring",	-- 03
+		legs	= "Lanun Trews +3",		-- 10
+		feet 	= "Meg. Jam. +2",		-- 10
 		}
     sets.precast.WS = { 
+		head	= "Meghanada Visor +2",
         neck	= "Rep. Plat. Medal",
 		ear1	= "Ishvara Earring",
-		head	= "Meghanada Visor +2",
 		body	= "Meg. Cuirie +2",
 		hands	= "Chasseur's Gants +3",
 		ring1	= "Cornelia's Ring",
@@ -148,7 +158,7 @@ function init_gear_sets()
 		body	= "Laksa. Frac +4",
 		hands	= "Chasseur's Gants +3",
 		ring1	= "Cornelia's Ring",
-		ring2	= "Ilibrat Ring",
+		ring2	= "Ilabrat Ring",
 		back	= gear.CapeSTR,
 		waist	= "Prosilio Belt +1",  
 		legs 	= "Meg. Chausses +2",
@@ -241,7 +251,25 @@ function job_buff_change(buff,gain)
         else
             enable('ring1','ring2','waist','neck')
         end
+	elseif buff == "charm" then
+		if gain then
+			send_command('@input /p Charmed.')
+		end
     end
+end
+function job_post_pretarget(spell, action, spellMap, eventArgs)
+	if spell.type == "WeaponSkill" then
+		if auto then auto = false end
+		if player.tp <= 1000 then
+			cancel_spell()
+			eventArgs.handled = true
+		end
+	end
+	if not WeaponLock then
+		if player.tp <= 350 and spell.english:endswith('Roll') then
+			send_command('gs equip sets.Comp')
+		end
+	end
 end
 function job_post_precast(spell, action, spellMap, eventArgs)
 	if spell.type == "WeaponSkill" then
@@ -259,19 +287,7 @@ function customize_melee_set(meleeSet)
     end	
     return meleeSet
 end
-function job_self_command(command, eventArgs)
-	if command[1]:lower() == 'toggle_autora' then
-		if autora_on == false then
-			send_command('ara start') 
-			autora_on = true
-			windower.add_to_chat(160, 'AutoRA starting')
-		else
-			send_command('ara stop') 
-			autora_on = false
-			windower.add_to_chat(160, 'AutoRA stopping')
-		end
-	end
-end
+
 function job_aftercast(spell, action, spellMap, eventArgs)	
     equip(sets[state.WeaponSet.current])
     equip(sets[state.WeaponSetR.current])
@@ -302,6 +318,7 @@ function job_update(cmdParams, eventArgs)
     equip(sets[state.WeaponSet.current])
     equip(sets[state.WeaponSetR.current])
 end
+
 function th_action_check(category, param)
     if category == 2 or -- any ranged attack
         --category == 4 or -- any magic action
@@ -310,4 +327,84 @@ function th_action_check(category, param)
         (category == 14 and info.default_u_ja_ids:contains(param)) -- Quick/Box/Stutter Step, Desperate/Violent Flourish
         then return true
     end
+end
+
+function job_self_command(command, eventArgs)
+	if command[1]:lower() == 'auto' then
+		auto = not auto
+		if auto then
+			windower.add_to_chat(160, 'Autofire On')
+			last_shot_time = os.clock()
+			target()
+			
+			autofire = windower.register_event('action', function(action)
+				if not auto then stop_shooting() return end
+				if action.actor_id == player.id and action.category == 2 then
+					last_shot_time = os.clock()
+					target()
+				elseif last_shot_time > 4 then
+					target()
+				end
+			end)
+		else
+			stop_shooting()
+		end
+	end
+end
+
+function target()
+    if not auto then return end 
+	
+	if not player.equipment or
+	player.equipment.ammo == 'empty' then 
+		windower.send_command('input /party Out of ammo')
+		windower.send_command('input /item "'.. ammo_case ..'" ' .. player.name)
+		stop_shooting()
+	return end
+	
+    local tar = windower.ffxi.get_mob_by_target('t')
+    if not tar or tar.hpp == 0 then 
+		stop_shooting()
+	return end
+	windower.ffxi.turn(math.atan2(tar.x - player.x, tar.y - player.y) - 1.5708)
+	shoot:schedule(1.5)
+end
+
+function shoot()
+    if not auto then return end 
+    windower.send_command('input /shoot <t>')
+end
+
+function stop_shooting()
+	auto = false
+	if autofire then
+		windower.add_to_chat(160, 'Autofire Off')
+		windower.unregister_event(autofire)
+		autofire = nil
+	end
+end
+function tprint(tbl, indent)
+	if not indent then indent = 0 end
+	local spaces = string.rep("  ", indent) -- Use two spaces for indentation
+
+	for k, v in pairs(tbl) do
+		local key_str
+		if type(k) == "number" then
+			key_str = "[" .. k .. "]"
+		else
+			key_str = "['" .. k .. "']"
+		end
+
+		if type(v) == "table" then
+		   print(2, spaces .. key_str .. " = {") 
+			tprint(v, indent + 1)
+		   print(2, spaces .. "}")
+		else
+			local value_str = tostring(v)
+			if type(v) == "string" then
+				value_str = "'" .. value_str .. "'"
+			end
+			print(2, spaces .. key_str .. " = " .. value_str .. ",")
+		end
+	end
 end

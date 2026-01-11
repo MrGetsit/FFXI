@@ -245,7 +245,7 @@ function init_gear_sets()
 	
 	--- Midcast Sets ---
 	sets.midcast['Elemental Magic'] = {
-		sub		= "Ammurapi Shield",
+		main	= "Bunzi's Rod",
 		ammo	= "Ghastly Tathlum +1",
 		head	= "Leth. Chappel +3",
 		neck	= "Sibyl Scarf",
@@ -319,10 +319,10 @@ function init_gear_sets()
 		feet	= "Atro. Boots +4",
 		}
 	sets.midcast['Frazzle II'] = sets.midcast.EnfAcc
-	sets.midcast['Dispel'] = sets.midcast.EnfAcc
 	sets.midcast['Gravity'] = sets.midcast.EnfAcc
 	sets.midcast['Stun'] = sets.midcast.EnfAcc
 	sets.midcast['Impact'] = sets.midcast.EnfAcc
+	sets.midcast['Dispel'] = set_combine(sets.midcast.EnfAcc, {neck="Dls. Torque +2"})
 	
 	sets.midcast.EnfDur = {
 		main	= "Crocea Mors",
@@ -384,6 +384,7 @@ function init_gear_sets()
 		feet  	= "Leth. Houseaux +3",	-- 35
 		}
 	sets.midcast.PhalanxSelf = {
+		main	= "Sakpata's Sword",	-- +5
 		ammo	= "Homiliary",
 		head	= "Merlinic Hood",		-- +4
 		neck	= "Dls. Torque +2",
@@ -444,7 +445,7 @@ function init_gear_sets()
 		neck	= "Nodens Gorget",		-- 5
 		ear1	= "Malignance Earring",
 		ear2	= "Alabaster Earring",
-		body	= "Vitiation Tabard +4",
+		body	= "Bunzi's Robe",		-- 15
 		hands	= "Atro. Gloves +4", 
 		ring1	= "Stikini Ring +1",
 		ring2	= "Stikini Ring +1",
@@ -618,7 +619,7 @@ function customize_melee_set()
 			equip(sets.engaged)
 		end
 	end
-	check_weapon()
+	if not incpacitated then check_weapon() end
 end
 
 function job_buff_change(buff,gain)
@@ -643,7 +644,8 @@ function job_buff_change(buff,gain)
 			save_temp_weapons()
 			enable('main')
 			equip({main = 'Caliburnus'})
-			toggle_weapon_lock(false)
+			disable('main')
+			return
 		else
 			incapacitated = false
 			if temp_weapons then check_weapon() end
@@ -794,7 +796,7 @@ function job_self_command(cmdParams, eventArgs)
 			attempts = 0
 			casting_impact = true
 			coroutine.schedule(function() cast_impact() end, 0.5)
-		end				
+		end
 	elseif cmdParams[1]:lower() == 'enspell' then
 		if world.day_element == 'Fire' then
 			send_command('Enfire')
