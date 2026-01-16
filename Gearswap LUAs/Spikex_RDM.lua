@@ -245,13 +245,28 @@ function init_gear_sets()
 	
 	--- Midcast Sets ---
 	sets.midcast['Elemental Magic'] = {
-		main	= "Bunzi's Rod",
 		ammo	= "Ghastly Tathlum +1",
 		head	= "Leth. Chappel +3",
 		neck	= "Sibyl Scarf",
 		ear1	= "Malignance Earring",
-		ear2	= "Snotra Earring",
+		ear2	= "Friomisi Earring",
 		body	= "Lethargy Sayon +3",
+		hands	= "Leth. Ganth. +3",
+		ring1	= "Freke Ring",
+		ring2	= "Metamor. Ring +1",
+		back	= gear.CapeINT,
+		waist	= "Acuity Belt +1",
+		legs	= "Leth. Fuseau +3",
+		feet	= "Vitiation boots +4",
+		}
+		
+	sets.midcast['Elemental Magic'].MB = {
+		ammo	= "Ghastly Tathlum +1",
+		head	= "Ea Hat +1",
+		neck	= "Sibyl Scarf",
+		ear1	= "Malignance Earring",
+		ear2	= "Friomisi Earring",
+		body	= "Ea Houppe. +1",
 		hands	= "Leth. Ganth. +3",
 		ring1	= "Freke Ring",
 		ring2	= "Metamor. Ring +1",
@@ -695,7 +710,6 @@ function job_post_precast(spell, action, spellMap, eventArgs)
 end
 
 function job_post_midcast(spell, action, spellMap, eventArgs)
-	if spell.name == 'Impact' then casting_impact = false return end
 	local midcast_update = nil
 	if spell.action_type == 'Magic' then
 		if spell.skill == 'Enhancing Magic' then
@@ -734,10 +748,18 @@ function job_post_midcast(spell, action, spellMap, eventArgs)
 				midcast_update = sets.midcast.CureWeather
 			end
 		elseif spell.skill == 'Elemental Magic' then
+			if dual_wield then
+				midcast_update = {main="Bunzi's Rod",sub="Daybreak"}
+			else
+				midcast_update = {main="Bunzi's Rod",sub="Ammurapi Shield"}
+			end
+			if magic_bursting then 
+				midcast_update = set_combine(midcast_update, sets.midcast['Elemental Magic'].MB)
+			end
 			if spell.element == world.weather_element and 
 			(get_weather_intensity() == 2 and 
 			spell.element ~= elements.weak_to[world.day_element]) then
-				midcast_update = gear.Obi
+				set_combine(midcast_update, gear.Obi)
 			--[[ Target distance under 1.7 yalms.
 			elseif spell.target.distance < (1.7 + spell.target.model_size) then
 				equip({waist="Orpheus's Sash"})
@@ -750,7 +772,7 @@ function job_post_midcast(spell, action, spellMap, eventArgs)
 			]]-- Match day or weather.
 			elseif spell.element == world.day_element or 
 			spell.element == world.weather_element then
-				midcast_update = gear.Obi
+				set_combine(midcast_update, gear.Obi)
 			end
 		end
 	elseif spell.type == 'WeaponSkill' then
@@ -765,6 +787,11 @@ function job_post_midcast(spell, action, spellMap, eventArgs)
 end
 
 function job_aftercast(spell)
+	if spell.name == 'Impact' then
+		if windower.ffxi.get_spell_recasts()[spell.recast_id] >= 1 then 
+			casting_impact = false
+		end
+	end
 	check_weapon()
 	--coroutine.schedule(function() check_weapon(3) end, 3)
 end
@@ -787,6 +814,18 @@ function job_self_command(cmdParams, eventArgs)
 	elseif cmdParams[1]:lower() == 'startup' then
 		customize_melee_set()
 		
+	elseif cmdParams[1]:lower() == 'burst' then
+		if burst_timer then
+			coroutine.close(burst_timer)
+			burst_timer = nil
+		end
+		
+		magic_bursting = true		
+		burst_timer = coroutine.schedule(function() 
+			magic_bursting = false
+			burst_timer = nil
+		end, 8)
+			
 	elseif cmdParams[1]:lower() == 'impact' then
 		local target = windower.ffxi.get_mob_by_target('t')
 		if target then	
@@ -819,7 +858,7 @@ end
 
 function cast_impact()	
 	if casting_impact and attempts < 15 then
-		print('imp attempt '..attempts)
+		--print('imp attempt '..attempts)
 		send_command('Spontaneity')
 		send_command('Impact')
 		attempts = attempts + 1
@@ -853,29 +892,3 @@ end
 windower.register_event('zone change', function()
 	toggle_weapon_lock(false)
 end)
-
-function tprint(tbl, indent)
-	if not indent then indent = 0 end
-	local spaces = string.rep("  ", indent) -- Use two spaces for indentation
-
-	for k, v in pairs(tbl) do
-		local key_str
-		if type(k) == "number" then
-			key_str = "[" .. k .. "]"
-		else
-			key_str = "['" .. k .. "']"
-		end
-
-		if type(v) == "table" then
-		   print(2, spaces .. key_str .. " = {") 
-			tprint(v, indent + 1)
-		   print(2, spaces .. "}")
-		else
-			local value_str = tostring(v)
-			if type(v) == "string" then
-				value_str = "'" .. value_str .. "'"
-			end
-			print(2, spaces .. key_str .. " = " .. value_str .. ",")
-		end
-	end
-end
