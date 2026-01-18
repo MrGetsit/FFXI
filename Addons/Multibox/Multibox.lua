@@ -1,15 +1,13 @@
 _addon.author = 'Spikex'
-_addon.version = '0.95'
+_addon.version = '0.96'
 _addon.name = 'Multibox'
 _addon.commands = { 'multibox', 'mb' }
 
 -- Changes: 
--- Fixed not resuming follow after spellcast
--- Reworked resume follow logic, again...
--- Followers start following after 2+ waypoints to give space
--- Removed current_target
--- Removed sound controls and created new addon just for that
--- Removed ability timers and created new addon 
+-- Fixed followers disengaging when leader disengages
+-- Fixed interaction with npcs sometimes spamming after success
+-- Continue following waypoints when out of range
+-- Removed unused variables
 
 config = require('config')
 require('sets')
@@ -47,7 +45,6 @@ command_mode = 'all'
 check = 0 -- Increment to not check every frame
 casting_timeout = 0
 
-blocked_abilities = S{} 
 default_settings = {}
  
 multibox_display_text = ''
@@ -124,16 +121,18 @@ function change_state(new_state, arg1, arg2, arg3)
 		stop_engage = true
 		waypoints = {}
 		if is_leader then
-			last_waypoint = nil
-			if double_tap and not wait_for_seconds then
-				windower.add_to_chat(160, 'Move followers to current position.')
-				windower.send_ipc_message('multibox follow '..zone..' '..self.x..' '..self.y..' true')
-				wait_for_seconds = true
-				coroutine.schedule(function() wait_for_seconds = false end, 1)
-			else
-				double_tap = true
-				coroutine.schedule(function() double_tap = false end, 2)
-				windower.send_ipc_message('multibox follow '..zone..' '..self.x..' '..self.y)
+			if not arg1 then
+				last_waypoint = nil
+				if double_tap and not wait_for_seconds then
+					windower.add_to_chat(160, 'Move followers to current position.')
+					windower.send_ipc_message('multibox follow '..zone..' '..self.x..' '..self.y..' true')
+					wait_for_seconds = true
+					coroutine.schedule(function() wait_for_seconds = false end, 1)
+				else
+					double_tap = true
+					coroutine.schedule(function() double_tap = false end, 2)
+					windower.send_ipc_message('multibox follow '..zone..' '..self.x..' '..self.y)
+				end
 			end
 		else
 			if self.status == 1 then windower.send_command('input /attack off') end -- Disengage from combat
@@ -221,12 +220,13 @@ function interact_with_target(target)
 	if not target then print ('No target to interact with') return end
 	trying_to_interact = true
 	event_found = false
+	npc_reaction = false
 	
 	local success = false
 	
 	--print('Attempting to interact with '..target.name)
 	for i = 0, 5, 1 do -- Send interactions until we get some kind of response
-		if interacting or event_found then success = true break end
+		if interacting or event_found or npc_reaction then success = true break end
 		--print('Interact attempt: '..i)
 		packets.inject(packets.new('outgoing', 0x01A, {
 			['Target'] = target.id,
@@ -667,7 +667,7 @@ windower.register_event('ipc message', function (msg)
 		if not self then return end
 		
 		newest_distance = distance_to(new_waypoint, self)
-		if newest_distance > 30 then return end
+		if newest_distance > 30 and not waypoints[1] then return end
 		
 		-- Check if this waypoint is too close to the last waypoint in the list
 		if waypoints[#waypoints] then
@@ -721,7 +721,7 @@ windower.register_event('status change',function (new, old)
 		if is_following then
 			-- Wait a moment for the stop command to process before resuming follow
 			for i = 0, 5, 1 do -- Try 5 times
-				change_state('follow')
+				change_state('follow', true)
 				coroutine.sleep(2)
 				if current_state == 'follow' then break end
 			end
@@ -761,8 +761,6 @@ startup = windower.register_event('load', 'login', function (new, old)
 		coroutine.sleep(1)
 	end
 	if not self then return end
-	job = windower.ffxi.get_player().main_job
-	subjob = windower.ffxi.get_player().sub_job
 	zone = windower.ffxi.get_info().zone
 	windower.send_command('input /autotarget off')
 	change_state('stop')
@@ -832,7 +830,17 @@ windower.register_event('outgoing chunk', function(id, data)
 end)
 
 windower.register_event('incoming chunk', function(id, data)
-	if id == 0x028 then -- Finish casting spell
+	interaction_ids = S{	
+	0x032, -- 50 NPC Interaction 1
+	0x034, -- 52 NPC Interaction 2
+	0x036, -- 54 NPC Chat
+	0x03E, -- 62 Open Buy/Sell
+	--0x052, -- 82 NPC Release
+	}
+	if trying_to_interact and not npc_reaction and interaction_ids:contains(id) then
+		npc_reaction = true
+		
+	elseif id == 0x028 then -- Finish casting spell
 		local packet = packets.parse('incoming', data)
 		if packet.Actor ~= self.id then return end		
 		
@@ -854,13 +862,10 @@ windower.register_event('incoming chunk', function(id, data)
 		end
 	elseif id == 0x00B and not zoning then -- Started zoning
 		change_state('zoning')
+		
 	elseif id == 0x034 and not zone_teleport then -- Started zoning
 		zone_teleport = true
 		coroutine.sleep(4)
 		zone_teleport = false
 	end
-end)
-
-windower.register_event('job change', function()
-	job = windower.ffxi.get_player().main_job -- Update job for timers
 end)
