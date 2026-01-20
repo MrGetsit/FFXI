@@ -1,12 +1,12 @@
 # Debuff Grid
-<img width="112" height="88" alt="DebuffGrid" src="https://github.com/user-attachments/assets/2e755077-4b1c-4a22-99ae-b223f00cebb3" />
+<img width="237" height="183" alt="dubuffgrid" src="https://github.com/user-attachments/assets/f982bd22-d608-47cd-b16f-4db39de8580d" />
 
 Shows a grid of debuffs for Red Mage to see what you have applied and what is still missing.
 
-|    **Dia**   | **Frazzle** |  **Addle**  |  **Distract**  |
-|:------------:|:-----------:|:-----------:|:--------------:|
-| **Paralyze** |   **Slow**  |  **Blind**  |   **Silence**  |
-|   **Sleep**  |  **Poison** | **Gravity** | **Inundation** |
+| **Dia / Bio** | **Frazzle** | **Addle** | **Distract** |
+|:---:|:---:|:---:|:---:|
+| **Paralyze** | **Slow** | **Blind** | **Silence** |
+| **Impact / Sleep / Break** | **Poison** | **Bind / Gravity** | **Inundation** |
 
 ### Command Usage:
 ```
