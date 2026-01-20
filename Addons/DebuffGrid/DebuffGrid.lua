@@ -17,10 +17,10 @@ defaults.icon_size = 32
 settings = config.load(defaults)
 
 -- Debuff grid layout (3 rows x 4 columns)
-local debuff_grid = {
+local debuff_grid = { -- Impact requires status=138 added to res.spells
 	{{'Dia', 'Bio'}, 'Frazzle', 'Addle', 'Distract'},
 	{'Paralyze', 'Slow', 'Blind', 'Silence'},
-	{{'Sleep', 'Break', 'Bind'}, 'Poison', 'Gravity', 'Inundation'}
+	{{'Impact', 'Sleep', 'Break'}, 'Poison', {'Bind', 'Gravity'}, 'Inundation'}
 }
 
 -- Map debuff names to their spell IDs for icon lookup
@@ -36,7 +36,7 @@ local icon_grid = {}
 local background = nil
 
 -- Grid settings
-local icon_spacing = 4
+local icon_spacing = 0
 local border_size = 5
 local grid_rows = 3
 local grid_cols = 4
@@ -52,14 +52,14 @@ function initialize_debuff_mappings()
 			if not debuff_to_spell[name] then
 				debuff_to_spell[name] = spell_id
 				debuff_to_effect[name] = spell.status
-			end
+			end			
 		end
 	end
 	
 	-- Handle special cases where we want specific versions
 	-- Dia -> Dia (ID 23, Effect 134)
-	-- debuff_to_spell['Dia'] = 23
-	-- debuff_to_effect['Dia'] = 134
+	debuff_to_spell['Impact'] = 503
+	debuff_to_effect['Impact'] = 142 -- CHR Down
 end
 
 function create_ui()
