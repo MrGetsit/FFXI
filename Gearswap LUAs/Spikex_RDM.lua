@@ -1,6 +1,7 @@
 function get_sets()
 	mote_include_version = 2
 	include('Mote-Include.lua')
+	texts = require('texts') 
 end
 function job_setup()
 	windower.send_command('sta !packets on') -- For SendTarget to work
@@ -14,7 +15,30 @@ function job_setup()
 	state.OffenseMode:options('Normal', 'Hybrid', 'Defense')
 	
 	state.MainWeapon = M{'Naegling', 'Crocea Mors', 'Maxentius', 'Tauret' }
-	state.SubWeapon = M{'Thibron', 'Daybreak' }	
+	state.SubWeapon = M{'Thibron', 'Daybreak' }
+	
+	weapon_lock_display = texts.new('Weapon Locked', {
+		pos = {x = 1150, y = 370},
+		text = {
+			size = 12,
+			font = 'Arial',
+			red = 255,
+			green = 50,
+			blue = 50,
+		},
+		bg = {
+			visible = true,
+			alpha = 100,
+			red = 0,
+			green = 0,
+			blue = 0,
+		},
+		flags = {
+			draggable = true,
+		},
+		padding = 5,
+	})	
+	weapon_lock_display:hide()
 	
 	send_command('bind @w gs c lock')
 	send_command('bind @e gs c toggle Immunobreak')
@@ -115,6 +139,9 @@ end
 function user_unload()
 	send_command('lua u debuffgrid')
 	send_command('lua l debuffed')
+	if weapon_lock_display then
+		weapon_lock_display:destroy()
+	end
 end
 
 function init_gear_sets()
@@ -591,7 +618,7 @@ function setup_weapon_keybinds()
 	end
 end
 
-function check_weapon(bypass)
+function check_weapon()
 	if temp_weapons then
 		enable('main','sub')
 		equip({main = tempmain, sub = tempsub})
@@ -600,15 +627,15 @@ function check_weapon(bypass)
 		return
 	end
 
-	if not bypass and WeaponLock then return end
+	if WeaponLock then return end
 
 	local main_matches = player.equipment.main == state.MainWeapon.value
 	local sub_matches = dual_wield and 
 		(player.equipment.sub == state.SubWeapon.value) or
 		(player.equipment.sub == 'Diamond Aspis')
 	
-	if bypass or not main_matches or not sub_matches then
-		enable('main','sub','range')
+	if not main_matches or not sub_matches then
+		toggle_weapon_lock(false)
 		if dual_wield then
 			equip({main = state.MainWeapon.value, sub = state.SubWeapon.value})
 		else
@@ -656,7 +683,7 @@ function job_buff_change(buff,gain)
 	if buff == "sleep" then
 		if gain then
 			incapacitated = true
-			save_temp_weapons()
+			if WeaponLock then save_temp_weapons() end
 			enable('main')
 			equip({main = 'Caliburnus'})
 			disable('main')
@@ -718,7 +745,7 @@ function job_post_midcast(spell, action, spellMap, eventArgs)
 			
 			elseif spell.english:startswith('Temper') or 
 			spell.english:startswith('En') then
-				if WeaponLock and (player.equipment.main ~= state.MainWeapon.value or player.equipment.sub ~= state.SubWeapon.sub) then
+				if WeaponLock then
 					save_temp_weapons()
 					toggle_weapon_lock(false)
 				end
@@ -731,6 +758,11 @@ function job_post_midcast(spell, action, spellMap, eventArgs)
 				
 			elseif spell.english:startswith('Phalanx') then
 				if spell.target.type == 'SELF' then
+					print('should update')
+					if WeaponLock then
+						save_temp_weapons()
+						toggle_weapon_lock(false)
+					end
 					midcast_update = sets.midcast.PhalanxSelf
 				else
 					midcast_update = sets.midcast.PhalanxOther
@@ -799,10 +831,12 @@ end
 function job_state_change(field, new_value, old_value)
 	if field == 'MainWeapon' then 
 		setup_weapon_keybinds()
-		check_weapon(true)
+		if WeaponLock then toggle_weapon_lock(false) end
+		check_weapon()
 	end
 	if field == 'SubWeapon' then 
-		check_weapon(true)
+		if WeaponLock then toggle_weapon_lock(false) end
+		check_weapon()
 	end
 	customize_melee_set()
 end
@@ -852,11 +886,12 @@ function job_self_command(cmdParams, eventArgs)
 		end	
 	elseif cmdParams[1]:lower() == 'lock' then
 		WeaponLock = not WeaponLock
-		toggle_weapon_lock(WeaponLock, true)
+		toggle_weapon_lock(WeaponLock)
+		if not WeaponLock then equip({main = state.MainWeapon.value, sub = state.SubWeapon.value}) end
 	end
 end
 
-function cast_impact()	
+function cast_impact()
 	if casting_impact and attempts < 15 then
 		--print('imp attempt '..attempts)
 		send_command('Spontaneity')
@@ -874,18 +909,15 @@ function save_temp_weapons()
 	tempsub = player.equipment.sub
 end
 
-function toggle_weapon_lock(should_enable, report)
+function toggle_weapon_lock(should_enable)
 	if should_enable then
 		WeaponLock = true
 		disable('main','sub','range')
-		if report then windower.add_to_chat(206, 'Weapon Lock: On') end
+		weapon_lock_display:show()
 	else
 		WeaponLock = false
 		enable('main','sub','range')
-		if report then 
-			windower.add_to_chat(206, 'Weapon Lock: Off') 
-			check_weapon()
-		end
+		weapon_lock_display:hide()
 	end
 end
 
