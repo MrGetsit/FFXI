@@ -82,8 +82,8 @@ function user_setup()
 	send_command('send @all alias sdd send Cissilea /DarkThrenody2')
 	
 	send_command('send @all bind  numpad7  sta Cissilea /SavageBlade')
-	send_command('send @all bind  numpad8 send Cissilea gs c sleep 1 '..windower.ffxi.get_mob_by_target('t').id)
-	send_command('send @all bind ~numpad8 send Cissilea gs c sleep 2 '..windower.ffxi.get_mob_by_target('t').id)
+	send_command('send @all bind  numpad8  sta Cissilea /HordeLullaby')
+	send_command('send @all bind ~numpad8  sta Cissilea /HordeLullaby2')
 	send_command('send @all bind  numpad9  sta Cissilea /MagicFinale')
 	send_command('send @all bind ~numpad7 send Cissilea /SentinelsScherzo')
 	send_command('send @all bind !numpad8 exec Brd_Refresh.txt')
@@ -157,7 +157,7 @@ function init_gear_sets()
 		feet	= "Fili Cothurnes +3",
 		}
 		
-	sets.midcast['Gold Capriccio'] = { -- Dummy song
+	sets.midcast.Dummy = { -- Dummy song
 		range	= "Daurdabla",
 		head	= "Null Masque",		-- 10
 		neck	= "Warder's Charm +1",
@@ -172,6 +172,8 @@ function init_gear_sets()
 		legs	= "Nyame Flanchard",	-- 08
 		feet	= "Nyame Sollerets",	-- 07
 		}
+	sets.midcast['Gold Capriccio'] = sets.midcast.Dummy
+	sets.midcast['Bewitching Etude'] = sets.midcast.Dummy
 
 	sets.midcast['Lullaby'] = set_combine(sets.midcast, {
 		range	= "Blurred Harp",
@@ -271,7 +273,10 @@ function job_aftercast(spell, action, spellMap, eventArgs)
 end
 
 function job_post_pretarget(spell, action, spellMap, eventArgs)
-	if spell.action_type == 'Magic' then -- Don't change gear on CD
+	if spell.type == 'BardSong' and spell.name:endswith('Lullaby') then
+		send_command('hb off') 
+			
+	elseif spell.action_type == 'Magic' then -- Don't change gear on CD
 		if windower.ffxi.get_spell_recasts()[spell.recast_id] >= 1 then
 			cancel_spell()
 			eventArgs.handled = true
