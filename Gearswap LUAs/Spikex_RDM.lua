@@ -18,7 +18,7 @@ function job_setup()
 	state.SubWeapon = M{'Thibron', 'Daybreak' }
 	
 	weapon_lock_display = texts.new('Weapon Locked', {
-		pos = {x = 1150, y = 370},
+		pos = {x = 1140, y = 345},
 		text = {
 			size = 12,
 			font = 'Arial',
@@ -257,7 +257,7 @@ function init_gear_sets()
 		head	= "Leth. Chappel +3",
 		neck	= "Fotia Gorget",
 		ear1	= "Malignance earring",
-		ear2	= "Friomisi Earring",
+		ear2	= "Regal Earring",
 		body	= "Lethargy Sayon +3",
 		hands	= "Jhakri Cuffs +2",
 		ring1	= "Cornelia's Ring",
@@ -483,18 +483,19 @@ function init_gear_sets()
 	sets.midcast.Cure = {
 		main	= "Daybreak",			-- 30
 		ammo	= "Staunch Tathlum",
-		head	= "Atrophy Chapeau +3",
+		head	= "Nyame Helm",			-- HP
 		neck	= "Nodens Gorget",		-- 5
 		ear1	= "Malignance Earring",
 		ear2	= "Alabaster Earring",
 		body	= "Bunzi's Robe",		-- 15
 		hands	= "Atro. Gloves +4", 
-		ring1	= "Stikini Ring +1",
-		ring2	= "Stikini Ring +1",
+		ring1	= "Eihwaz Ring",		-- HP
+		ring2	= "Etana Ring",			-- HP
 		back 	= "Ghostfyre Cape",		-- 6
-		waist	= "Gishdubar Sash",		-- 10 Self
+		--waist	= "Gishdubar Sash",		-- 10 Self
+		waist	= "Plat. Mog. Belt",	-- HP
 		legs	= "Atrophy Tights +4",
-		feet	= "Leth. Houseaux +3",
+		feet	= "Atro. Boots +4",		-- HP
 		}
 	sets.midcast.CureWeather = set_combine(sets.midcast.Cure, {
 		main	= "Chatoyant Staff",
@@ -567,19 +568,19 @@ function init_gear_sets()
 		feet	= "Malignance Boots",
 		}
 	sets.defense = {
-		ammo	= "Homiliary",
+		ammo	= "Staunch Tathlum",
 		head	= "Null Masque",		-- 10
 		neck	= "Warder's Charm +1",	
 		ear1	= "Tuisto Earring",
-		ear2	= "Alabaster Earring",	-- 10
-		body	= "Lethargy Sayon +3",	-- 14
-		hands	= "Leth. Ganth. +3",	-- 11
+		ear2	= "Alabaster Earring",	-- 05
+		body	= "Nyame Mail",			-- 09
+		hands	= "Nyame Gauntlets",	-- 07
 		ring1	= "Fortified Ring", 	-- Gurebu's Ring
 		ring2	= "Murky Ring",			-- 10
 		back	= "Null Shawl",
-		waist	= "Null belt",
-		legs	= "Leth. Fuseau +3",
-		feet	= "Leth. Houseaux +3",
+		waist	= "Plat. Mog. Belt",	-- 03
+		legs	= "Nyame Flanchard",	-- 08
+		feet	= "Nyame Sollerets",	-- 07
 		}
 		
 	--- Other Sets ---
@@ -758,7 +759,6 @@ function job_post_midcast(spell, action, spellMap, eventArgs)
 				
 			elseif spell.english:startswith('Phalanx') then
 				if spell.target.type == 'SELF' then
-					print('should update')
 					if WeaponLock then
 						save_temp_weapons()
 						toggle_weapon_lock(false)
