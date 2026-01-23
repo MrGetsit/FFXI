@@ -22,7 +22,7 @@ function user_setup()
 	send_command('send @all alias brdsv exec BRDSV.txt')
 	send_command('send @all alias hon send Cissilea hb on')
 	send_command('send @all alias hoff send Cissilea hb off')
-    send_command('send @all alias s4 gs c 4song')
+    send_command('send @all alias s4 send Cissilea gs c 4song')
 	
 	send_command('send @all alias sst send Cissilea /Pianissimo')
 	
@@ -36,6 +36,8 @@ function user_setup()
 	send_command('send @all alias satt  send Cissilea /ValorMinuet5') 
 	send_command('send @all alias satt2 send Cissilea /ValorMinuet4') 
 	send_command('send @all alias satt3 send Cissilea /ValorMinuet3') 
+	send_command('send @all alias satt4 send Cissilea /ValorMinuet2') 
+	send_command('send @all alias satt5 send Cissilea /ValorMinuet') 
 	send_command('send @all alias sdef  send Cissilea /KnightsMinne5') 
 	send_command('send @all alias sdef2 send Cissilea /KnightsMinne4') 
 	send_command('send @all alias sdef3 send Cissilea /KnightsMinne3') 
@@ -80,8 +82,8 @@ function user_setup()
 	send_command('send @all alias sdd send Cissilea /DarkThrenody2')
 	
 	send_command('send @all bind  numpad7  sta Cissilea /SavageBlade')
-	send_command('send @all bind  numpad8  sta Cissilea /HordeLullaby')
-	send_command('send @all bind ~numpad8  sta Cissilea /HordeLullaby2')
+	send_command('send @all bind  numpad8 send Cissilea gs c sleep 1 '..windower.ffxi.get_mob_by_target('t').id)
+	send_command('send @all bind ~numpad8 send Cissilea gs c sleep 2 '..windower.ffxi.get_mob_by_target('t').id)
 	send_command('send @all bind  numpad9  sta Cissilea /MagicFinale')
 	send_command('send @all bind ~numpad7 send Cissilea /SentinelsScherzo')
 	send_command('send @all bind !numpad8 exec Brd_Refresh.txt')
@@ -135,7 +137,11 @@ function init_gear_sets()
 		}
 
 	sets.precast.WS = {	
-		body	= "Brioso Just. +4",
+		head	= "Nyame Helm",
+		body	= "Nyame Mail",
+		hands	= "Nyame Gauntlets",
+		legs	= "Nyame Flanchard",
+		feet	= "Nyame Sollerets",
 		}
 
 	--- Midcast Sets ---
@@ -150,6 +156,22 @@ function init_gear_sets()
 		legs	= "Fili Rhingrave +3",
 		feet	= "Fili Cothurnes +3",
 		}
+		
+	sets.midcast['Gold Capriccio'] = { -- Dummy song
+		range	= "Daurdabla",
+		head	= "Null Masque",		-- 10
+		neck	= "Warder's Charm +1",
+		ear1	= "Alabaster Earring",	-- 05
+		ear2	= "Etiolation Earring",
+		body	= "Nyame Mail",			-- 09
+		hands	= "Nyame Gauntlets",	-- 07
+		ring1	= "Murky ring",			-- 10
+		ring2	= "Gurebu's Ring",
+		back	= "Aurist's Cape +1",
+		waist	= "Plat. Mog. Belt",	-- 03	
+		legs	= "Nyame Flanchard",	-- 08
+		feet	= "Nyame Sollerets",	-- 07
+		}
 
 	sets.midcast['Lullaby'] = set_combine(sets.midcast, {
 		range	= "Blurred Harp",
@@ -160,6 +182,9 @@ function init_gear_sets()
 		back	= gear.CapeFC,
 		legs	= "Inyanga Shalwar +2",
 		feet	= "Brioso Slippers +3",
+		})	
+	sets.midcast['Uncanny Etude'] = set_combine(sets.midcast, {
+		range	= "Daurdabla",
 		})		
 	sets.midcast['Enfeebling Magic'] = sets.midcast['Lullaby']
 
@@ -183,18 +208,18 @@ function init_gear_sets()
 	sets.engaged = sets.defense
 
 	sets.defense = {
-		head	= "Fili Calot +3",		-- 11
+		head	= "Null Masque",		-- 10
 		neck	= "Warder's Charm +1",
 		ear1	= "Alabaster Earring",	-- 05
 		ear2	= "Etiolation Earring",
-		body	= "Fili Hongreline +3",
-		hands	= "Fili Manchettes +3",	-- 11
+		body	= "Nyame Mail",			-- 09
+		hands	= "Nyame Gauntlets",	-- 07
 		ring1	= "Murky ring",			-- 10
 		ring2	= "Gurebu's Ring",
 		back	= gear.CapeSR,
 		waist	= "Plat. Mog. Belt",	-- 03	
-		legs	= "Brioso Cannions +3",	-- 08
-		feet	= "Fili Cothurnes +3",
+		legs	= "Nyame Flanchard",	-- 08
+		feet	= "Nyame Sollerets",	-- 07
 		}
 
 	--- Other Sets ---
@@ -238,7 +263,7 @@ function customize_melee_set()
 end
 
 function job_aftercast(spell, action, spellMap, eventArgs)
-	if slot4 then
+	if spell.type == 'BardSong' and slot4 then
 		slot4 = false
 		enable('range')
 	end
@@ -272,7 +297,7 @@ end
 function job_self_command(cmdParams, eventArgs)
 	if cmdParams[1]:lower() == 'change_weapon' then
 		WeaponLock = false
-		enable('main','sub','range')
+		enable('main','sub')
 		if state.WeaponSet == 'Sword' then
 			msg = string.char(0x87, 0x41) .. ' Dagger'
 			state.WeaponSet = 'Dagger'
@@ -291,12 +316,20 @@ function job_self_command(cmdParams, eventArgs)
 	elseif cmdParams[1]:lower() == 'lock' then
 		WeaponLock = not WeaponLock
 		if WeaponLock then
-			disable('main','sub','range')
+			disable('main','sub')
 			windower.add_to_chat(206, 'Weapon Lock: On')
 		else
-			enable('main','sub','range')
+			enable('main','sub')
 			windower.add_to_chat(206, 'Weapon Lock: Off')
 			send_command('gs equip sets.'..state.WeaponSet)
+		end
+		
+	elseif cmdParams[1]:lower() == 'sleep' then
+		send_command('hb off') 
+		if cmdParams[2]:lower() == '1' then
+			send_command('HordeLullaby '..cmdParams[3]) 
+		else
+			send_command('HordeLullaby2 '..cmdParams[3]) 
 		end
 		
 	elseif cmdParams[1]:lower() == '4song' then
