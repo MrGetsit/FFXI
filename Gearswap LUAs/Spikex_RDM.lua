@@ -64,6 +64,19 @@ function user_setup()
 	send_command('send @all alias rb2 exec RDM_Buffs2.txt')
 	send_command('send @all alias av aquaveil')
 	
+	send_command('alias s4 /Stone4')
+	send_command('alias w4 /Water4')
+	send_command('alias a4 /Aero4')
+	send_command('alias f4 /Fire4')
+	send_command('alias b4 /Blizzard4')
+	send_command('alias t4 /Thunder4')
+	send_command('alias s5 /Stone5')
+	send_command('alias w5 /Water5')
+	send_command('alias a5 /Aero5')
+	send_command('alias f5 /Fire5')
+	send_command('alias b5 /Blizzard5')
+	send_command('alias t5 /Thunder5')
+	
 	setup_weapon_keybinds()
 	send_command('send @all bind %3   sta Spikex /SanguineBlade')
 	send_command('send @all bind !3   sta Spikex /CircleBlade')
@@ -86,8 +99,8 @@ function user_setup()
 	send_command('send @all bind %0  send Spikex /Shell5 <stpc>')
 	
 	send_command('send @all bind %e   sta Spikex /Dia3')
+	send_command('send @all bind !e  send Spikex /Diaga')
 	send_command('send @all bind ~%e send Spikex /Saboteur')
-	send_command('send @all bind ~^e send Spikex /Stymie')
 	send_command('send @all bind %q   sta Spikex /Dispel')
 	send_command('send @all bind !q   sta Spikex /Slow2')
 	send_command('send @all bind ~%q  sta Spikex /Paralyze2')
@@ -99,7 +112,7 @@ function user_setup()
 	send_command('send @all bind ^%z send Spikex /Addle2')
 	send_command('send @all bind %`   sta Spikex /Sleep2')
 	send_command('send @all bind !`   sta Spikex /Sleep2 <stnpc>')
-	send_command('send @all bind %~` send Spikex /Break')
+	send_command('send @all bind %~` send Spikex /Break <stnpc>')
 	
 	if player.sub_job == 'SCH' then
 		send_command('lua l StratagemCounter')
@@ -126,6 +139,7 @@ function user_setup()
 	elseif player.sub_job == 'NIN' then
 		send_command('send @all bind %x  send Spikex /UtsusemiNi')
 		send_command('send @all bind !x  send Spikex /UtsusemiIchi')
+		send_command('send @all bind %c  send Spikex gs c spam')
 	end
 	if player.sub_job == 'NIN' or player.sub_job == 'DNC' then
 		dual_wield = true
@@ -397,12 +411,12 @@ function init_gear_sets()
 		ammo	= "Homiliary",
 		head	= "Leth. Chappel +3",	-- 10
 		neck	= "Dls. Torque +2",		-- 17/25
-		ear1	= "Mimir Earring",
+		ear1	= "Alabaster Earring",
 		ear2	= "Lethargy Earring",	-- 7/9
 		body	= "Lethargy Sayon +3",	-- 10
 		hands	= "Atro. Gloves +4", 	-- 20
-		ring1	= "Stikini Ring +1",
-		ring2	= "Stikini Ring +1",
+		ring1	= "Eihwaz Ring",		-- HP
+		ring2	= "Etana Ring",			-- HP
 		back 	= "Ghostfyre Cape",		-- 16 / 20*
 		waist	= "Embla Sash",			-- 10
 		legs	= "Leth. Fuseau +3",	-- 10
@@ -445,12 +459,12 @@ function init_gear_sets()
 		ammo	= "Homiliary",
 		head	= "Leth. Chappel +3",
 		neck	= "Dls. Torque +2",
-		ear1	= "Mimir Earring",
+		ear1	= "Alabaster Earring",
 		ear2	= "Lethargy Earring",
 		body	= "Lethargy Sayon +3",
 		hands	= "Atro. Gloves +4",
-		ring1	= "Stikini Ring +1",
-		ring2	= "Murky Ring",
+		ring1	= "Eihwaz Ring",		-- HP
+		ring2	= "Etana Ring",			-- HP
 		back	= "Ghostfyre Cape",		-- 9 / 10
 		waist	= "Embla Sash",			-- 10
 		legs	= "Leth. Fuseau +3",
@@ -705,17 +719,23 @@ function job_buff_change(buff,gain)
 end
 
 function job_post_pretarget(spell, action, spellMap, eventArgs)
-	cancel = false
-	if spell.action_type == 'Magic' then -- Don't change gear on CD
-		local recast = windower.ffxi.get_spell_recasts()[spell.recast_id]
-		if recast and recast >= 1 then cancel = true end
-	elseif spell.type == 'WeaponSkill' then
-		if player.tp <= 1000 then cancel = true	end
-	end
-	if cancel or incapacitated then
+	if incapacitated then
 		cancel_spell()
 		eventArgs.handled = true
 		return
+	end	
+	
+	cancel = false	
+	if spell.action_type == 'Magic' then -- Don't change gear on CD
+		local recast = windower.ffxi.get_spell_recasts()[spell.recast_id]
+		if recast and recast >= 1 then 
+			cancel_spell()
+			eventArgs.handled = true
+			return
+		end
+		
+	elseif spell.type == 'WeaponSkill' then
+		if player.tp <= 1000 then cancel = true	end
 	end
 	
 	if WeaponLock then
@@ -884,6 +904,20 @@ function job_self_command(cmdParams, eventArgs)
 		else
 			send_command('Enthunder')
 		end	
+	elseif cmdParams[1]:lower() == 'spam' then	
+		if cycle == 0 then
+			send_command('b5')
+		elseif cycle == 1 then
+			send_command('f5')
+		elseif cycle == 2 then
+			send_command('a5')
+		else 
+			send_command('t5')
+			cycle = 0
+			return
+		end
+		cycle = cycle + 1
+			
 	elseif cmdParams[1]:lower() == 'lock' then
 		WeaponLock = not WeaponLock
 		toggle_weapon_lock(WeaponLock)

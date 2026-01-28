@@ -32,8 +32,8 @@ function job_setup()
 	
 	send_command('sa lua l rolltracker') 
 	
-	engaged_ammo = 'Bronze Bullet'
-	ammo_case = 'Brz. Bull. Pouch'
+	engaged_ammo = 'Corsair Bullet'
+	ammo_case = 'Cor. Bull. Pouch'
 	
 	auto = false
 	autofire = nil
@@ -63,7 +63,7 @@ function user_setup()
 	send_command('send @all bind  numpad2  sta Sneaksy /LeadenSalute ') 
 	--send_command('send @all bind  numpad3 send Sneaksy /LightShot ') 
 	send_command('send @all bind !numpad1  sta Sneaksy /Requiescat ') 
-	send_command('send @all bind !numpad2  sta Sneaksy /LastStand ') 
+	send_command('send @all bind !numpad2  sta Sneaksy /HotShot ') 
 	send_command('send @all bind !numpad3 send Sneaksy /DarkShot ') 
 	send_command('send @all bind ~numpad1 send Sneaksy /ChaosRoll ') 
 	send_command('send @all bind ~numpad2 send Sneaksy /SamuraiRoll ') 
@@ -102,10 +102,10 @@ end
 
 function init_gear_sets()
     --- Weapon Sets ---
-    sets.Sword 	= { main	= "Naegling", 		sub	= "Tauret" }
+    sets.Sword 	= { main	= "Naegling", 		sub	= "Gleti's Knife" }
     sets.Dagger = { main	= "Tauret", 		sub	= "Naegling" }
-    sets.TP 	= { range	= "Anarchy +2", 	ammo= "Bronze Bullet" }
-    sets.WS 	= { range	= "Death Penalty",	ammo= "Bronze Bullet" }
+    sets.TP 	= { range	= "Anarchy +2", 	ammo= engaged_ammo }
+    sets.WS 	= { range	= "Fomalhaut",		ammo= "Chrono Bullet" }
 
 	sets.Comp	= { range	= "Compensator" }
 	
@@ -118,7 +118,7 @@ function init_gear_sets()
     --- Precast Sets ---
     sets.precast.JA['Tactician\'s Roll']= { body  = "Chasseur's Frac" 		}
     sets.precast.JA['Blitzer\'s Roll'] 	= { head  = "Chasseur's Tricorne" 	}
-    sets.precast.JA['Allies\' Roll'] 	= { hands = "Chasseur's Gants +3" 		}
+    sets.precast.JA['Allies\' Roll'] 	= { hands = "Chasseur's Gants +3" 	}
     sets.precast.JA['Caster\'s Roll'] 	= { legs  = "Chasseur's Culottes" 	}
     sets.precast.JA['Courser\'s Roll'] 	= { feet  = "Chasseur's Bottes" 	}
 	
@@ -130,73 +130,76 @@ function init_gear_sets()
 		legs	= "Desultor Tassets"
 	}	
     sets.precast.Waltz = { head="Mummu Bonnet +2", feet="Rawhide Boots" }	
-    sets.precast.FC = {}
+			
+    sets.precast.WS = { 
+		ammo	= "Chrono Bullet",
+		head	= "Nyame Helm",
+		neck	= "Sibyl Scarf",
+		ear1	= "Ishvara Earring",
+		ear2	= "Friomisi Earring",
+		body	= "Lanun frac +4",
+		hands	= "Chasseur's Gants +3",
+		ring1	= "Cornelia's Ring",
+		ring2	= "Dingir Ring",
+		back	= gear.CapeAGI,
+		waist	= "Eschan Stone",  
+		legs	= "Nyame Flanchard",  	
+		feet 	= "Lanun bottes +4",
+		}
+    --sets.precast.WS['Leaden Salute'] = set_combine(sets.precast.WS, {
+	--	head 	= "Pixie Hairpin +1",
+	--})
+    sets.precast.WS['Aeolian Edge'] = sets.precast.WS['Hot Shot']
+    sets.precast.WS['Savage Blade'] = {	
+		head 	= "Meghanada Visor +2",
+        neck	= "Rep. Plat. Medal",
+		ear1 	= "Telos Earring",
+		ear2 	= "Ishvara Earring",
+		body	= "Laksa. Frac +4",
+		hands	= "Chasseur's Gants +3",
+		ring1	= "Cornelia's Ring",
+		ring2	= "Regal Ring",
+		back	= gear.CapeSTR,
+		waist	= "Sailfi Belt +1",  
+		legs 	= "Lanun Trews +4",
+		feet 	= "Lanun Bottes +4",
+	}
+
 	sets.precast.RA = {					-- SNP	RPD
 		head	= "Ikenga's Hat",		-- 06
 		body	= "Laksa. Frac +4",		--		20
 		hands	= "Ikenga's Gloves",	-- 07
 		ring1	= "Crepuscular Ring",	-- 03
-		legs	= "Lanun Trews +3",		-- 10
+		waist	= "Yemaya Belt",		-- 		05
+		legs	= "Lanun Trews +4",		-- 10
 		feet 	= "Meg. Jam. +2",		-- 10
 		}
-    sets.precast.WS = { 
-		head	= "Meghanada Visor +2",
-        neck	= "Rep. Plat. Medal",
-		ear1	= "Ishvara Earring",
-		body	= "Meg. Cuirie +2",
-		hands	= "Chasseur's Gants +3",
-		ring1	= "Cornelia's Ring",
-		ring2	= "Dingir",
-		back	= gear.CapeAGI,
-		feet 	= "Lanun bottes +4",
-		}
-    sets.precast.WS['Savage Blade'] = {	
-		head 	= "Meghanada Visor +2",
-        neck	= "Rep. Plat. Medal",
-		ear1 	= "Alabaster Earring",
-		ear2 	= "Ishvara Earring",
-		body	= "Laksa. Frac +4",
-		hands	= "Chasseur's Gants +3",
-		ring1	= "Cornelia's Ring",
-		ring2	= "Ilabrat Ring",
-		back	= gear.CapeSTR,
-		waist	= "Prosilio Belt +1",  
-		legs 	= "Meg. Chausses +2",
-		feet 	= "Lanun Bottes +4",
-	}
-    sets.precast.WS['Hot Shot'] = set_combine(sets.precast.WS, {
-		neck	= "Sibyl Scarf",
-		ear2	= "Friomisi Earring",
-		body	= "Lanun frac +4",
-		waist	= "Eschan Stone",  	
-	})
-    sets.precast.WS['Leaden Salute'] = set_combine(sets.precast.WS['Hot Shot'], {
-		head 	= "Pixie Hairpin +1",
-	})
-    sets.precast.WS['Aeolian Edge'] = sets.precast.WS['Hot Shot']
-
+		
     --- Midcast Sets ---
-    sets.midcast.SpellInterrupt = {}
-    sets.midcast.Utsusemi = {}
 	sets.midcast.CorsairShot = {ammo="Animikii bullet"}
 	
 	sets.midcast.RA = {
-		head 	= "Malignance Chapeau",
+		--head 	= "Malignance Chapeau",
+		head 	= "Ikenga's Hat",
 		neck 	= "Iskur Gorget",
-		ear1 	= "Eabani Earring",
-		ear2 	= "Alabaster Earring",
-		body 	= "Malignance Tabard",
+		ear1 	= "Crep. Earring",
+		ear2 	= "Telos Earring",
+		--body 	= "Malignance Tabard",
+		body 	= "Ikenga's Vest",
 		hands	= "Malignance Gloves",
+		--hands	= "Ikenga's Gloves",
 		ring1	= "Chirich Ring +1",
-		ring2 	= "Rajas Ring",
+		ring2 	= "Crepuscular Ring",
 		back	= "Null Shawl",
-		waist	= "Null Belt",  
-		legs 	= "Malignance Tights",
+		waist	= "Yemaya Belt",
+		--legs 	= "Malignance Tights",
+		legs 	= "Ikenga's Trousers",
 		feet 	= "Malignance Boots",
+		--feet 	= "Ikenga's Clogs",
 		}
     --- Engaged Sets ---
     sets.engaged = {
-		ammo 	= "Bronze Bullet",
+		ammo 	= engaged_ammo,
 		head 	= "Malignance Chapeau",
 		neck 	= "Iskur Gorget",
 		ear1 	= "Eabani Earring",
@@ -212,19 +215,19 @@ function init_gear_sets()
 		}
 
     sets.defense = {
-		ammo 	= "Bronze Bullet",
-		head 	= "Malignance Chapeau",
+		ammo 	= engaged_ammo,
+		head	= "Nyame Helm",
 		neck 	= "Null Loop",
 		ear1 	= "Eabani Earring",
 		ear2 	= "Alabaster Earring",
-		body 	= "Malignance Tabard",
-		hands	= "Malignance Gloves",
+		body	= "Nyame Mail",
+		hands	= "Nyame Gauntlets",
 		ring1	= "Chirich Ring +1",
 		ring2 	= "Murky Ring",
 		back	= "Null Shawl",
 		waist	= "Plat. Mog. Belt",  
-		legs 	= "Malignance Tights",
-		feet 	= "Malignance Boots",
+		legs	= "Nyame Flanchard",
+		feet	= "Nyame Sollerets",
         }
 
     --- Other Sets ---
@@ -234,6 +237,7 @@ function init_gear_sets()
 	sets.buff.Doom = {
         neck	= "Nicander's Necklace", --30
         ring1	= "Saida Ring", --15
+        ring2	= "Purity Ring", --07
         waist	= "Gishdubar Sash", --10
         }
 end
@@ -259,6 +263,9 @@ function job_buff_change(buff,gain)
 end
 function job_post_pretarget(spell, action, spellMap, eventArgs)
 	if spell.type == "WeaponSkill" then
+		if player.equipment.ammo == 'Hauksbok Bullet' then
+			equip({ammo="empty"})
+		end
 		if auto then auto = false end
 		if player.tp <= 1000 then
 			cancel_spell()
@@ -289,6 +296,9 @@ function customize_melee_set(meleeSet)
 end
 
 function job_aftercast(spell, action, spellMap, eventArgs)	
+	if player.equipment.ammo == 'Hauksbok Bullet' then
+		equip({ammo="empty"})
+	end
     equip(sets[state.WeaponSet.current])
     equip(sets[state.WeaponSetR.current])
 end
@@ -334,26 +344,24 @@ function job_self_command(command, eventArgs)
 		auto = not auto
 		if auto then
 			windower.add_to_chat(160, 'Autofire On')
-			last_shot_time = os.clock()
 			target()
 			
 			autofire = windower.register_event('action', function(action)
 				if not auto then stop_shooting() return end
-				if action.actor_id == player.id and action.category == 2 then
-					last_shot_time = os.clock()
-					target()
-				elseif last_shot_time > 4 then
+				if (action.actor_id == player.id and action.category == 2) or os.clock() - last_shot_time > 5 then
 					target()
 				end
 			end)
 		else
 			stop_shooting()
 		end
+	elseif command[1]:lower() == 'test' then
+		tprint(data)
 	end
 end
 
 function target()
-    if not auto then return end 
+    if not auto then stop_shooting() return end 
 	
 	if not player.equipment or
 	player.equipment.ammo == 'empty' then 
@@ -368,10 +376,15 @@ function target()
 	return end
 	windower.ffxi.turn(math.atan2(tar.x - player.x, tar.y - player.y) - 1.5708)
 	shoot:schedule(1.5)
+	
+	local recast = windower.ffxi.get_ability_recasts()[84]
+	if recast == 0 then
+		windower.send_command('/TripleShot')
+	end
 end
 
 function shoot()
-    if not auto then return end 
+	last_shot_time = os.clock()
     windower.send_command('input /shoot <t>')
 end
 

@@ -26,6 +26,7 @@ function user_setup()
     send_command('send @all alias shm send Cissilea gs c hmarch')
 	
 	send_command('send @all alias sst send Cissilea /Pianissimo')
+	send_command('send @all alias sd  send Cissilea /GoldCapriccio') 
 	
 	send_command('send @all alias sreg  send Cissilea /ArmysPaeon6') 
 	send_command('send @all alias sreg2 send Cissilea /ArmysPaeon5') 
@@ -85,11 +86,11 @@ function user_setup()
 	send_command('send @all bind  numpad7  sta Cissilea /SavageBlade')
 	send_command('send @all bind  numpad8  sta Cissilea /HordeLullaby')
 	send_command('send @all bind ~numpad8  sta Cissilea /HordeLullaby2')
-	send_command('send @all bind  numpad9  sta Cissilea /MagicFinale')
+	send_command('send @all bind  numpad9 send Cissilea gs c toggle_hb')
 	send_command('send @all bind ~numpad7 send Cissilea /SentinelsScherzo')
 	send_command('send @all bind !numpad8 exec Brd_Refresh.txt')
+	send_command('send @all bind ~numpad9  sta Cissilea /MagicFinale')
 	send_command('send @all bind !numpad9 exec Brd1.txt')
-	send_command('send @all bind  numpad9  sta Cissilea /MagicFinale')
 	send_command('send @all bind ~numpad9 send Cissilea /Pianissimo')
 	
 	send_command('wait 5; input /lockstyleset 2') 
@@ -154,11 +155,14 @@ function init_gear_sets()
 		}
 
 	sets.precast.WS = {	
-		head	= "Nyame Helm",
+		head	= "Null Masque",
+		neck	= "Rep. Plat. Medal",
+		ear1	= "Ishvara Earring",
+		ear2	= "Moonshade Earring",
 		body	= "Nyame Mail",
 		hands	= "Nyame Gauntlets",
 		legs	= "Nyame Flanchard",
-		feet	= "Nyame Sollerets",
+		feet	= "Fili Cothurnes +3",
 		}
 
 	--- Midcast Sets ---
@@ -172,7 +176,7 @@ function init_gear_sets()
 		waist	= "Plat. Mog. Belt",
 		legs	= "Fili Rhingrave +3",
 		feet	= "Fili Cothurnes +3",
-		}		
+		}
 		
 	sets.midcast['Honor March'] = {
 		range	= "Marsyas",
@@ -213,7 +217,7 @@ function init_gear_sets()
 		back	= gear.CapeFC,
 		legs	= "Inyanga Shalwar +2",
 		feet	= "Brioso Slippers +3",
-		})
+		})	
 		
 	sets.midcast['Enfeebling Magic'] = sets.midcast['Lullaby']
 
@@ -228,14 +232,27 @@ function init_gear_sets()
 		ring1	= "Etana Ring",
 		ring2	= "Lebeche Ring",
 		back	= gear.CapeFC,
-		waist	= "Plat. Mog. Belt",
+		waist	= "Plat. Mog. Belt",	
 		legs	= "Vanya Slops",
 		feet	= "Vanya Clogs",
 		}
 
 	--- Engaged Sets ---
-	sets.engaged = sets.defense
-
+	sets.engaged = {
+		head	= "Null Masque",		
+		neck	= "Clotharius Torque",
+		ear1	= "Crep. Earring",
+		ear2	= "Etiolation Earring",
+		body	= "Nyame Mail",			
+		hands	= "Bunzi's Gloves",
+		ring1	= "Murky ring",			
+		ring2	= "Gurebu's Ring",
+		back	= gear.CapeSR,
+		waist	= "Plat. Mog. Belt",	
+		legs	= "Nyame Flanchard",	
+		feet	= "Nyame Sollerets",	
+		}
+		
 	sets.defense = {
 		head	= "Null Masque",		-- 10
 		neck	= "Warder's Charm +1",
@@ -363,12 +380,12 @@ function job_self_command(cmdParams, eventArgs)
 			send_command('gs equip sets.'..state.WeaponSet)
 		end
 		
-	elseif cmdParams[1]:lower() == 'sleep' then
-		send_command('hb off') 
-		if cmdParams[2]:lower() == '1' then
-			send_command('HordeLullaby '..cmdParams[3]) 
+	elseif cmdParams[1]:lower() == 'toggle_hb' then
+		hb_enabled = not hb_enabled
+		if hb_enabled then
+			send_command('hb on') 
 		else
-			send_command('HordeLullaby2 '..cmdParams[3]) 
+			send_command('hb off') 
 		end
 		
 	elseif cmdParams[1]:lower() == '4song' then
