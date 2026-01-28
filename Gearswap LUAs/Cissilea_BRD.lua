@@ -23,6 +23,7 @@ function user_setup()
 	send_command('send @all alias hon send Cissilea hb on')
 	send_command('send @all alias hoff send Cissilea hb off')
     send_command('send @all alias s4 send Cissilea gs c 4song')
+    send_command('send @all alias shm send Cissilea gs c hmarch')
 	
 	send_command('send @all alias sst send Cissilea /Pianissimo')
 	
@@ -87,8 +88,9 @@ function user_setup()
 	send_command('send @all bind  numpad9  sta Cissilea /MagicFinale')
 	send_command('send @all bind ~numpad7 send Cissilea /SentinelsScherzo')
 	send_command('send @all bind !numpad8 exec Brd_Refresh.txt')
-	send_command('send @all bind ~numpad9 send Cissilea /DarkCarol2')
 	send_command('send @all bind !numpad9 exec Brd1.txt')
+	send_command('send @all bind  numpad9  sta Cissilea /MagicFinale')
+	send_command('send @all bind ~numpad9 send Cissilea /Pianissimo')
 	
 	send_command('wait 5; input /lockstyleset 2') 
 end
@@ -96,43 +98,58 @@ end
 
 function init_gear_sets()
 	--- Weapon Sets ---
-	sets.Sword	=	{ main = "Kaja Sword", sub="Culminus" }
-	sets.Dagger	=	{ main = "Kali", sub="Culminus"}
-	sets.Club	=	{ main = "Daybreak", sub="Culminus"}
+	sets.Sword	=	{ main = "Kaja Sword", sub="Genmei Shield" }
+	sets.Dagger	=	{ main = "Kali", sub="Genmei Shield"}
+	sets.Club	=	{ main = "Daybreak", sub="Genmei Shield"}
 
 	gear.CapeFC	={ name="Intarabus's Cape", augments={'CHR+20','Mag. Acc+20 /Mag. Dmg.+20','"Fast Cast"+10',}}
 	gear.CapeSR =	{ name="Intarabus's Cape", augments={'HP+60','Eva.+20 /Mag. Eva.+20','Mag. Evasion+10','Enmity-10','Occ. inc. resist. to stat. ailments+10',}}
 	
    --- Precast Sets ---	
-	sets.precast.FC = {							-- 79
-		main	= "Kali",						-- 07
-		head	= "Fili Calot +3",				-- 16
+	sets.precast.FC = {							-- 70
+		--main	= "Kali",						-- 07
+		head	= "Nyame Helm",
 		neck	= "Orunmila's Torque",			-- 05
 		ear1	= "Alabaster earring",
-		ear2	= "Malignance earring",			-- 04
+		ear2	= "Etiolation earring",			-- 01
 		body	= "Inyanga Jubbah +2",			-- 14
-		hands	= "Fili Manchettes +3",
+		hands	= "Gende. Gages +1",			-- 07
 		ring1	= "Etana ring",
 		ring2	= "Kishar ring",				-- 04
 		back	= gear.CapeFC,					-- 10
 		waist	= "Plat. Mog. Belt",
-		legs	= "Ayanmo Cosciales +2",
+		legs	= "Ayanmo Cosciales +2",		-- 06
+		feet	= "Fili Cothurnes +3",			-- 13
+	}
+	
+	sets.precast.Song = {						-- 76
+		head	= "Fili Calot +3",				-- 16
+		neck	= "Orunmila's Torque",			-- 05
+		ear1	= "Alabaster earring",
+		ear2	= "Etiolation earring",			-- 01
+		body	= "Inyanga Jubbah +2",			-- 14
+		hands	= "Gende. Gages +1",			-- 07
+		ring1	= "Etana ring",
+		ring2	= "Kishar ring",				-- 04
+		back	= gear.CapeFC,					-- 10
+		waist	= "Plat. Mog. Belt",
+		legs	= "Ayanmo Cosciales +2",		-- 06
 		feet	= "Fili Cothurnes +3",			-- 13
 	}
 
-	sets.precast.FC['Healing Magic'] = {
-		main	= "Kali",						-- 07			-- 10
-		head	= "Vanya Hood",
+	sets.precast.FC['Healing Magic'] = {		-- 78
+		main	= "Kali",						-- 07
+		head	= "Vanya Hood",					-- 07
 		neck	= "Orunmila's Torque",			-- 05
 		ear1	= "Alabaster earring",
-		ear2	= "Malignance earring",			-- 04
+		ear2	= "Etiolation earring",			-- 01
 		body	= "Inyanga Jubbah +2",			-- 14
-		hands	= "Fili Manchettes +3",
+		hands	= "Gende. Gages +1",			-- 07
 		ring1	= {name="Etana ring",			priority= 1},
 		ring2	= "Kishar ring",				-- 04
-		back	= gear.CapeFC,		
+		back	= gear.CapeFC,					-- 10
 		waist	= "Plat. Mog. Belt",
-		legs	= "Vanya Slops",
+		legs	= "Vanya Slops",				-- 07
 		feet	= "Fili Cothurnes +3",			-- 13
 		}
 
@@ -155,6 +172,18 @@ function init_gear_sets()
 		waist	= "Plat. Mog. Belt",
 		legs	= "Fili Rhingrave +3",
 		feet	= "Fili Cothurnes +3",
+		}		
+		
+	sets.midcast['Honor March'] = {
+		range	= "Marsyas",
+		head	= "Fili Calot +3",
+		neck	= "Mnbw. Whistle +1",
+		body	= "Fili Hongreline +3",
+		hands	= "Fili Manchettes +3",
+		ring1	= "Etana Ring",
+		waist	= "Plat. Mog. Belt",
+		legs	= "Inyanga Shalwar +2",
+		feet	= "Brioso Slippers +3",
 		}
 		
 	sets.midcast.Dummy = { -- Dummy song
@@ -184,10 +213,8 @@ function init_gear_sets()
 		back	= gear.CapeFC,
 		legs	= "Inyanga Shalwar +2",
 		feet	= "Brioso Slippers +3",
-		})	
-	sets.midcast['Uncanny Etude'] = set_combine(sets.midcast, {
-		range	= "Daurdabla",
-		})		
+		})
+		
 	sets.midcast['Enfeebling Magic'] = sets.midcast['Lullaby']
 
 	sets.midcast['Healing Magic'] = {
@@ -201,7 +228,7 @@ function init_gear_sets()
 		ring1	= "Etana Ring",
 		ring2	= "Lebeche Ring",
 		back	= gear.CapeFC,
-		waist	= "Plat. Mog. Belt",	
+		waist	= "Plat. Mog. Belt",
 		legs	= "Vanya Slops",
 		feet	= "Vanya Clogs",
 		}
@@ -262,6 +289,13 @@ function customize_melee_set()
 		equip(sets.engaged)
 	end
 	check_weapon()
+end
+
+function job_precast(spell, action, spellMap, eventArgs)
+	if spell.type == 'BardSong' then
+		equip(sets.precast.Song)
+		eventArgs.handled = true
+	end
 end
 
 function job_aftercast(spell, action, spellMap, eventArgs)
@@ -342,6 +376,12 @@ function job_self_command(cmdParams, eventArgs)
 		enable('range')
 		equip({range="Daurdabla"})
 		disable('range')
+		return
+		
+	elseif cmdParams[1]:lower() == 'hmarch' then
+		enable('range')
+		equip({range="Marsyas"})
+		send_command('Honor March') 
 		return
 	end
 	check_weapon()
