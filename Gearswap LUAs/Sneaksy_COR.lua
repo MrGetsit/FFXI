@@ -13,27 +13,29 @@ end
 --															--
 --------------------------------------------------------	
 
-function job_setup()	
-    include('Mote-TreasureHunter')
+function job_setup()
+	include('Mote-TreasureHunter')
     info.default_ja_ids = S{35, 204}
     info.default_u_ja_ids = S{201, 202, 203, 205, 207}
 	
+	send_command('lua l rolltracker') 
+	send_command('send Spikex lua l rolltracker') 
+	send_command('lua l Skillchains')
+	send_command('lua l Battlemod')
 	windower.send_command('sta !packets on') -- For SendTarget to work
 	
     state.WeaponLock = M(false, 'Weapon Lock')	
 	state.WeaponSet = M{['description']='Weapon Set', 'Sword', 'Dagger'}
 	state.WeaponSetR = M{['description']='Ranged Weapon Set', 'TP', 'WS'}
-    state.OffenseMode:options('Normal', 'Defense' )
+    state.OffenseMode:options('Hybrid', 'Defense', 'Normal' )
     send_command('bind @w gs c toggle WeaponLock')	
     send_command('bind %capslock gs c cycle WeaponSet')	
     send_command('bind ~capslock gs c cycle WeaponSetR')		
     send_command('bind @S gs c cycle OffenseMode')
     send_command('bind ^= gs c cycle treasuremode')
 	
-	send_command('sa lua l rolltracker') 
-	
 	engaged_ammo = 'Corsair Bullet'
-	ammo_case = 'Cor. Bull. Pouch'
+	ammo_case = 'Cor. Bull. Pouch'	
 	
 	auto = false
 	autofire = nil
@@ -41,7 +43,6 @@ function job_setup()
 end
 
 function user_setup()
-
 	send_command('send @all alias sj send Sneaksy /SpectralJig') 
 	send_command('send @all alias rxp send Sneaksy /CorsairsRoll') 
 	send_command('send @all alias rtp send Sneaksy /TacticiansRoll') 
@@ -58,11 +59,13 @@ function user_setup()
 	send_command('send @all alias rpat send Sneaksy /BeastRoll') 
 	send_command('send @all alias rpac send Sneaksy /DrachenRoll') 
 	send_command('send @all alias rpma send Sneaksy /PuppetRoll') 
+	send_command('send @all alias rmov send Sneaksy /BoltersRoll') 
+	send_command('send @all alias rref send Sneaksy /EvokersRoll') 
 
 	send_command('send @all bind  numpad1 send Sneaksy /SavageBlade ') 
 	send_command('send @all bind  numpad2  sta Sneaksy /LeadenSalute ') 
 	--send_command('send @all bind  numpad3 send Sneaksy /LightShot ') 
-	send_command('send @all bind !numpad1  sta Sneaksy /Requiescat ') 
+	send_command('send @all bind !numpad1  sta Sneaksy /LastStand ') 
 	send_command('send @all bind !numpad2  sta Sneaksy /HotShot ') 
 	send_command('send @all bind !numpad3 send Sneaksy /DarkShot ') 
 	send_command('send @all bind ~numpad1 send Sneaksy /ChaosRoll ') 
@@ -91,7 +94,6 @@ function user_setup()
 		send_command('send @all bind ^numpad2 send Sneaksy /Warcry ') 
 		send_command('send @all bind ^numpad3 send Sneaksy /Aggressor ') 
 	end
-	
 	send_command('gs c set treasuremode tag')
 	send_command('wait 5; input /lockstyleset 2') 
 end
@@ -121,19 +123,38 @@ function init_gear_sets()
     sets.precast.JA['Allies\' Roll'] 	= { hands = "Chasseur's Gants +3" 	}
     sets.precast.JA['Caster\'s Roll'] 	= { legs  = "Chasseur's Culottes" 	}
     sets.precast.JA['Courser\'s Roll'] 	= { feet  = "Chasseur's Bottes" 	}
+    sets.precast.JA['Wild Card'] 		= { feet  = "Lanun Bottes +4" 		}
+    sets.precast.Waltz = { head="Mummu Bonnet +2", feet="Rawhide Boots" }	
 	
     sets.precast.CorsairRoll = {
+		main	= "Rostam",
+		range	= "Compensator",
+		ear1 	= "Alabaster Earring",	-- HP
 		head	= "Lanun Tricorne", 
 		neck	= "Regal Necklace",
 		hands	= "Chasseur's Gants +3",
 		back	= "Camulus's Mantle",
 		legs	= "Desultor Tassets"
 	}	
-    sets.precast.Waltz = { head="Mummu Bonnet +2", feet="Rawhide Boots" }	
+
+	sets.precast.RA = {					-- SNP	RPD
+		head	= "Ikenga's Hat",		-- 06
+		--head	= "Chasss Tricorne +3",	-- 		18
+		--neck	= "Comm. Charm +2",		-- 04
+		body	= "Laksa. Frac +4",		--		20
+		hands	= "Ikenga's Gloves",	-- 07
+		--hands	= "Carmine Fin. Ga. +1",-- 08	11
+		ring1	= "Crepuscular Ring",	-- 03
+		waist	= "Yemaya Belt",		-- 		05
+		legs	= "Lanun Trews +4",		-- 10
+		--legs	= "Adhemar Kecks +1",	-- 10	13
+		feet 	= "Meg. Jam. +2",		-- 10
+		--feet 	= "Pursuer's Gaiters",	-- 		10
+		}
 			
     sets.precast.WS = { 
 		ammo	= "Chrono Bullet",
-		head	= "Nyame Helm",
+		head	= "Clemen. Somen",
 		neck	= "Sibyl Scarf",
 		ear1	= "Ishvara Earring",
 		ear2	= "Friomisi Earring",
@@ -146,14 +167,14 @@ function init_gear_sets()
 		legs	= "Nyame Flanchard",  	
 		feet 	= "Lanun bottes +4",
 		}
-    --sets.precast.WS['Leaden Salute'] = set_combine(sets.precast.WS, {
-	--	head 	= "Pixie Hairpin +1",
-	--})
+    sets.precast.WS['Leaden Salute'] = set_combine(sets.precast.WS, {
+		head 	= "Pixie Hairpin +1",
+	})
     sets.precast.WS['Aeolian Edge'] = sets.precast.WS['Hot Shot']
     sets.precast.WS['Savage Blade'] = {	
-		head 	= "Meghanada Visor +2",
+		head 	= "Clemen. Somen",
         neck	= "Rep. Plat. Medal",
-		ear1 	= "Telos Earring",
+		ear1 	= "Alabaster Earring",
 		ear2 	= "Ishvara Earring",
 		body	= "Laksa. Frac +4",
 		hands	= "Chasseur's Gants +3",
@@ -164,16 +185,6 @@ function init_gear_sets()
 		legs 	= "Lanun Trews +4",
 		feet 	= "Lanun Bottes +4",
 	}
-
-	sets.precast.RA = {					-- SNP	RPD
-		head	= "Ikenga's Hat",		-- 06
-		body	= "Laksa. Frac +4",		--		20
-		hands	= "Ikenga's Gloves",	-- 07
-		ring1	= "Crepuscular Ring",	-- 03
-		waist	= "Yemaya Belt",		-- 		05
-		legs	= "Lanun Trews +4",		-- 10
-		feet 	= "Meg. Jam. +2",		-- 10
-		}
 		
     --- Midcast Sets ---
 	sets.midcast.CorsairShot = {ammo="Animikii bullet"}
@@ -198,28 +209,44 @@ function init_gear_sets()
 		--feet 	= "Ikenga's Clogs",
 		}
     --- Engaged Sets ---
-    sets.engaged = {
+    sets.engaged = {					-- 26
 		ammo 	= engaged_ammo,
-		head 	= "Malignance Chapeau",
+		head 	= "Malignance Chapeau",	-- 06
 		neck 	= "Iskur Gorget",
 		ear1 	= "Eabani Earring",
 		ear2 	= "Suppanomimi",
-		body 	= "Malignance Tabard",
+		body 	= "Malignance Tabard",	-- 09
 		hands	= "Adhemar Wrist. +1",
 		ring1	= "Chirich Ring +1",
 		ring2 	= "Rajas Ring",
 		back	= "Null Shawl",
 		waist	= "Sailfi Belt +1",  
-		legs 	= "Malignance Tights",
-		feet 	= "Malignance Boots",
+		legs 	= "Malignance Tights",	-- 07
+		feet 	= "Malignance Boots",	-- 04
+		}
+		
+    sets.hybrid = {						-- 49
+		ammo 	= engaged_ammo,
+		head 	= "Malignance Chapeau",	-- 06
+		neck 	= "Iskur Gorget",
+		ear1 	= "Alabaster Earring",	-- 05
+		ear2 	= "Eabani Earring",
+		body 	= "Malignance Tabard",	-- 09
+		hands	= "Malignance Gloves",	-- 05
+		ring1	= "Chirich Ring +1",
+		ring2 	= "Murky Ring",			-- 10
+		back	= "Null Shawl",
+		waist	= "Plat. Mog. Belt",	-- 03
+		legs 	= "Malignance Tights",	-- 07
+		feet 	= "Malignance Boots",	-- 04
 		}
 
     sets.defense = {
 		ammo 	= engaged_ammo,
 		head	= "Nyame Helm",
 		neck 	= "Null Loop",
-		ear1 	= "Eabani Earring",
-		ear2 	= "Alabaster Earring",
+		ear1 	= "Alabaster Earring",	-- 05
+		ear2 	= "Eabani Earring",
 		body	= "Nyame Mail",
 		hands	= "Nyame Gauntlets",
 		ring1	= "Chirich Ring +1",
@@ -261,7 +288,14 @@ function job_buff_change(buff,gain)
 		end
     end
 end
+
 function job_post_pretarget(spell, action, spellMap, eventArgs)
+	if incapacitated or midaction() then
+		cancel_spell()
+		eventArgs.handled = true
+		return
+	end	
+	
 	if spell.type == "WeaponSkill" then
 		if player.equipment.ammo == 'Hauksbok Bullet' then
 			equip({ammo="empty"})
@@ -271,7 +305,15 @@ function job_post_pretarget(spell, action, spellMap, eventArgs)
 			cancel_spell()
 			eventArgs.handled = true
 		end
+	elseif spell.action_type == 'Ability' then -- Don't change gear on CD
+		local recast = windower.ffxi.get_ability_recasts()[spell.recast_id]
+		if recast and recast >= 1 then 
+			cancel_spell()
+			eventArgs.handled = true
+			return
+		end		
 	end
+	
 	if not WeaponLock then
 		if player.tp <= 350 and spell.english:endswith('Roll') then
 			send_command('gs equip sets.Comp')
@@ -291,6 +333,8 @@ function customize_melee_set(meleeSet)
     equip(sets[state.WeaponSetR.current])
     if state.OffenseMode.value == "Defense" then
 		meleeSet = sets.defense
+	elseif state.OffenseMode.value == "Hybrid" then
+		meleeSet = sets.hybrid
     end	
     return meleeSet
 end
@@ -313,7 +357,7 @@ function job_state_change(field, new_value, old_value)
 			send_command('input /equip main')
 		end
 		send_command('send @all bind  numpad1 send Sneaksy /SavageBlade ') 
-		send_command('send @all bind !numpad1  sta Sneaksy /Requiescat ')
+		send_command('send @all bind !numpad1  sta Sneaksy /LastStand ')
 	elseif state.WeaponSet.value == "Dagger" then
 		if player.equipment.main == "Naegling" then
 			send_command('input /equip main')

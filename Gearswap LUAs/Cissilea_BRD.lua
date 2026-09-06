@@ -13,6 +13,7 @@ function job_setup()
     send_command('bind %capslock gs c change_weapon')
     send_command('bind @w gs c lock')
     send_command('gs c change_weapon')
+	
 	WeaponLock = false
 end
 -- % Normal	^ Ctrl	! Alt	@ Win	# Apps	~ Shift
@@ -22,7 +23,6 @@ function user_setup()
 	send_command('send @all alias brdsv exec BRDSV.txt')
 	send_command('send @all alias hon send Cissilea hb on')
 	send_command('send @all alias hoff send Cissilea hb off')
-    send_command('send @all alias s4 send Cissilea gs c 4song')
     send_command('send @all alias shm send Cissilea gs c hmarch')
 	
 	send_command('send @all alias sst send Cissilea /Pianissimo')
@@ -49,24 +49,32 @@ function user_setup()
 	send_command('send @all alias seva2 send Cissilea /DragonfoeMambo') 
 	send_command('send @all alias shas  send Cissilea /AdvancingMarch') 
 	send_command('send @all alias shas2 send Cissilea /VictoryMarch') 
+	send_command('send @all alias smov  send Cissilea /ChocoboMazurka') 
+	send_command('send @all alias smov2 send Cissilea /RaptorMazurka') 
 	
 	send_command('send @all alias sstr  send Cissilea /HerculeanEtude') 
+	send_command('send @all alias sstr2 send Cissilea /SinewyEtude') 
 	send_command('send @all alias sdex  send Cissilea /UncannyEtude') 
+	send_command('send @all alias sdex2 send Cissilea /DextrousEtude') 
 	send_command('send @all alias svit  send Cissilea /VitalEtude') 
+	send_command('send @all alias svit2 send Cissilea /VivaciousEtude') 
 	send_command('send @all alias sagi  send Cissilea /SwiftEtude') 
+	send_command('send @all alias sagi2 send Cissilea /QuickEtude') 
 	send_command('send @all alias sint  send Cissilea /SageEtude') 
+	send_command('send @all alias sint2 send Cissilea /LearnedEtude') 
 	send_command('send @all alias smnd  send Cissilea /LogicalEtude')
+	send_command('send @all alias smnd2 send Cissilea /SpiritedEtude')
 	
 	send_command('send @all alias sfc  send Cissilea /FireCarol2')
 	send_command('send @all alias sfc2 send Cissilea /FireCarol')
 	send_command('send @all alias sic  send Cissilea /IceCarol2')
 	send_command('send @all alias sic2 send Cissilea /IceCarol')
-	send_command('send @all alias sac  send Cissilea /WindCarol2')
-	send_command('send @all alias sac2 send Cissilea /WindCarol')
+	send_command('send @all alias swic  send Cissilea /WindCarol2')
+	send_command('send @all alias swic2 send Cissilea /WindCarol')
 	send_command('send @all alias sec  send Cissilea /EarthCarol2')
 	send_command('send @all alias sec2 send Cissilea /EarthCarol')
-	send_command('send @all alias swc  send Cissilea /WaterCarol2')
-	send_command('send @all alias swc2 send Cissilea /WaterCarol')
+	send_command('send @all alias swac  send Cissilea /WaterCarol2')
+	send_command('send @all alias swac2 send Cissilea /WaterCarol')
 	send_command('send @all alias stc  send Cissilea /LightningCarol2')
 	send_command('send @all alias stc2 send Cissilea /LightningCarol')
 	send_command('send @all alias sdc  send Cissilea /DarkCarol2')
@@ -91,7 +99,6 @@ function user_setup()
 	send_command('send @all bind !numpad8 exec Brd_Refresh.txt')
 	send_command('send @all bind ~numpad9  sta Cissilea /MagicFinale')
 	send_command('send @all bind !numpad9 exec Brd1.txt')
-	send_command('send @all bind ~numpad9 send Cissilea /Pianissimo')
 	
 	send_command('wait 5; input /lockstyleset 2') 
 end
@@ -99,17 +106,22 @@ end
 
 function init_gear_sets()
 	--- Weapon Sets ---
-	sets.Sword	=	{ main = "Kaja Sword", sub="Genmei Shield" }
+	sets.Sword	=	{ main = "Naegling", sub="Genmei Shield" }
 	sets.Dagger	=	{ main = "Kali", sub="Genmei Shield"}
 	sets.Club	=	{ main = "Daybreak", sub="Genmei Shield"}
 
-	gear.CapeFC	={ name="Intarabus's Cape", augments={'CHR+20','Mag. Acc+20 /Mag. Dmg.+20','"Fast Cast"+10',}}
+	gear.CapeFC	=	{ name="Intarabus's Cape", augments={'CHR+20','Mag. Acc+20 /Mag. Dmg.+20','"Fast Cast"+10',}}
 	gear.CapeSR =	{ name="Intarabus's Cape", augments={'HP+60','Eva.+20 /Mag. Eva.+20','Mag. Evasion+10','Enmity-10','Occ. inc. resist. to stat. ailments+10',}}
+	gear.CapeWS =	{ name="Intarabus's Cape", augments={'STR+20','Accuracy+20 Attack+20','STR+10','Weapon skill damage +10%','Damage taken-5%',}}
+	gear.CapeTP =	{ name="Intarabus's Cape", augments={'HP+60','Accuracy+20 Attack+20','DEX+10','"Store TP"+10','Occ. inc. resist. to stat. ailments+10',}}
+	
+	gear.LinosTP =	{ name="Linos", augments={'Accuracy+15','"Store TP"+4','Quadruple Attack +3',}}
+	gear.LinosWS =	{ name="Linos", augments={'Accuracy+15 Attack+15','Weapon skill damage +3%','STR+8',}}
 	
    --- Precast Sets ---	
-	sets.precast.FC = {							-- 70
+	sets.precast.FC = {							-- 77
 		--main	= "Kali",						-- 07
-		head	= "Nyame Helm",
+		head	= "Welkin Crown",				-- 07
 		neck	= "Orunmila's Torque",			-- 05
 		ear1	= "Alabaster earring",
 		ear2	= "Etiolation earring",			-- 01
@@ -137,9 +149,25 @@ function init_gear_sets()
 		legs	= "Ayanmo Cosciales +2",		-- 06
 		feet	= "Fili Cothurnes +3",			-- 13
 	}
+	
+	sets.precast['Honor March'] = {
+		range	= "Marsyas",
+		head	= "Fili Calot +3",				-- 16
+		neck	= "Orunmila's Torque",			-- 05
+		ear1	= "Alabaster earring",
+		ear2	= "Etiolation earring",			-- 01
+		body	= "Inyanga Jubbah +2",			-- 14
+		hands	= "Gende. Gages +1",			-- 07
+		ring1	= "Etana ring",
+		ring2	= "Kishar ring",				-- 04
+		back	= gear.CapeFC,					-- 10
+		waist	= "Plat. Mog. Belt",
+		legs	= "Ayanmo Cosciales +2",		-- 06
+		feet	= "Fili Cothurnes +3",			-- 13
+	}
 
-	sets.precast.FC['Healing Magic'] = {		-- 78
-		main	= "Kali",						-- 07
+	sets.precast.FC['Healing Magic'] = {		-- 71
+		--main	= "Kali",						-- 07
 		head	= "Vanya Hood",					-- 07
 		neck	= "Orunmila's Torque",			-- 05
 		ear1	= "Alabaster earring",
@@ -153,16 +181,22 @@ function init_gear_sets()
 		legs	= "Vanya Slops",				-- 07
 		feet	= "Fili Cothurnes +3",			-- 13
 		}
+	sets.precast.Cure = sets.precast.FC['Healing Magic']
 
 	sets.precast.WS = {	
+		range	= gear.LinosWS,
 		head	= "Null Masque",
 		neck	= "Rep. Plat. Medal",
 		ear1	= "Ishvara Earring",
 		ear2	= "Moonshade Earring",
-		body	= "Nyame Mail",
-		hands	= "Nyame Gauntlets",
-		legs	= "Nyame Flanchard",
-		feet	= "Fili Cothurnes +3",
+		body	= "Bihu Jstcorps. +3",
+		hands	= "Bihu Cuffs +4",
+		ring1	= "Rufescent ring",
+		ring2	= "Gurebu's Ring",
+		back	= gear.CapeWS,
+		waist	= "Eschan Stone",
+		legs	= "Bihu Cann. +4",
+		feet	= "Nyame Sollerets",
 		}
 
 	--- Midcast Sets ---
@@ -213,7 +247,7 @@ function init_gear_sets()
 		head	= "Brioso Roundlet +3",
 		ear1	= "Gersemi Earring",
 		body	= "Brioso Justaucorps +4",
-		hands	= "Brioso cuffs +3",
+		hands	= "Brioso Cuffs +3",
 		back	= gear.CapeFC,
 		legs	= "Inyanga Shalwar +2",
 		feet	= "Brioso Slippers +3",
@@ -239,21 +273,23 @@ function init_gear_sets()
 
 	--- Engaged Sets ---
 	sets.engaged = {
-		head	= "Null Masque",		
+		range	= gear.LinosTP,
+		head	= "Null Masque",
 		neck	= "Clotharius Torque",
 		ear1	= "Crep. Earring",
-		ear2	= "Etiolation Earring",
-		body	= "Nyame Mail",			
+		ear2	= "Brutal Earring",
+		body	= "Nyame Mail",
 		hands	= "Bunzi's Gloves",
-		ring1	= "Murky ring",			
+		ring1	= "Murky ring",
 		ring2	= "Gurebu's Ring",
-		back	= gear.CapeSR,
-		waist	= "Plat. Mog. Belt",	
-		legs	= "Nyame Flanchard",	
-		feet	= "Nyame Sollerets",	
+		back	= "Null Shawl",
+		waist	= "Plat. Mog. Belt",
+		legs	= "Revelation Brais",
+		feet	= "Revelation Sab.",
 		}
 		
 	sets.defense = {
+		range	= "Miracle Cheer",
 		head	= "Null Masque",		-- 10
 		neck	= "Warder's Charm +1",
 		ear1	= "Alabaster Earring",	-- 05
@@ -276,7 +312,9 @@ end
 function job_buff_change(buff,gain)
     if buff == "terror" or buff == "petrification" or buff == "stun" then
         if gain then
-            equip(sets.defense)
+            incapacitated = true
+		else
+            incapacitated = false
         end
     elseif buff == "doom" then
         if gain then
@@ -290,6 +328,14 @@ function job_buff_change(buff,gain)
 		if gain then
 			send_command('@input /p Charmed.')
 		end
+	elseif buff == "silence" then
+		if gain then
+			send_command('@input /p Silenced.')
+			silenced = true
+			auto_echo_drops()
+		else
+			silenced = false
+		end
     end
 end
 
@@ -299,8 +345,7 @@ function check_weapon()
 end
 
 function customize_melee_set()
-	if state.OffenseMode.value == "Defense" or
-	player.status == 'Idle' then
+	if state.OffenseMode.value == "Defense" or player.status == 'Idle' or incapacitated then
 		equip(sets.defense)
 	else
 		equip(sets.engaged)
@@ -309,6 +354,12 @@ function customize_melee_set()
 end
 
 function job_precast(spell, action, spellMap, eventArgs)
+	if midaction() then
+		cancel_spell()
+		eventArgs.handled = true
+		return
+	end	
+	
 	if spell.type == 'BardSong' then
 		equip(sets.precast.Song)
 		eventArgs.handled = true
@@ -316,16 +367,15 @@ function job_precast(spell, action, spellMap, eventArgs)
 end
 
 function job_aftercast(spell, action, spellMap, eventArgs)
-	if spell.type == 'BardSong' and slot4 then
-		slot4 = false
-		enable('range')
-	end
 	customize_melee_set()
 end
 
 function job_post_pretarget(spell, action, spellMap, eventArgs)
 	if spell.type == 'BardSong' and spell.name:endswith('Lullaby') then
 		send_command('hb off') 
+			
+	elseif spell.name == 'Honor March' then
+		equip({range="Marsyas"})
 			
 	elseif spell.action_type == 'Magic' then -- Don't change gear on CD
 		if windower.ffxi.get_spell_recasts()[spell.recast_id] >= 1 then
@@ -361,7 +411,7 @@ function job_self_command(cmdParams, eventArgs)
 		elseif state.WeaponSet == 'Dagger' then
 			msg = string.char(0x87, 0x42) .. ' Club'
 			state.WeaponSet = 'Club'
-			send_command('send @all bind numpad7 send Cissilea /Moonlight') 
+			send_command('send @all bind numpad7 send Cissilea /Judgment') 
 		else
 			msg = string.char(0x87, 0x40) .. ' Sword'
 			state.WeaponSet = 'Sword'
@@ -383,17 +433,11 @@ function job_self_command(cmdParams, eventArgs)
 	elseif cmdParams[1]:lower() == 'toggle_hb' then
 		hb_enabled = not hb_enabled
 		if hb_enabled then
+			send_command('lua r healbot') 
 			send_command('hb on') 
 		else
 			send_command('hb off') 
 		end
-		
-	elseif cmdParams[1]:lower() == '4song' then
-		slot4 = true
-		enable('range')
-		equip({range="Daurdabla"})
-		disable('range')
-		return
 		
 	elseif cmdParams[1]:lower() == 'hmarch' then
 		enable('range')
@@ -403,28 +447,9 @@ function job_self_command(cmdParams, eventArgs)
 	end
 	check_weapon()
 end
-function tprint(tbl, indent)
-	if not indent then indent = 0 end
-	local spaces = string.rep("  ", indent) -- Use two spaces for indentation
 
-	for k, v in pairs(tbl) do
-		local key_str
-		if type(k) == "number" then
-			key_str = "[" .. k .. "]"
-		else
-			key_str = "['" .. k .. "']"
-		end
-
-		if type(v) == "table" then
-		   print(2, spaces .. key_str .. " = {") 
-			tprint(v, indent + 1)
-		   print(2, spaces .. "}")
-		else
-			local value_str = tostring(v)
-			if type(v) == "string" then
-				value_str = "'" .. value_str .. "'"
-			end
-			print(2, spaces .. key_str .. " = " .. value_str .. ",")
-		end
-	end
+function auto_echo_drops ()
+	if not silenced then return end
+	send_command('input /item "Echo Drops" <me>')
+	coroutine.schedule(function() auto_echo_drops() end, 2)
 end
