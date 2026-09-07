@@ -675,7 +675,7 @@ windower.register_event('ipc message', function (msg)
 		
 		newest_distance = distance_to(new_waypoint, self)
 		if newest_distance > 30 and not waypoints[1] then 
-			windower.send_command('input /party Next waypoint too far > 30')
+			--windower.send_command('input /party Next waypoint too far > 30')
 		return end
 		
 		-- Check if this waypoint is too close to the last waypoint in the list
