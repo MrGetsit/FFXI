@@ -100,6 +100,7 @@ function user_setup()
 	send_command('send @all bind ~numpad9  sta Cissilea /MagicFinale')
 	send_command('send @all bind !numpad9 exec Brd1.txt')
 	
+	send_command('gs c lock') 
 	send_command('wait 5; input /lockstyleset 2') 
 end
 
@@ -130,7 +131,7 @@ function init_gear_sets()
 		ring1	= "Etana ring",
 		ring2	= "Kishar ring",				-- 04
 		back	= gear.CapeFC,					-- 10
-		waist	= "Plat. Mog. Belt",
+		waist	= {name="Plat. Mog. Belt", priority=1},
 		legs	= "Ayanmo Cosciales +2",		-- 06
 		feet	= "Fili Cothurnes +3",			-- 13
 	}
@@ -142,10 +143,10 @@ function init_gear_sets()
 		ear2	= "Etiolation earring",			-- 01
 		body	= "Inyanga Jubbah +2",			-- 14
 		hands	= "Gende. Gages +1",			-- 07
-		ring1	= "Etana ring",
+		ring1	= "Murky ring",
 		ring2	= "Kishar ring",				-- 04
 		back	= gear.CapeFC,					-- 10
-		waist	= "Plat. Mog. Belt",
+		waist	= {name="Plat. Mog. Belt", priority=1},
 		legs	= "Ayanmo Cosciales +2",		-- 06
 		feet	= "Fili Cothurnes +3",			-- 13
 	}
@@ -161,7 +162,7 @@ function init_gear_sets()
 		ring1	= "Etana ring",
 		ring2	= "Kishar ring",				-- 04
 		back	= gear.CapeFC,					-- 10
-		waist	= "Plat. Mog. Belt",
+		waist	= {name="Plat. Mog. Belt", priority=1},
 		legs	= "Ayanmo Cosciales +2",		-- 06
 		feet	= "Fili Cothurnes +3",			-- 13
 	}
@@ -170,14 +171,14 @@ function init_gear_sets()
 		--main	= "Kali",						-- 07
 		head	= "Vanya Hood",					-- 07
 		neck	= "Orunmila's Torque",			-- 05
-		ear1	= "Alabaster earring",
+		ear1	= {name="Alabaster earring", priority=2},
 		ear2	= "Etiolation earring",			-- 01
 		body	= "Inyanga Jubbah +2",			-- 14
 		hands	= "Gende. Gages +1",			-- 07
-		ring1	= {name="Etana ring",			priority= 1},
+		ring1	= {name="Etana ring", priority=3},
 		ring2	= "Kishar ring",				-- 04
 		back	= gear.CapeFC,					-- 10
-		waist	= "Plat. Mog. Belt",
+		waist	= {name="Plat. Mog. Belt", priority=1},
 		legs	= "Vanya Slops",				-- 07
 		feet	= "Fili Cothurnes +3",			-- 13
 		}
@@ -194,7 +195,7 @@ function init_gear_sets()
 		ring1	= "Rufescent ring",
 		ring2	= "Gurebu's Ring",
 		back	= gear.CapeWS,
-		waist	= "Eschan Stone",
+		waist	= {name="Plat. Mog. Belt", priority=1},
 		legs	= "Bihu Cann. +4",
 		feet	= "Nyame Sollerets",
 		}
@@ -206,8 +207,8 @@ function init_gear_sets()
 		neck	= "Mnbw. Whistle +1",
 		body	= "Fili Hongreline +3",
 		hands	= "Fili Manchettes +3",
-		ring1	= "Etana Ring",
-		waist	= "Plat. Mog. Belt",
+		ring1	= "Murky Ring",
+		waist	= {name="Plat. Mog. Belt", priority=1},
 		legs	= "Fili Rhingrave +3",
 		feet	= "Fili Cothurnes +3",
 		}
@@ -218,8 +219,8 @@ function init_gear_sets()
 		neck	= "Mnbw. Whistle +1",
 		body	= "Fili Hongreline +3",
 		hands	= "Fili Manchettes +3",
-		ring1	= "Etana Ring",
-		waist	= "Plat. Mog. Belt",
+		ring1	= "Murky Ring",
+		waist	= {name="Plat. Mog. Belt", priority=1},
 		legs	= "Inyanga Shalwar +2",
 		feet	= "Brioso Slippers +3",
 		}
@@ -229,11 +230,11 @@ function init_gear_sets()
 		head	= "Null Masque",		-- 10
 		neck	= "Warder's Charm +1",
 		ear1	= "Alabaster Earring",	-- 05
-		ear2	= "Etiolation Earring",
+		ear2	= "Fili Earring +1",
 		body	= "Nyame Mail",			-- 09
 		hands	= "Nyame Gauntlets",	-- 07
 		ring1	= "Murky ring",			-- 10
-		ring2	= "Gurebu's Ring",
+		ring2	= "Etana Ring",
 		back	= "Aurist's Cape +1",
 		waist	= "Plat. Mog. Belt",	-- 03	
 		legs	= "Nyame Flanchard",	-- 08
@@ -242,16 +243,21 @@ function init_gear_sets()
 	sets.midcast['Gold Capriccio'] = sets.midcast.Dummy
 	sets.midcast['Bewitching Etude'] = sets.midcast.Dummy
 
-	sets.midcast['Lullaby'] = set_combine(sets.midcast, {
+	sets.midcast['Lullaby'] = {
 		range	= "Blurred Harp",
 		head	= "Brioso Roundlet +3",
-		ear1	= "Gersemi Earring",
+		neck	= "Warder's Charm +1",
+		ear1	= "Alabaster Earring",	-- 05
+		ear2	= "Gersemi Earring",
 		body	= "Brioso Justaucorps +4",
 		hands	= "Brioso Cuffs +3",
+		ring1	= "Murky ring",			-- 10
+		ring2	= "Gurebu's Ring",
 		back	= gear.CapeFC,
+		waist	= {name="Plat. Mog. Belt", priority=1},
 		legs	= "Inyanga Shalwar +2",
 		feet	= "Brioso Slippers +3",
-		})	
+		}
 		
 	sets.midcast['Enfeebling Magic'] = sets.midcast['Lullaby']
 
@@ -260,13 +266,12 @@ function init_gear_sets()
 		head	= "Vanya Hood",
 		neck	= {name="Null Loop",				priority= 1},
 		ear1	= "Alabaster Earring",
-		ear2	= "Etiolation Earring",
+		ear2	= "Fili Earring +1",
 		body	= {name="Brioso Just. +4",			priority= 2},
 		hands	= "Fili Manchettes +3",
-		ring1	= "Etana Ring",
+		ring1	= "Murky Ring",
 		ring2	= "Lebeche Ring",
 		back	= gear.CapeFC,
-		waist	= "Plat. Mog. Belt",	
 		legs	= "Vanya Slops",
 		feet	= "Vanya Clogs",
 		}
@@ -275,7 +280,7 @@ function init_gear_sets()
 	sets.engaged = {
 		range	= gear.LinosTP,
 		head	= "Null Masque",
-		neck	= "Clotharius Torque",
+		neck	= "Null Loop",
 		ear1	= "Crep. Earring",
 		ear2	= "Brutal Earring",
 		body	= "Nyame Mail",
@@ -283,7 +288,7 @@ function init_gear_sets()
 		ring1	= "Murky ring",
 		ring2	= "Gurebu's Ring",
 		back	= "Null Shawl",
-		waist	= "Plat. Mog. Belt",
+		waist	= "Null Belt",
 		legs	= "Revelation Brais",
 		feet	= "Revelation Sab.",
 		}
@@ -293,13 +298,13 @@ function init_gear_sets()
 		head	= "Null Masque",		-- 10
 		neck	= "Warder's Charm +1",
 		ear1	= "Alabaster Earring",	-- 05
-		ear2	= "Etiolation Earring",
+		ear2	= "Fili Earring +1",	-- 04
 		body	= "Nyame Mail",			-- 09
 		hands	= "Nyame Gauntlets",	-- 07
 		ring1	= "Murky ring",			-- 10
 		ring2	= "Gurebu's Ring",
 		back	= gear.CapeSR,
-		waist	= "Plat. Mog. Belt",	-- 03	
+		waist	= "Null Belt",
 		legs	= "Nyame Flanchard",	-- 08
 		feet	= "Nyame Sollerets",	-- 07
 		}
@@ -393,10 +398,7 @@ function job_post_pretarget(spell, action, spellMap, eventArgs)
 end
 
 function job_state_change(field, new_value, old_value)
-	customize_melee_set()
-end
-
-function job_update(cmdParams, eventArgs)
+	print(new_value)
 	customize_melee_set()
 end
 

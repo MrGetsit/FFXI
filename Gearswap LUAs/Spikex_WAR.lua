@@ -5,10 +5,11 @@ end
 function job_setup()
 	windower.send_command('sta !packets on') -- For SendTarget to work
 
-	state.OffenseMode:options('Normal', 'Defense') -- 'Hybrid', 
+	state.OffenseMode:options('Normal', 'Defense', 'Hybrid') -- 'Hybrid', 
 	
 	--state.MainWeapon = M{'Qutrub Knife', 'Twinned Blade', 'Ophidian Sword', 'Lost Sickle', 'Iapetus', 'Debahocho', 'Ethereal Tachi', 'Thunder Hammer', 'Erudite\'s Staff' }
 	state.MainWeapon = M{'Chango', 'Naegling', 'Shining One'}
+	state.SubWeapon = M{'Blurred Shield +1', 'Utu Grip' }
 	
 	send_command('bind @w gs c lock')
 	send_command('bind capslock gs c cycle MainWeapon')
@@ -107,9 +108,9 @@ function init_gear_sets()
 		back	= "Null Shawl",			-- Cichol's Mantle
 		waist	= "Sailfi Belt +1",		-- Ioskeha Belt +1
 		legs	= "Boii Cuisses +3",	-- Pumm. Cuisses +3
-		feet	= "Sakpata's Leggings", -- Pumm. Calligae +3
+		feet	= "Pumm. Calligae +4",
 		}
-	sets.defense = {
+	sets.hybrid = {
 		ammo	= "Coiste Bodhar",
 		head	= "Sakpata's Helm",		
 		neck	= "Null Loop",			
@@ -120,7 +121,22 @@ function init_gear_sets()
 		ring1	= "Niqmaddu Ring", 
 		ring2	= "Chirich Ring +1",	
 		back	= "Null Shawl",
-		waist	= "Plat. Mog. Belt",
+		waist	= "Null Belt",
+		legs	= "Sakpata's Cuisses",	
+		feet	= "Sakpata's Leggings", 
+		}
+	sets.defense = {
+		ammo	= "Staunch Tathlum",
+		head	= "Sakpata's Helm",		
+		neck	= "Null Loop",			
+		ear1	= "Schere Earring",
+		ear2	= "Alabaster Earring",	
+		body	= "Sakpata's Plate",	
+		hands	= "Sakpata's Gauntlets",
+		ring1	= "Murky Ring", 
+		ring2	= "Fortified Ring",	
+		back	= "Null Shawl",
+		waist	= "Null Belt",
 		legs	= "Sakpata's Cuisses",	
 		feet	= "Sakpata's Leggings", 
 		}
@@ -146,6 +162,7 @@ function setup_weapon_keybinds()
 		send_command('send @all bind !1 send Spikex /RedLotusBlade')
 		send_command('send @all bind !2 send Spikex /SeraphBlade')
 		weapon_text = 'Switched to:  Naegling'
+		state.SubWeapon.value = 'Blurred Shield +1'
 		
 	elseif main == 'Chango' then
 		send_command('send @all bind %1 send Spikex /Upheaval')
@@ -154,10 +171,12 @@ function setup_weapon_keybinds()
 		send_command('send @all bind !2 send Spikex /UkkosFury')
 		send_command('send @all bind %3 send Spikex /ArmorBreak')
 		weapon_text = 'Switched to:  Chango'
+		state.SubWeapon.value = 'Utu Grip'
 		
 	elseif main == 'Shining One' then
 		send_command('send @all bind %1 send Spikex /ImpulseDrive')
 		weapon_text = 'Switched to:  Shining One'
+		state.SubWeapon.value = 'Utu Grip'
 	
 	elseif main == 'Twinned Blade' then
 		send_command('send @all bind %1 send Spikex /RedLotusBlade')
@@ -191,28 +210,14 @@ function setup_weapon_keybinds()
 	--windower.add_to_chat(209, weapon_text)
 end
 
-function check_weapon(bypass)
-	if temp_weapons then
-		enable('main','sub')
-		equip({main = tempmain, sub = tempsub})
-		toggle_weapon_lock(true)
-		temp_weapons = false
-		return
-	end
-
-	if not bypass and WeaponLock then return end
+function check_weapon()
+	local main_matches = player.equipment.main == state.MainWeapon.value
+	local sub_matches = player.equipment.sub == state.SubWeapon.value
 	
-	enable('main','sub','range')
-	
-	if state.MainWeapon.value == 'Chango' then
-		equip(sets.Chango)
-	elseif state.MainWeapon.value == 'Naegling' then
-		equip(sets.Naegling)
-	elseif state.MainWeapon.value == 'Shining One' then
-		equip(sets.Shining)
-	else
-		equip({main = state.MainWeapon.value})
-	end
+	if not main_matches or not sub_matches then
+		enable('main','sub','range')
+		equip({main = state.MainWeapon.value, sub = state.SubWeapon.value})
+	end	
 end
 
 function customize_melee_set()
@@ -220,19 +225,11 @@ function customize_melee_set()
 	player.status == 'Idle' or incapacitated then
 		equip(sets.defense)
 	elseif state.OffenseMode.value == "Hybrid" then
-		if dual_wield then
-			equip(sets.hybrid.DW)
-		else
-			equip(sets.hybrid)
-		end
+		equip(sets.hybrid)
 	else
-		if dual_wield then
-			equip(sets.engaged.DW)
-		else
-			equip(sets.engaged)
-		end
+		equip(sets.engaged)
 	end
-	check_weapon()
+	if not incapacitated then check_weapon() end
 end
 
 function job_buff_change(buff,gain)
@@ -251,19 +248,7 @@ function job_buff_change(buff,gain)
 			send_command('@input /p Charmed.')
 		end
 	end
-	if buff == "sleep" then
-		if gain then
-			incapacitated = true
-			save_temp_weapons()
-			enable('main')
-			equip({main = 'Caliburnus'})
-			toggle_weapon_lock(false)
-		else
-			incapacitated = false
-			if temp_weapons then check_weapon() end
-		end
-	end
-	if buff == "terror" or buff == "petrification" or buff == "stun" then
+	if buff == "sleep" or buff == "terror" or buff == "petrification" or buff == "stun" then
 		if gain then
 			incapacitated = true
 		else
@@ -299,7 +284,7 @@ end
 function job_state_change(field, new_value, old_value)
 	if field == 'MainWeapon' then 
 		setup_weapon_keybinds()
-		check_weapon(true)
+		check_weapon()
 	end
 	customize_melee_set()
 end
@@ -312,12 +297,6 @@ function job_self_command(cmdParams, eventArgs)
 		WeaponLock = not WeaponLock
 		toggle_weapon_lock(WeaponLock)
 	end
-end
-
-function save_temp_weapons()
-	temp_weapons = true
-	tempmain = player.equipment.main
-	tempsub = player.equipment.sub
 end
 
 function toggle_weapon_lock(should_enable)

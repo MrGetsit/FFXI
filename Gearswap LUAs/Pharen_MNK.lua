@@ -179,22 +179,28 @@ function job_post_precast(spell, action, spellMap, eventArgs)
 	end
 end
 function customize_melee_set(meleeSet)
+	offense_mode = true
     if state.OffenseMode.value == "Defense" or player.status == 'Idle' or incapacitated then
 		meleeSet = sets.defense
+		offense_mode = false
+	elseif state.OffenseMode.vale == "Hybrid" then
+		meleeSet = sets.hybrid
 	else
 		meleeSet = sets.engaged
     end	
-	if impetus_active then		
-		meleeSet = set_combine(meleeSet, { body = "Bhikku Cyclas +3", ear2 = "Schere earring"})
-	end
-	if footwork_active then		
-		meleeSet = set_combine(meleeSet, { feet = "Anch. Gaiters +4" })
-	end
-	if boost_active then
-		meleeSet = set_combine(meleeSet, { waist = "Ask Sash" })
-	end
-	if hoxne_equipped then
-		meleeSet = set_combine(meleeSet, { back = gear.STPCape })
+	if offense_mode then
+		if impetus_active then		
+			meleeSet = set_combine(meleeSet, { body = "Bhikku Cyclas +3", ear2 = "Schere earring"})
+		end
+		if footwork_active then		
+			meleeSet = set_combine(meleeSet, { feet = "Anch. Gaiters +4" })
+		end
+		if boost_active then
+			meleeSet = set_combine(meleeSet, { waist = "Ask Sash" })
+		end
+		if hoxne_equipped then
+			meleeSet = set_combine(meleeSet, { back = gear.STPCape })
+		end
 	end
 	if weapon_set == 'staff' then
 		meleeSet = set_combine(meleeSet, sets.Staff)
@@ -227,6 +233,7 @@ function setup_weapon_keybinds()
 		send_command('send @all bind !numpad6 send Pharen /HowlingFist') 
 		weapon_text = 'Switched to:  Hand-to-Hand'
 	end
+	customize_melee_set()
 	windower.add_to_chat(209, weapon_text)
 end
 function job_buff_change(buff,gain)

@@ -51,12 +51,12 @@ function init_gear_sets()
 	sets.precast.JA['Afflatus Solace']	= { body 	= "Ebers Bliaut +3" }
 	sets.precast.JA['Divine Benison']	= { body 	= "Ebers Pant. +3" }
 	sets.precast.JA['Divine Caress']	= { body 	= "Ebers Mitts +3" }
-	sets.precast.JA['Divine Veil']		= { head 	= "Ebers Cap +2" }
+	sets.precast.JA['Divine Veil']		= { head 	= "Ebers Cap +3" }
 	sets.precast.JA['Sublimation']		= { waist	= "Embla Sash" }
 	
     sets.precast.FC = {		
 		sub		= "Chanter's Shield",		-- 3%
-		head	= "Ebers Cap +2",			-- 10%
+		head	= "Ebers Cap +3",			-- 10%
 		neck	= "Cleric's Torque +2",		-- 1%
 		ear1	= "Mendicant's Earring",	-- 5%
 		ear2	= "Loquac. Earring",		-- 2%
@@ -85,7 +85,7 @@ function init_gear_sets()
 		legs	= "Ebers Pant. +3",						--		MP Restore on Cure
 		feet	= "Vanya Clogs",						-- 13%
 		})
-	sets.midcast['Healing Magic'] = set_combine(sets.midcast, { head = "Ebers Cap +2" })
+	sets.midcast['Healing Magic'] = set_combine(sets.midcast, { head = "Ebers Cap +3" })
 	sets.midcast['Erase'] = set_combine(sets.midcast, { neck = "Cleric's Torque +2" })	
 	sets.midcast.Regen = set_combine(sets.midcast, {
 		head	= "Inyanga Tiara +2",
@@ -108,7 +108,7 @@ function init_gear_sets()
 	sets.midcast['Auspice'] = set_combine(sets.midcast['Enhancing Magic'], { feet = "Ebers Duckbills +3" })
 	sets.midcast.BarStatus = set_combine(sets.midcast['Enhancing Magic'], { neck = "Sroda Necklace"}) 	
 	sets.midcast.BarElement = set_combine(sets.midcast, {
-		head	= "Ebers Cap +2",
+		head	= "Ebers Cap +3",
 		body	= "Ebers Bliaut +3",
 		hands	= "Ebers Mitts +3",
 		legs	= "Piety Pantaloons +3",
@@ -121,7 +121,7 @@ function init_gear_sets()
     sets.defense = {					-- DT
 		main	= "Queller Rod",		-- Ref
 		ammo  	= "Homiliary",
-		head	= "Ebers Cap +2",
+		head	= "Ebers Cap +3",
 		neck  	= "Null Loop",
 		ear1  	= "Alabaster earring",	-- 5
 		ear2  	= "Flashward Earring",

@@ -146,8 +146,8 @@ function user_setup()
 	else
 		dual_wield = false
 	end	
+	send_command('gs c startup')
 	send_command('wait 5; input /lockstyleset 5')
-	send_command('wait 1; gs c startup')
 end
 
 function user_unload()
