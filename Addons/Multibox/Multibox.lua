@@ -1,13 +1,12 @@
 _addon.author = 'Spikex'
-_addon.version = '0.96'
+_addon.version = '0.98'
 _addon.name = 'Multibox'
 _addon.commands = { 'multibox', 'mb' }
 
 -- Changes: 
--- Fixed followers disengaging when leader disengages
--- Fixed interaction with npcs sometimes spamming after success
--- Continue following waypoints when out of range
--- Removed unused variables
+-- Removed some old comments
+-- Changed Double tap to move interrupt spellcast
+-- Removed teleport message
 
 config = require('config')
 require('sets')
@@ -140,11 +139,12 @@ function change_state(new_state, arg1, arg2, arg3)
 			if moving then stop_moving() end 
 			turn_to_target(windower.ffxi.get_mob_by_name(current_leader))
 			
-			if arg1 then -- Getting new follow order from leader
+			if arg1 and arg2 then -- Getting new follow order from leader
 				new_waypoint = { x = tonumber(arg1), y = tonumber(arg2) }
 				if distance_to(new_waypoint, self) > 40 then return end
 				if arg3 then -- Double tap
 					--print('Double tap follow - clearing waypoints')
+					if casting then casting = false end
 					waypoints = {}
 					move_here = true 
 				end
@@ -444,8 +444,6 @@ windower.register_event('postrender', function()
 			casting = false
 			casting_timeout = 0
 		end
-	else
-		casting_timeout = 0
 	end
 	if current_state == 'follow' then
 		if not current_leader then print('No leader to follow') change_state('stop') return end
@@ -454,11 +452,11 @@ windower.register_event('postrender', function()
 			if last_waypoint then 
 				local distance = distance_to(last_waypoint, self)
 				if distance > 2 then 
-					if distance < 10 then -- Had it at 5 before, seemed to occassionally trigger within server update
+					if distance < 15 then -- Had it at 5 before, seemed to occassionally trigger within server update
 						last_waypoint = { x = self.x, y = self.y }
 						send_new_waypoint(self) 
 					else -- Leader moved too far in a single update
-						windower.send_command('input /party Teleported, stopping '..distance)
+						print('Teleported, stopping '..distance)
 						windower.send_ipc_message('multibox stop '..zone)
 						change_state('stop')
 					end
@@ -500,11 +498,6 @@ windower.register_event('postrender', function()
 			if not waypoints[1] then return end
 			
 			waypoint_distance = distance_to(waypoints[1], self)
-			
-			--if check == 0 then
-			--	print(string.format('WP: %d/%d | Dist: %.2f | Moving: %s | MoveHere: %s', 
-			--	1, #waypoints, waypoint_distance, tostring(moving), tostring(move_here)))
-			--end			
 			
 			if not moving and waypoint_distance < 0.8 then
 				--print('Already at waypoint, removing it ('..#waypoints..' total)')
@@ -554,7 +547,7 @@ windower.register_event('postrender', function()
 						last_checked_distance = waypoint_distance
 					end
 				end
-			elseif not casting then				
+			elseif not casting or move_here then				
 				if waypoint_distance > 0.5 then  -- If we're far enough from the waypoint
 					--print(string.format('Starting movement to WP (%.2f away)', waypoint_distance))
 					if not move_here and #waypoints < 2 then return end
