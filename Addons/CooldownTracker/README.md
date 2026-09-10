@@ -1,5 +1,5 @@
 # Cooldown Tracker
-<img width="182" height="83" alt="CooldownTracker" src="https://github.com/user-attachments/assets/5cbfba8a-a053-44e4-916a-4d199a246b75" />
+<img width="240" height="150" alt="cdt_colored" src="https://github.com/user-attachments/assets/dbbdc02d-3535-43a2-995d-264d52189f89" />
 
 Shows spell and ability recast timers for all multibox characters. Able to filter abilities you don't want to see the timers for.
 
