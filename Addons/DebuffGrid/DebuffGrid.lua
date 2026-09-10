@@ -371,22 +371,7 @@ windower.register_event('incoming chunk', function(id, data)
 	end
 end)
 
--- Update display regularly and handle dragging
-local last_bg_x, last_bg_y = nil, nil
-windower.register_event('prerender', function()
-	-- Check if background was dragged
-	if background then
-		local bg_x, bg_y = background:pos()
-		if last_bg_x ~= bg_x or last_bg_y ~= bg_y then
-			settings.pos.x = bg_x
-			settings.pos.y = bg_y
-			config.save(settings)
-			update_icon_positions()
-			last_bg_x = bg_x
-			last_bg_y = bg_y
-		end
-	end
-	
+windower.register_event('target change', function()
 	update_display()
 end)
 
