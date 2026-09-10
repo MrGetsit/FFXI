@@ -68,13 +68,21 @@ local function get_char_color(char_name)
 end
 
 -- Returns the text box for a character, creating it (with its assigned
--- color, and no background of its own) if it doesn't exist yet
-local function get_char_box(char_name)
+-- color, and no background of its own) if it doesn't exist yet. x, y are
+-- only used at creation time, so a brand-new box starts life already at its
+-- correct stacked position instead of at the default (base_x, base_y) spot
+-- shared by every box -- which is what caused new boxes to flash overlapping
+-- the topmost character for a moment before their first explicit box:pos()
+-- call took effect.
+local function get_char_box(char_name, x, y)
 	local box = char_boxes[char_name]
 	if not box then
 		local box_settings = deep_copy(settings)
+		box_settings.pos.x = x
+		box_settings.pos.y = y
 		box = texts.new('${content}', box_settings)
 		box:bg_visible(false) -- individual boxes rely on the shared container's background
+		box:pad(0) -- no border padding of its own, so stacked heights aren't inflated
 		local color = get_char_color(char_name)
 		box:color(color[1], color[2], color[3])
 		char_boxes[char_name] = box
@@ -135,7 +143,6 @@ function update_display()
 	
 	-- Collect cooldowns grouped by character, removing expired ones
 	local char_content = {}   -- char_name -> formatted content string
-	local char_line_count = {} -- char_name -> number of ability lines
 	local char_names = {}      -- ordered list of characters with active cooldowns
 	
 	for char_name, char_cooldowns in pairs(cooldowns) do
@@ -170,7 +177,6 @@ function update_display()
 			end
 			
 			char_content[char_name] = table.concat(lines, '\n')
-			char_line_count[char_name] = #abilities
 			table.insert(char_names, char_name)
 		end
 	end
@@ -179,6 +185,10 @@ function update_display()
 	table.sort(char_names)
 	
 	if #char_names == 0 then
+		for _, box in pairs(char_boxes) do
+			box.content = ''
+			box:hide()
+		end
 		if container_box then
 			container_box.content = ''
 			container_box:hide()
@@ -186,22 +196,25 @@ function update_display()
 		return
 	end
 	
-	-- Position and populate one box per character, stacked vertically
+	-- Position and populate one box per character, stacked vertically. Each
+	-- box's actual rendered height (not a guessed value) is used to place
+	-- the next one, so the gap between characters matches the gap between
+	-- lines within a character exactly.
 	local base_x, base_y = settings.pos.x, settings.pos.y
-	local line_height = settings.text.size + 4
 	local y_offset = base_y
 	local used = S{}
 	local all_lines = {}
 	
 	for _, char_name in ipairs(char_names) do
-		local box = get_char_box(char_name)
+		local box = get_char_box(char_name, base_x, y_offset)
 		box:pos(base_x, y_offset)
 		box.content = char_content[char_name]
 		box:show()
 		used:add(char_name)
 		table.insert(all_lines, char_content[char_name])
 		
-		y_offset = y_offset + (char_line_count[char_name] * line_height) + settings.padding
+		local _, height = box:extents()
+		y_offset = y_offset + height
 	end
 	
 	-- Hide any character boxes no longer needed
@@ -215,9 +228,13 @@ function update_display()
 	-- Size and show the shared background behind the whole stack. Its content
 	-- mirrors all the lines combined so its background auto-sizes to match,
 	-- but its text stays invisible (alpha 0) so only the color-coded boxes
-	-- drawn on top of it are actually read.
+	-- drawn on top of it are actually read. The background's anchor is offset
+	-- by -padding on both axes: a box's background is anchored at its exact
+	-- pos, while its own text is inset by padding from that pos, so without
+	-- this offset the background would be flush with the text's top-left
+	-- and only show its margin on the bottom-right.
 	local bg_box = container_box
-	bg_box:pos(base_x, base_y)
+	bg_box:pos(base_x - settings.padding, base_y - settings.padding)
 	bg_box.content = table.concat(all_lines, '\n')
 	bg_box:show()
 end
@@ -346,6 +363,7 @@ end
 
 function update_leader(new_leader)
 	if not current_char then return end
+	if current_leader and current_leader == new_leader then return end
 	current_leader = new_leader
 	if current_char == new_leader then
 		windower.send_ipc_message('cooldown '..current_leader)
