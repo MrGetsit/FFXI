@@ -19,9 +19,7 @@ function job_setup()
     info.default_u_ja_ids = S{201, 202, 203, 205, 207}
 	
 	send_command('lua l rolltracker') 
-	send_command('send Spikex lua l rolltracker') 
 	send_command('lua l Skillchains')
-	send_command('lua l Battlemod')
 	windower.send_command('sta !packets on') -- For SendTarget to work
 	
     state.WeaponLock = M(false, 'Weapon Lock')	
@@ -30,12 +28,12 @@ function job_setup()
     state.OffenseMode:options('Hybrid', 'Defense', 'Normal' )
     send_command('bind @w gs c toggle WeaponLock')	
     send_command('bind %capslock gs c cycle WeaponSet')	
-    send_command('bind ~capslock gs c cycle WeaponSetR')		
+    send_command('bind !capslock gs c cycle WeaponSetR')		
     send_command('bind @S gs c cycle OffenseMode')
     send_command('bind ^= gs c cycle treasuremode')
 	
-	engaged_ammo = 'Corsair Bullet'
-	ammo_case = 'Cor. Bull. Pouch'	
+	engaged_ammo = 'Chrono Bullet'
+	ammo_case = 'Fomalhaut'	
 	
 	auto = false
 	autofire = nil
@@ -64,17 +62,16 @@ function user_setup()
 
 	send_command('send @all bind  numpad1 send Sneaksy /SavageBlade ') 
 	send_command('send @all bind  numpad2  sta Sneaksy /LeadenSalute ') 
-	--send_command('send @all bind  numpad3 send Sneaksy /LightShot ') 
+	send_command('send @all bind  numpad3 send Sneaksy /LightShot ') 
 	send_command('send @all bind !numpad1  sta Sneaksy /LastStand ') 
 	send_command('send @all bind !numpad2  sta Sneaksy /HotShot ') 
-	send_command('send @all bind !numpad3 send Sneaksy /LightShot ') 
+	send_command('send @all bind !numpad3 send Sneaksy gs c auto ') 
 	send_command('send @all bind ~numpad1 send Sneaksy /ChaosRoll ') 
 	send_command('send @all bind ~numpad2 send Sneaksy /SamuraiRoll ') 
 	send_command('send @all bind ~numpad3 send Sneaksy /DoubleUp ') 
 	send_command('send @all bind @numpad1 send Sneaksy /CrookedCards ') 
 	send_command('send @all bind @numpad2 send Sneaksy /Fold ') 
 	send_command('send @all bind @numpad3 send Sneaksy /SnakeEye ') 
-	send_command('send @all bind  numpad3 send Sneaksy gs c auto ') 
 	
 	if player.sub_job == 'DNC' then
 		send_command('send @all bind ^numpad1  sta Sneaksy /HealingWaltz <stpc> ') 
@@ -123,6 +120,8 @@ function init_gear_sets()
     sets.precast.JA['Allies\' Roll'] 	= { hands = "Chasseur's Gants +3" 	}
     sets.precast.JA['Caster\'s Roll'] 	= { legs  = "Chasseur's Culottes" 	}
     sets.precast.JA['Courser\'s Roll'] 	= { feet  = "Chasseur's Bottes" 	}
+    sets.precast.JA['Random Deal'] 		= { chest = "Lanun Frac +4" 		}
+    sets.precast.JA['Snake Eye'] 		= { legs  = "Lanun Trews +4" 		}
     sets.precast.JA['Wild Card'] 		= { feet  = "Lanun Bottes +4" 		}
     sets.precast.Waltz = { head="Mummu Bonnet +2", feet="Rawhide Boots" }	
 	
@@ -166,6 +165,21 @@ function init_gear_sets()
 		waist	= "Eschan Stone",  
 		legs	= "Nyame Flanchard",  	
 		feet 	= "Lanun bottes +4",
+		}    
+	sets.precast.WS['Last Stand'] = { 
+		ammo	= "Chrono Bullet",
+		head	= "Clemen. Somen",
+		neck	= "Null Loop",
+		ear1	= "Telos Earring",
+		ear2	= "Crepuscular Earring",
+		body	= "Laksa. frac +4",
+		hands	= "Chasseur's Gants +3",
+		ring1	= "Cornelia's Ring",
+		ring2	= "Crepuscular Ring",
+		back	= gear.CapeAGI,
+		waist	= "Null Belt",  
+		legs	= "Lanun Trews +4",  	
+		feet 	= "Malignance boots",
 		}
     sets.precast.WS['Leaden Salute'] = set_combine(sets.precast.WS, {
 		head 	= "Pixie Hairpin +1",
@@ -272,8 +286,22 @@ end
 function job_buff_change(buff,gain)
     if buff == "terror" or buff == "petrification" or buff == "stun" then
         if gain then
-            equip(sets.defense)
+            incapacitated = true
+		else
+			incapacitated = false
         end
+	elseif buff == "sleep" then
+		if gain then
+			incapacitated = true
+			enable('range')
+			equip({range = 'Prime Gun'})
+			disable('range')
+			return
+		else
+			incapacitated = false
+			enable('range')
+			customize_melee_set()
+		end
     elseif buff == "doom" then
         if gain then
             equip(sets.buff.Doom)
@@ -320,6 +348,7 @@ function job_post_pretarget(spell, action, spellMap, eventArgs)
 		end
 	end
 end
+
 function job_post_precast(spell, action, spellMap, eventArgs)
 	if spell.type == "WeaponSkill" then
 		if (state.WeaponSetR.current == 'WS' and player.tp <= 2750) 
@@ -328,24 +357,30 @@ function job_post_precast(spell, action, spellMap, eventArgs)
 		end
 	end
 end
+
 function customize_melee_set(meleeSet)
-    equip(sets[state.WeaponSet.current])
-    equip(sets[state.WeaponSetR.current])
-    if state.OffenseMode.value == "Defense" then
+    if state.OffenseMode.value == "Defense" or incapacitated then
 		meleeSet = sets.defense
 	elseif state.OffenseMode.value == "Hybrid" then
 		meleeSet = sets.hybrid
+	else
+		meleeSet = sets.engaged
     end	
-    return meleeSet
+	if not state.WeaponLock.value then
+        meleeSet = set_combine(meleeSet, sets[state.WeaponSet.current])
+        meleeSet = set_combine(meleeSet, sets[state.WeaponSetR.current])
+	end
+	
+    equip(meleeSet)
 end
 
 function job_aftercast(spell, action, spellMap, eventArgs)	
 	if player.equipment.ammo == 'Hauksbok Bullet' then
 		equip({ammo="empty"})
 	end
-    equip(sets[state.WeaponSet.current])
-    equip(sets[state.WeaponSetR.current])
+    customize_melee_set()
 end
+
 function job_state_change(field, new_value, old_value)
     if state.WeaponLock.value == true then
         disable('main','sub')
@@ -365,12 +400,11 @@ function job_state_change(field, new_value, old_value)
 		send_command('send @all bind  numpad1 send Sneaksy /AeolianEdge ') 
 		send_command('send @all bind !numpad1  sta Sneaksy /Evisceration ') 
 	end
-    equip(sets[state.WeaponSet.current])
-    equip(sets[state.WeaponSetR.current])
+    customize_melee_set()
 end
+
 function job_update(cmdParams, eventArgs)
-    equip(sets[state.WeaponSet.current])
-    equip(sets[state.WeaponSetR.current])
+    customize_melee_set()
 end
 
 function th_action_check(category, param)
@@ -438,30 +472,5 @@ function stop_shooting()
 		windower.add_to_chat(160, 'Autofire Off')
 		windower.unregister_event(autofire)
 		autofire = nil
-	end
-end
-function tprint(tbl, indent)
-	if not indent then indent = 0 end
-	local spaces = string.rep("  ", indent) -- Use two spaces for indentation
-
-	for k, v in pairs(tbl) do
-		local key_str
-		if type(k) == "number" then
-			key_str = "[" .. k .. "]"
-		else
-			key_str = "['" .. k .. "']"
-		end
-
-		if type(v) == "table" then
-		   print(2, spaces .. key_str .. " = {") 
-			tprint(v, indent + 1)
-		   print(2, spaces .. "}")
-		else
-			local value_str = tostring(v)
-			if type(v) == "string" then
-				value_str = "'" .. value_str .. "'"
-			end
-			print(2, spaces .. key_str .. " = " .. value_str .. ",")
-		end
 	end
 end

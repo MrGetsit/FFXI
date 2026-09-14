@@ -4,6 +4,7 @@ function get_sets()
 end
 function job_setup()	
 	send_command('lua l Skillchains')
+	send_command('lua l Gnosis')
 	windower.send_command('sta !packets on') -- For SendTarget to work	
     state.OffenseMode:options('Normal', 'Defense')
     send_command('bind @S gs c cycle OffenseMode')
@@ -25,12 +26,11 @@ function user_setup()
 	send_command('send @all bind ~numpad6 send Pharen exec MonkDBuffs.txt') 
 	send_command('send @all bind ^numpad4 send Pharen /Counterstance') 
 	send_command('send @all bind ^numpad5 send Pharen /Impetus') 
-	send_command('send @all bind ^numpad6 send Pharen exec MonkOBuffs.txt') 
-	
+	send_command('send @all bind ^numpad6 send Pharen exec MonkOBuffs.txt') 	
 	send_command('send @all bind %pageup send Pharen /ChiBlast ') 
-	send_command('wait 5; input /lockstyle on') 
+	
+	send_command('wait 5; input /lockstyle on')
 	setup_weapon_keybinds()
-	customize_melee_set()
 end
 
 function init_gear_sets()
@@ -168,9 +168,9 @@ function job_self_command(cmdParams, eventArgs)
 			weapon_set = 'h2h'
 		end
 		setup_weapon_keybinds()
-		customize_melee_set()
 	end
 end
+
 function job_post_precast(spell, action, spellMap, eventArgs)
 	if spell.type == 'WeaponSkill' then
 		if hoxne_equipped then
@@ -179,28 +179,22 @@ function job_post_precast(spell, action, spellMap, eventArgs)
 	end
 end
 function customize_melee_set(meleeSet)
-	offense_mode = true
     if state.OffenseMode.value == "Defense" or player.status == 'Idle' or incapacitated then
 		meleeSet = sets.defense
-		offense_mode = false
-	elseif state.OffenseMode.vale == "Hybrid" then
-		meleeSet = sets.hybrid
 	else
 		meleeSet = sets.engaged
     end	
-	if offense_mode then
-		if impetus_active then		
-			meleeSet = set_combine(meleeSet, { body = "Bhikku Cyclas +3", ear2 = "Schere earring"})
-		end
-		if footwork_active then		
-			meleeSet = set_combine(meleeSet, { feet = "Anch. Gaiters +4" })
-		end
-		if boost_active then
-			meleeSet = set_combine(meleeSet, { waist = "Ask Sash" })
-		end
-		if hoxne_equipped then
-			meleeSet = set_combine(meleeSet, { back = gear.STPCape })
-		end
+	if impetus_active then		
+		meleeSet = set_combine(meleeSet, { body = "Bhikku Cyclas +3", ear2 = "Schere earring"})
+	end
+	if footwork_active then		
+		meleeSet = set_combine(meleeSet, { feet = "Anch. Gaiters +4" })
+	end
+	if boost_active then
+		meleeSet = set_combine(meleeSet, { waist = "Ask Sash" })
+	end
+	if hoxne_equipped then
+		meleeSet = set_combine(meleeSet, { back = gear.STPCape })
 	end
 	if weapon_set == 'staff' then
 		meleeSet = set_combine(meleeSet, sets.Staff)
@@ -222,7 +216,7 @@ end
 function setup_weapon_keybinds()
 	if weapon_set == 'staff' then
 		send_command('send @all bind numpad4 send Pharen /ShellCrusher')
-		send_command('send @all bind numpad5 send Pharen /Cataclysm') 
+		send_command('send @all bind numpad5 send Pharen /Shattersoul') 
 		weapon_text = 'Switched to:  Staff'
 		
 	else
@@ -243,6 +237,17 @@ function job_buff_change(buff,gain)
 		else
             incapacitated = false
         end
+	elseif buff == "sleep" then
+		if gain then
+			incapacitated = true
+			enable('main')
+			equip({main = 'Varga Purnikawa'})
+			disable('main')
+			return
+		else
+			incapacitated = false
+			enable('main')
+		end
     elseif buff == "doom" then
         if gain then
             equip(sets.buff.Doom)

@@ -141,6 +141,8 @@ function user_setup()
 		send_command('send @all bind ^numpad9  sta Cissilea Silence <stnpc>') 
 	elseif player.sub_job == 'SCH' then
 		send_command('lua l StratagemCounter')
+		send_command('send @all alias la send Cissilea LightArts') 
+		send_command('send @all alias aw send Cissilea AddendumWhite') 
 		send_command('send @all bind ^numpad7 send Cissilea gs c sleep') 
 		send_command('send @all bind ^numpad8  sta Cissilea Windstorm <stpc>') 
 		send_command('send @all bind ^numpad9 send Cissilea gs c aoecure') 
@@ -163,13 +165,17 @@ function init_gear_sets()
 	sets.precast.JA['Bolster'] = { body = "Bagua Tunic" }
 	
     sets.precast.FC = {
-		head	= "Nahtirah Hat",
-		neck	= "Orunmila's Torque",
-		ring1 	= "Kishar Ring",
-		ring2 	= "Jhakri Ring",
-		legs	= "Geomancy Pants +2",
-		feet  	= "Jhakri Pigaches +2",
-		back	= gear.FCcape,
+		head	= "Welkin crown",		-- 7
+		neck	= "Orunmila's Torque",	-- 5
+		ear1  	= "Malignance Earring",	-- 4
+		body  	= "Jhakri Robe +2",		-- 3
+		hands 	= "Jhakri Cuffs +2",	-- 3
+		ring1 	= "Kishar Ring",		-- 4
+		ring2 	= "Jhakri Ring",		-- 3
+		waist 	= "Plat. Mog. Belt",
+		back	= gear.FCcape,			-- 10
+		legs	= "Geomancy Pants +2",	-- 13
+		feet  	= "Jhakri Pigaches +2",	-- 3
 		}
 	sets.precast.FC['Elemental Magic'] = set_combine(sets.precast.FC, {
 		head  	= "Mallquis Chapeau +1",
@@ -208,15 +214,16 @@ function init_gear_sets()
     sets.midcast['Elemental Magic'] = set_combine(sets.midcast, {
 		head  	= "Azimuth hood +3",
 		neck	= "Mizu. Kubikazari",
-		ear1  	= "Static Earring",
+		ear1  	= "Crepuscular Earring",
 		ear2  	= "Friomisi Earring",
 		body  	= "Azimuth Coat +3",
 		hands 	= "Jhakri cuffs +2",
 		legs  	= "Jhakri Slops +2",
 		feet  	= "Jhakri Pigaches +2",
-		ring1	= "Mallquis Ring",
+		ring1	= "Adoulin Ring",
 		ring2	= "Jhakri ring",
-		back	= gear.MDcape,
+		back	= "Null Shawl",
+		waist 	= "Null Belt",
 		})
 		
 	sets.midcast['Enfeebling Magic'] = set_combine(sets.midcast, {

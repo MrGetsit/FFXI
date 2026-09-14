@@ -8,9 +8,7 @@ function job_setup()
 	send_command('lua u debuffed')
 	send_command('lua l debuffgrid')
 	send_command('lua l Skillchains')
-	send_command('lua l SpamFilter')
-	send_command('lua l PartyBuffs')
-	send_command('lua l Dressup')
+	send_command('lua l Battlemod')
 	
 	rune_enchantments = S{'Lux','Tenebrae', 'Ignis', 'Gelus', 'Flabra', 'Tellus', 'Sulpor', 'Unda' }
 	barstatus = S{'Baramnesia', 'Barvirus', 'Barparalyze', 'Barsilence', 'Barpetrify', 'Barpoison', 'Barblind', 'Barsleep'} 
@@ -20,8 +18,18 @@ function job_setup()
 	state.Immunobreak = M(false, 'Immunobreak')	
 	state.OffenseMode:options('Normal', 'Defense', 'Hybrid')
 	
-	state.MainWeapon = M{'Naegling', 'Crocea Mors', 'Maxentius', 'Tauret' }
-	state.SubWeapon = M{'Thibron', 'Daybreak' }
+	weapon_sets = {
+		Physical = {
+			A = { main = 'Naegling',	sub = 'Thibron' },
+			B = { main = 'Maxentius',	sub = 'Thibron' },
+		},
+		Magical = {
+			A = { main = 'Crocea Mors',	sub = 'Daybreak' },
+			B = { main = 'Tauret',		sub = 'Thibron' },
+		},
+	}
+	state.WeaponType = M{['description']='Weapon Type', 'Physical', 'Magical'}
+	state.WeaponSet  = M{['description']='Weapon Set', 'A', 'B'}
 	
 	weapon_lock_display = texts.new('LOCKED', {
 		pos = {x = 1140, y = 358},
@@ -49,8 +57,8 @@ function job_setup()
 	send_command('bind @w gs c lock')
 	send_command('bind @e gs c toggle Immunobreak')
 	send_command('bind @h gs c toggle_hoxne')
-	send_command('bind capslock gs c cycle MainWeapon')
-	send_command('bind !capslock gs c cycle SubWeapon')
+	send_command('bind capslock  gs c cycle WeaponSet')
+	send_command('bind !capslock gs c cycle WeaponType')
 	send_command('bind @S gs c cycle OffenseMode')
 	
 	dual_wield = false
@@ -78,6 +86,9 @@ function user_setup()
 	send_command('alias b5 /Blizzard5')
 	send_command('alias t5 /Thunder5')
 	
+	send_command('alias ss4 sta @all /Stone4 <t>')
+	send_command('alias ss5 sta @all /Stone5 <t>')
+	
 	setup_weapon_keybinds()
 	send_command('send @all bind %3   sta Spikex /SanguineBlade')
 	send_command('send @all bind !3   sta Spikex /CircleBlade')
@@ -89,7 +100,7 @@ function user_setup()
 	send_command('send @all bind ~%5  sta Spikex /Regen2 <stpc>')
 	send_command('send @all bind %6   sta Spikex /Refresh3 <stpc>')
 	send_command('send @all bind ~%1 send Spikex /Temper2')
-	send_command('send @all bind ~%2 send Spikex /Phalanx')
+	send_command('send @all bind ~%2 send Spikex /Phalanx2 Spikex')
 	send_command('send @all bind ^%2  sta Spikex /Phalanx2 <stpc>')
 	send_command('send @all bind ~%3 send Spikex /GainStr')
 	send_command('send @all bind ~%4 send Spikex gs c enspell')
@@ -141,13 +152,12 @@ function user_setup()
 		send_command('send @all bind !x  send Spikex /UtsusemiIchi')
 		send_command('send @all bind %c  send Spikex gs c spam')
 	end
-	if player.sub_job == 'NIN' or player.sub_job == 'DNC' then
+	if player.sub_job and player.sub_job_level >= 20 and (player.sub_job == 'NIN' or player.sub_job == 'DNC') then
 		dual_wield = true
 	else
 		dual_wield = false
 	end	
 	send_command('gs c startup')
-	send_command('wait 5; input /lockstyleset 5')
 end
 
 function user_unload()
@@ -158,15 +168,15 @@ function user_unload()
 end
 
 function init_gear_sets()
-	--- Gear Sets ---
-	sets.Immunobreak =	{ legs = "Chironic Hose" }
-	
-	gear.CapeMND 	= { name="Sucellos's Cape", augments={'MND+20','Mag. Acc+20 /Mag. Dmg.+20','MND+10','"Fast Cast"+10','Phys. dmg. taken-10%',} }
-	gear.CapeINT 	= { name="Sucellos's Cape", augments={'INT+20','Mag. Acc+20 /Mag. Dmg.+20','INT+10','"Mag.Atk.Bns."+10',} }
-	gear.CapeIWS 	= { name="Sucellos's Cape", augments={'INT+20','Mag. Acc+20 /Mag. Dmg.+20','INT+10','Weapon skill damage +10%',} }
-	gear.CapeSWS 	= { name="Sucellos's Cape", augments={'STR+20','Accuracy+20 Attack+20','STR+10','Weapon skill damage +10%',} }
-	gear.CapeDW 	= { name="Sucellos's Cape", augments={'DEX+20','Accuracy+20 Attack+20','Accuracy+10','"Dual Wield"+10','Phys. dmg. taken-10%',} }
-	gear.Obi 		= { waist = "Hachirin-no-Obi" }
+	--- Gear Sets ---	
+	gear.Shield		= { sub = "Diamond Aspis" }
+	gear.CapeMND 	= { name = "Sucellos's Cape", augments={'MND+20','Mag. Acc+20 /Mag. Dmg.+20','MND+10','"Fast Cast"+10','Phys. dmg. taken-10%',} }
+	gear.CapeINT 	= { name = "Sucellos's Cape", augments={'INT+20','Mag. Acc+20 /Mag. Dmg.+20','INT+10','"Mag.Atk.Bns."+10',} }
+	gear.CapeIWS 	= { name = "Sucellos's Cape", augments={'INT+20','Mag. Acc+20 /Mag. Dmg.+20','INT+10','Weapon skill damage +10%',} }
+	gear.CapeSWS 	= { name = "Sucellos's Cape", augments={'STR+20','Accuracy+20 Attack+20','STR+10','Weapon skill damage +10%',} }
+	gear.CapeDW 	= { name = "Sucellos's Cape", augments={'DEX+20','Accuracy+20 Attack+20','Accuracy+10','"Dual Wield"+10','Phys. dmg. taken-10%',} }
+	gear.Obi 		= { waist= "Hachirin-no-Obi" }
+	gear.Immunobreak= { legs = "Chironic Hose" }
 	
 	--- Precast Sets ---
 	sets.precast.JA['Chainspell']	= { body="Viti. Tabard +4" }
@@ -418,19 +428,20 @@ function init_gear_sets()
 	sets.midcast['Inundation'] = sets.midcast.EnfAcc
 	
 	sets.midcast['Enhancing Magic'] = {
+		sub		= "Ammurapi Shield",	-- 10
 		ammo	= "Homiliary",
 		head	= "Leth. Chappel +3",	-- 10
-		neck	= "Dls. Torque +2",		-- 17/25
+		neck	= "Dls. Torque +2",		-- 25
 		ear1	= "Alabaster Earring",
 		ear2	= "Lethargy Earring",	-- 7/9
 		body	= "Lethargy Sayon +3",	-- 10
 		hands	= "Atro. Gloves +4", 	-- 20
 		ring1	= "Eihwaz Ring",		-- HP
 		ring2	= "Etana Ring",			-- HP
-		back 	= "Ghostfyre Cape",		-- 16 / 20*
+		back 	= "Ghostfyre Cape",		-- 20
 		waist	= "Embla Sash",			-- 10
 		legs	= "Leth. Fuseau +3",	-- 10
-		feet	= "Leth. Houseaux +3",	-- 40 + 15
+		feet	= "Leth. Houseaux +3",	-- 55
 		}
 	sets.midcast.EnhSkill = { 			-- 700	2624 HP Temper/2, Enspells
 		main	= "Pukulatmuj +1",		-- 10
@@ -449,7 +460,7 @@ function init_gear_sets()
 		legs	= "Atrophy Tights +4", 	-- 22 / 22
 		feet  	= "Leth. Houseaux +3",	-- 35
 		}
-	sets.midcast.PhalanxSelf = {		-- 2593 HP
+	sets.midcast.Phalanx = {			-- 2593 HP
 		main	= "Sakpata's Sword",	-- +5
 		sub		= "Deacon Sword",		-- +4
 		ammo	= "Homiliary",
@@ -465,21 +476,6 @@ function init_gear_sets()
 		waist	= "Embla Sash",
 		legs	= "Chironic Hose", 		-- +4
 		feet	= "Taeon Boots",		-- +3
-		}
-	sets.midcast.PhalanxOther = { 		-- 2544 HP
-		ammo	= "Homiliary",
-		head	= "Leth. Chappel +3",
-		neck	= "Dls. Torque +2",
-		ear1	= "Alabaster Earring",
-		ear2	= "Lethargy Earring",
-		body	= "Lethargy Sayon +3",
-		hands	= "Atro. Gloves +4",
-		ring1	= "Eihwaz Ring",		-- HP
-		ring2	= "Etana Ring",			-- HP
-		back	= "Ghostfyre Cape",		-- 9 / 10
-		waist	= "Embla Sash",			-- 10
-		legs	= "Leth. Fuseau +3",
-		feet	= "Leth. Houseaux +3",
 		}
 	sets.midcast.SelfProt = set_combine(sets.midcast['Enhancing Magic'], {
 		ear1	= "Brachyura Earring", })
@@ -562,10 +558,6 @@ function init_gear_sets()
 		legs	= "Malignance Tights",
 		feet	= "Malignance Boots",
 		}
-	sets.hoxne = {
-		ammo	= "Hoxne Ampulla",
-		waist	= "Plat. Mog. Belt",
-		}
 	sets.defense = {
 		ammo	= "Staunch Tathlum",
 		head	= "Null Masque",		-- 10
@@ -583,6 +575,8 @@ function init_gear_sets()
 		}
 		
 	--- Other Sets ---
+	sets.DW = {	back = gear.CapeDW,	}
+	sets.hoxne = { ammo = "Hoxne Ampulla", waist = "Plat. Mog. Belt", }
 	sets.idle = sets.defense
 	
 	sets.buff.Doom = {
@@ -593,81 +587,96 @@ function init_gear_sets()
 	}
 end
 
+function current_weapon()
+	return weapon_sets[state.WeaponType.value][state.WeaponSet.value]
+end
+
 function setup_weapon_keybinds()
-	local main = state.MainWeapon.value
+	local main = current_weapon().main
 	
 	if main == 'Naegling' then
 		send_command('send @all bind %1 send Spikex /SavageBlade')
 		send_command('send @all bind %2 send Spikex /ChantDuCygne')
 		send_command('send @all bind !1 send Spikex /RedLotusBlade')
 		send_command('send @all bind !2 send Spikex /SeraphBlade')
-		weapon_text = 'Switched to:  Naegling'
 	
 	elseif main == 'Crocea Mors' then
 		send_command('send @all bind %1 send Spikex /RedLotusBlade')
 		send_command('send @all bind %2 send Spikex /SeraphBlade')
 		send_command('send @all bind !1 send Spikex /SavageBlade')
 		send_command('send @all bind !2 send Spikex /ChantDuCygne')
-		weapon_text = 'Switched to:  Crocea Mors'
 	
 	elseif main == 'Maxentius' then
 		send_command('send @all bind %1 send Spikex /BlackHalo')
-		weapon_text = 'Switched to:  Maxentius'
 	
 	elseif main == 'Tauret' then
 		send_command('send @all bind %1 send Spikex /Evisceration')
 		send_command('send @all bind %2 send Spikex /AeolianEdge')
-		weapon_text = 'Switched to:  Tauret'
 	end
-	--windower.add_to_chat(209, weapon_text)
-end
-function check_weapon()
-	if temp_weapons then
-		enable('main','sub')
-		equip({main = tempmain, sub = tempsub})
-		toggle_weapon_lock(true)
-		temp_weapons = false
-		return
-	end
-
-	if WeaponLock then return end
-
-	local main_matches = player.equipment.main == state.MainWeapon.value
-	local sub_matches = dual_wield and (player.equipment.sub == state.SubWeapon.value)
-	
-	if not main_matches or not sub_matches then
-		toggle_weapon_lock(false)
-		if dual_wield then
-			equip({main = state.MainWeapon.value, sub = state.SubWeapon.value})
-		else
-			equip({main = state.MainWeapon.value, sub = 'Diamond Aspis'})
-		end
-	end	
 end
 
 function customize_melee_set()
 	if state.OffenseMode.value == "Defense" or
 	player.status == 'Idle' or incapacitated then
-		equip(sets.defense)		
+		meleeSet = sets.defense
 	elseif state.OffenseMode.value == "Hybrid" then
 		if dual_wield then
-			equip(set_combine(sets.hybrid, sets.DW))
+			meleeSet = set_combine(sets.hybrid, sets.DW)
 		else
-			equip(sets.hybrid)
+			meleeSet = sets.hybrid
 		end
 	else
 		if dual_wield then
-			dwset = set_combine(sets.engaged, { back = gear.CapeDW })
-			if hoxne_equipped then
-				equip(set_combine(dwset, sets.hoxne))
-			else
-				equip(dwset)
-			end
+			meleeSet = set_combine(sets.engaged, sets.DW)
 		else
-			equip(sets.engaged)
+			meleeSet = sets.engaged
 		end
 	end
-	if not incapacitated then check_weapon() end
+	if hoxne_equipped then
+		meleeSet = set_combine(meleeSet, sets.hoxne)
+	end
+	if not incapacitated then 
+		local weapon_update = check_weapon()
+		if weapon_update then
+			meleeSet = set_combine(meleeSet, weapon_update)
+		end
+	end
+	
+	equip(meleeSet)
+	
+	if temp_weapons then
+		temp_weapons = false
+		toggle_weapon_lock(true)
+	end
+end
+
+function check_weapon(EquipSet)
+	local WeaponUpdate = nil
+	if temp_weapons then
+		enable('main','sub')
+		WeaponUpdate = {main = tempmain, sub = tempsub}
+	end
+
+	if not WeaponLock then
+		local weapon = current_weapon()
+		local main_matches = player.equipment.main == weapon.main
+		local sub_matches = player.equipment.sub == weapon.sub
+		
+		if not main_matches or not sub_matches then
+			toggle_weapon_lock(false)
+			if dual_wield then
+				WeaponUpdate = {main = weapon.main, sub = weapon.sub}
+			else
+				WeaponUpdate = {main = weapon.main, sub = gear.Shield}
+			end
+		end
+	end
+	
+	if WeaponUpdate then 
+		return WeaponUpdate
+	else 
+		return false 
+	end
 end
 
 function job_buff_change(buff,gain)
@@ -696,7 +705,7 @@ function job_buff_change(buff,gain)
 			return
 		else
 			incapacitated = false
-			if temp_weapons then check_weapon() end
+			customize_melee_set()
 		end
 	end
 	if buff == "terror" or buff == "petrification" or buff == "stun" then
@@ -705,6 +714,7 @@ function job_buff_change(buff,gain)
 		else
 			incapacitated = false
 		end
+		customize_melee_set()
 	elseif buff == "silence" then
 		if gain then
 			send_command('@input /p Silenced.')
@@ -714,30 +724,22 @@ function job_buff_change(buff,gain)
 			silenced = false
 		end
 	end
-	customize_melee_set()
 end
 
 function job_post_pretarget(spell, action, spellMap, eventArgs)
-	if incapacitated or midaction() then
-		cancel_spell()
-		eventArgs.handled = true
-		return
-	end	
-	
 	cancel = false	
-	if spell.action_type == 'Magic' then -- Don't change gear on CD
+	if incapacitated or midaction() then
+		cancel = true
+	elseif spell.action_type == 'Magic' then -- Don't change gear on CD
 		local recast = windower.ffxi.get_spell_recasts()[spell.recast_id]
-		if recast and recast >= 1 then 
-			cancel_spell()
-			eventArgs.handled = true
-			return
-		end		
+		if recast and recast >= 1 then cancel = true end		
 	elseif spell.type == 'WeaponSkill' then
 		if player.tp <= 1000 then cancel = true	end
 	end
-	
-	if WeaponLock then
-		disable('main','sub','range')
+	if cancel then
+		cancel_spell()
+		eventArgs.handled = true
+		return
 	end
 end
 
@@ -756,7 +758,7 @@ function job_post_precast(spell, action, spellMap, eventArgs)
 end
 
 function job_post_midcast(spell, action, spellMap, eventArgs)
-	local midcast_update = nil
+	midcast_update = nil
 	if spell.action_type == 'Magic' then
 		if spell.skill == 'Enhancing Magic' then
 			if spell.english:startswith('Gain') then
@@ -764,33 +766,23 @@ function job_post_midcast(spell, action, spellMap, eventArgs)
 			
 			elseif spell.english:startswith('Temper') or 
 			spell.english:startswith('En') then
-				if WeaponLock then
-					save_temp_weapons()
-					toggle_weapon_lock(false)
-				end
+				if WeaponLock then save_temp_weapons() end
 				midcast_update = sets.midcast.EnhSkill
 			
-			elseif spell.target.type == 'SELF' and
-			(spell.english:startswith('Shell') or 
-			spell.english:startswith('Protect')) then
-				midcast_update = sets.midcast.SelfProt
+			elseif spell.target.type == 'SELF' then
+				if (spell.english:startswith('Shell') or 
+				spell.english:startswith('Protect')) then
+					midcast_update = sets.midcast.SelfProt
 				
-			elseif spell.english:startswith('Phalanx') then
-				if spell.target.type == 'SELF' then
-					if WeaponLock then
-						save_temp_weapons()
-						toggle_weapon_lock(false)
-					end
-					midcast_update = sets.midcast.PhalanxSelf
-				else
-					midcast_update = sets.midcast.PhalanxOther
+				elseif spell.english:startswith('Phalanx') then
+					midcast_update = sets.midcast.Phalanx
 				end
 			elseif barstatus:contains(spell.english) then
 				midcast_update = sets.midcast.BarStatus
 			end
 		elseif spell.skill == 'Enfeebling Magic' then
 			if state.Immunobreak.value == true then
-				midcast_update = sets.Immunobreak
+				midcast_update = gear.Immunobreak
 			end
 		elseif spell.english:startswith('Cure') then
 			if world.weather_element == 'Light' or 
@@ -842,28 +834,26 @@ function job_aftercast(spell)
 			casting_impact = false
 		end
 	end
-	check_weapon()
-	--coroutine.schedule(function() check_weapon(3) end, 3)
-end
-
-function job_state_change(field, new_value, old_value)
-	if field == 'MainWeapon' or field == 'SubWeapon' then 
-		setup_weapon_keybinds()
-		if WeaponLock then toggle_weapon_lock(false) end
-		check_weapon()
-	end
 	customize_melee_set()
 end
 
-function job_self_command(cmdParams, eventArgs)
-	if cmdParams[1]:lower() == 'rune' then
-		send_command('@input /ja '..state.Runes.value..' <me>')
-	
-	elseif cmdParams[1]:lower() == 'startup' then
+function job_state_change(field, new_value, old_value)
+	if field == 'Weapon Type' or field == 'Weapon Set' then 
+		if field == 'Weapon Type' then
+			state.WeaponSet:set('A')
+		end
+		setup_weapon_keybinds()
+		if WeaponLock then toggle_weapon_lock(false) end
 		customize_melee_set()
-		check_weapon()
+	end
+end
+
+function job_self_command(cmdParams, eventArgs)	
+	if cmdParams[1]:lower() == 'startup' then
+		customize_melee_set()
 		send_command('wait 3; gs c lock')
-	
+		send_command('wait 5; input /lockstyleset 5')
+		
 	elseif cmdParams[1]:lower() == 'toggle_hoxne' then
 		if hoxne_equipped then
 			enable('range', 'ammo')
@@ -920,13 +910,11 @@ function job_self_command(cmdParams, eventArgs)
 		end	
 	elseif cmdParams[1]:lower() == 'spam' then	
 		if cycle == 0 then
-			send_command('b5')
+			send_command('s5')
 		elseif cycle == 1 then
-			send_command('f5')
-		elseif cycle == 2 then
-			send_command('a5')
-		else 
-			send_command('t5')
+			send_command('s4')
+		else
+			send_command('s3')
 			cycle = 0
 			return
 		end
@@ -935,7 +923,10 @@ function job_self_command(cmdParams, eventArgs)
 	elseif cmdParams[1]:lower() == 'lock' then
 		WeaponLock = not WeaponLock
 		toggle_weapon_lock(WeaponLock)
-		if not WeaponLock then equip({main = state.MainWeapon.value, sub = state.SubWeapon.value}) end
+		if not WeaponLock then customize_melee_set() end
+		
+	elseif cmdParams[1]:lower() == 'rune' then
+		send_command('@input /ja '..state.Runes.value..' <me>')
 	end
 end
 
@@ -955,6 +946,7 @@ function save_temp_weapons()
 	temp_weapons = true
 	tempmain = player.equipment.main
 	tempsub = player.equipment.sub
+	toggle_weapon_lock(false)
 end
 
 function toggle_weapon_lock(should_enable)

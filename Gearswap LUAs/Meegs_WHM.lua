@@ -5,11 +5,12 @@ end
 
 function job_setup()	
 	windower.send_command('sta !packets on') -- For SendTarget to work
+	send_command('lua l spamfilter')
 	
 	barstatus = S{'Baramnesra', 'Barvira', 'Barparalyzra', 'Barsilencera', 'Barpetra', 'Barpoisonra', 'Barblindra', 'Barsleepra'} 
 	
     state.WeaponLock = M(false, 'Weapon Lock')	
-	state.WeaponSet = M{['description']='Weapon Set', 'Heal', 'DPS'}
+	state.WeaponSet = M{['description']='Weapon Set', 'DPS', 'Heal'}
     state.OffenseMode:options('Defense', 'Normal')
     send_command('bind @w gs c toggle WeaponLock')	
     send_command('bind %capslock gs c cycle WeaponSet')	
@@ -33,13 +34,14 @@ function user_setup()
 	send_command('send @all alias sac send Meegs gs c spam Sacrosanctity') 
 	send_command('send @all alias asy send Meegs gs c spam Asylum') 
 	
+	customize_melee_set()
 	send_command('wait 5; input /lockstyleset 1')
 end
 
 function init_gear_sets()
     --- Weapon Sets ---
-    sets.Heal 	= 	{ main="Queller Rod", sub="Ammurapi Shield"}
     sets.DPS 	= 	{ main="Kaja Rod", sub="Ammurapi Shield"}
+    sets.Heal 	= 	{ main="Queller Rod", sub="Culminus"}
 	
 	gear.HeadCP = { name="Vanya Hood", augments={'MP+50','"Cure" potency +7%','Enmity-6'} }
 	gear.HeadFC = { name="Vanya Hood", augments={'MP+50','"Fast Cast"+10','Haste+2%'} }
@@ -54,24 +56,30 @@ function init_gear_sets()
 	sets.precast.JA['Divine Veil']		= { head 	= "Ebers Cap +3" }
 	sets.precast.JA['Sublimation']		= { waist	= "Embla Sash" }
 	
-    sets.precast.FC = {		
+    sets.precast.FC = {						-- 55%
 		sub		= "Chanter's Shield",		-- 3%
-		head	= "Ebers Cap +3",			-- 10%
+		head	= "Ebers Cap +3",			-- 13%
 		neck	= "Cleric's Torque +2",		-- 1%
-		ear1	= "Mendicant's Earring",	-- 5%
+		ear1  	= "Alabaster earring",
 		ear2	= "Loquac. Earring",		-- 2%
 		body	= "Inyanga Jubbah +2",		-- 14%
+		ring1	= "Gelatinous Ring",
+		ring2	= "Naji's Ring",			-- 1%
 		back  	= gear.CapeFC,				-- 10%
 		waist 	= "Embla Sash",				-- 5%
 		legs	= "Ayanmo cosciales +2",	-- 6%
 		}
 
-	sets.precast.FC['Healing Magic'] = set_combine(sets.precast.FC, { legs = "Ebers Pant. +3" })	
+	sets.precast.FC['Healing Magic'] = set_combine(sets.precast.FC, { 
+		ear2	= "Mendicant's Earring",	-- 5%
+		legs	= "Ebers Pant. +3",			-- 15%
+		})	
 
     --- Midcast Sets ---
 	sets.midcast = {
 		sub		= "Ammurapi Shield",
 		ammo	= "Pemphredo Tathlum",	
+		waist	= {name="Plat. Mog. Belt",	priority= 1},
 		}
 		
 	sets.midcast.Cure = set_combine(sets.midcast, {								-- 23% from JP
@@ -116,46 +124,52 @@ function init_gear_sets()
 	})
 
     --- Engaged Sets ---
-    sets.engaged = sets.defense
-
     sets.defense = {					-- DT
 		main	= "Queller Rod",		-- Ref
+		sub		= "Culminus",			-- Def
 		ammo  	= "Homiliary",
 		head	= "Ebers Cap +3",
 		neck  	= "Null Loop",
 		ear1  	= "Alabaster earring",	-- 5
-		ear2  	= "Flashward Earring",
+		ear2  	= "Etiolation Earring",
 		body  	= "Ebers Bliaut +3",
 		hands 	= "Ebers Mitts +3",		-- 10
 		ring1 	= "Murky Ring",			-- 10
-		ring2 	= "Inyanga Ring",	
+		ring2 	= "Gurebu's Ring",
 		back  	= gear.CapeFC,
 		waist 	= "Carrier's Sash",
 		legs	= "Ebers Pant. +3",		-- 13
 		feet  	= "Ebers Duckbills +3",	-- 10
 		}
+	sets.engaged = sets.defense
 
     --- Other Sets ---
     sets.idle = sets.defense
     sets.idle.Town = set_combine(sets.idle, {ring1="Warp Ring", ring2="Dim. Ring (Holla)"})	 
 end
 function customize_melee_set(meleeSet)
-    equip(sets[state.WeaponSet.current])
     if state.OffenseMode.value == "Defense" or incapacitated then
 		meleeSet = sets.defense
+	else
+		meleeSet = sets.engaged
     end	
-    return meleeSet
+	if not state.WeaponLock.value then
+		if state.WeaponSet.current == 'DPS' then
+			meleeSet = set_combine(meleeSet, sets.DPS)
+		else
+			meleeSet = set_combine(meleeSet, sets.Heal)
+		end
+	end
+    equip(meleeSet)
 end
-function job_aftercast(spell, action, spellMap, eventArgs)	
-    equip(sets[state.WeaponSet.current])
-end
+
 function job_state_change(field, new_value, old_value)
     if state.WeaponLock.value == true then
         disable('main','sub')
     else
         enable('main','sub')
     end
-    equip(sets[state.WeaponSet.current])
+    customize_melee_set()
 end
 
 function job_post_midcast(spell, action, spellMap, eventArgs)
@@ -167,7 +181,8 @@ function job_post_midcast(spell, action, spellMap, eventArgs)
 		end
 	end
 end
-function job_aftercast(spell)
+
+function job_aftercast(spell, action, spellMap, eventArgs)	
 	if spell.name == 'Benediction' or spell.name == 'Sacrosanctity' or spell.name == 'Asylum' then
 		local recast = windower.ffxi.get_ability_recasts()[spell.recast_id]
 		print(recast)
@@ -175,6 +190,7 @@ function job_aftercast(spell)
 			attempts = 100
 		end		
 	end
+	customize_melee_set()
 end
 function job_self_command(cmdParams, eventArgs)
 	if cmdParams[1]:lower() == 'spam' then

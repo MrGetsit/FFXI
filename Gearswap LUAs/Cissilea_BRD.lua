@@ -51,6 +51,7 @@ function user_setup()
 	send_command('send @all alias shas2 send Cissilea /VictoryMarch') 
 	send_command('send @all alias smov  send Cissilea /ChocoboMazurka') 
 	send_command('send @all alias smov2 send Cissilea /RaptorMazurka') 
+	send_command('send @all alias sdt	send Cissilea /SentinelsScherzo') 
 	
 	send_command('send @all alias sstr  send Cissilea /HerculeanEtude') 
 	send_command('send @all alias sstr2 send Cissilea /SinewyEtude') 
@@ -94,14 +95,18 @@ function user_setup()
 	send_command('send @all bind  numpad7  sta Cissilea /SavageBlade')
 	send_command('send @all bind  numpad8  sta Cissilea /HordeLullaby')
 	send_command('send @all bind ~numpad8  sta Cissilea /HordeLullaby2')
-	send_command('send @all bind  numpad9 send Cissilea gs c toggle_hb')
 	send_command('send @all bind ~numpad7 send Cissilea /SentinelsScherzo')
 	send_command('send @all bind !numpad8 exec Brd_Refresh.txt')
 	send_command('send @all bind ~numpad9  sta Cissilea /MagicFinale')
 	send_command('send @all bind !numpad9 exec Brd1.txt')
 	
-	send_command('gs c lock') 
-	send_command('wait 5; input /lockstyleset 2') 
+	if player.sub_job_level >= 20 and (player.sub_job == 'NIN' or player.sub_job == 'DNC') then
+		dual_wield = true
+	else
+		dual_wield = false
+	end	
+	customize_melee_set()
+	send_command('gs c startup') 
 end
 
 
@@ -110,6 +115,8 @@ function init_gear_sets()
 	sets.Sword	=	{ main = "Naegling", sub="Genmei Shield" }
 	sets.Dagger	=	{ main = "Kali", sub="Genmei Shield"}
 	sets.Club	=	{ main = "Daybreak", sub="Genmei Shield"}
+	
+	sets.SwordDW=	{ main = "Naegling", sub="Centovente" }
 
 	gear.CapeFC	=	{ name="Intarabus's Cape", augments={'CHR+20','Mag. Acc+20 /Mag. Dmg.+20','"Fast Cast"+10',}}
 	gear.CapeSR =	{ name="Intarabus's Cape", augments={'HP+60','Eva.+20 /Mag. Eva.+20','Mag. Evasion+10','Enmity-10','Occ. inc. resist. to stat. ailments+10',}}
@@ -246,15 +253,15 @@ function init_gear_sets()
 	sets.midcast['Lullaby'] = {
 		range	= "Blurred Harp",
 		head	= "Brioso Roundlet +3",
-		neck	= "Warder's Charm +1",
-		ear1	= "Alabaster Earring",	-- 05
-		ear2	= "Gersemi Earring",
+		neck	= "Mnbw. Whistle +1",
+		ear1	= {name="Alabaster Earring", priority=1},
+		ear2	= {name="Etiolation Earring", priority=2}, -- Gersemi
 		body	= "Brioso Justaucorps +4",
 		hands	= "Brioso Cuffs +3",
 		ring1	= "Murky ring",			-- 10
 		ring2	= "Gurebu's Ring",
 		back	= gear.CapeFC,
-		waist	= {name="Plat. Mog. Belt", priority=1},
+		waist	= "Null Belt",
 		legs	= "Inyanga Shalwar +2",
 		feet	= "Brioso Slippers +3",
 		}
@@ -321,6 +328,18 @@ function job_buff_change(buff,gain)
 		else
             incapacitated = false
         end
+	elseif buff == "sleep" then
+		if gain then
+			incapacitated = true
+			enable('main')
+			equip({main = 'Prime Dagger'})
+			disable('main')
+			return
+		else
+			incapacitated = false
+			enable('main')
+			customize_melee_set()
+		end
     elseif buff == "doom" then
         if gain then
             equip(sets.buff.Doom)
@@ -344,18 +363,20 @@ function job_buff_change(buff,gain)
     end
 end
 
-function check_weapon()
-	if WeaponLock then return end
-	equip(sets[state.WeaponSet])
-end
-
 function customize_melee_set()
 	if state.OffenseMode.value == "Defense" or player.status == 'Idle' or incapacitated then
-		equip(sets.defense)
+		meleeSet = sets.defense
 	else
-		equip(sets.engaged)
+		meleeSet = sets.engaged
 	end
-	check_weapon()
+	if not WeaponLock then
+		if dual_wield then 
+			meleeSet = set_combine(meleeSet, sets.SwordDW)
+		else
+			meleeSet = set_combine(meleeSet, sets[state.WeaponSet])
+		end
+	end
+	equip(meleeSet)
 end
 
 function job_precast(spell, action, spellMap, eventArgs)
@@ -366,7 +387,11 @@ function job_precast(spell, action, spellMap, eventArgs)
 	end	
 	
 	if spell.type == 'BardSong' then
-		equip(sets.precast.Song)
+		if spell.name == 'Honor March' then
+			equip(sets.precast['Honor March'])
+		else
+			equip(sets.precast.Song)
+		end
 		eventArgs.handled = true
 	end
 end
@@ -377,7 +402,7 @@ end
 
 function job_post_pretarget(spell, action, spellMap, eventArgs)
 	if spell.type == 'BardSong' and spell.name:endswith('Lullaby') then
-		send_command('hb off') 
+		--send_command('hb off') 
 			
 	elseif spell.name == 'Honor March' then
 		equip({range="Marsyas"})
@@ -398,12 +423,16 @@ function job_post_pretarget(spell, action, spellMap, eventArgs)
 end
 
 function job_state_change(field, new_value, old_value)
-	print(new_value)
 	customize_melee_set()
 end
 
 function job_self_command(cmdParams, eventArgs)
-	if cmdParams[1]:lower() == 'change_weapon' then
+	if cmdParams[1]:lower() == 'startup' then
+		send_command('wait 3; gs c lock') 
+		send_command('wait 5; input /lockstyleset 2') 
+	
+	elseif cmdParams[1]:lower() == 'change_weapon' then
+		if dual_wield then windower.add_to_chat(206, 'Dual Wield Weapon Set') return end
 		WeaponLock = false
 		enable('main','sub')
 		if state.WeaponSet == 'Sword' then
@@ -429,17 +458,8 @@ function job_self_command(cmdParams, eventArgs)
 		else
 			enable('main','sub')
 			windower.add_to_chat(206, 'Weapon Lock: Off')
-			send_command('gs equip sets.'..state.WeaponSet)
-		end
-		
-	elseif cmdParams[1]:lower() == 'toggle_hb' then
-		hb_enabled = not hb_enabled
-		if hb_enabled then
-			send_command('lua r healbot') 
-			send_command('hb on') 
-		else
-			send_command('hb off') 
-		end
+			customize_melee_set()
+		end		
 		
 	elseif cmdParams[1]:lower() == 'hmarch' then
 		enable('range')
@@ -447,7 +467,7 @@ function job_self_command(cmdParams, eventArgs)
 		send_command('Honor March') 
 		return
 	end
-	check_weapon()
+	customize_melee_set()
 end
 
 function auto_echo_drops ()
