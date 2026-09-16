@@ -4,8 +4,6 @@ function get_sets()
 end
 
 function job_setup()	
-	windower.send_command('sta !packets on') -- For SendTarget to work
-	
 	state.WeaponLock = M(false, 'Weapon Lock')
 	state.WeaponSet = M{'Sword', 'Club', 'Dagger'}
 	state.OffenseMode:options('Normal', 'Defense')
@@ -14,10 +12,28 @@ function job_setup()
     send_command('bind @w gs c lock')
     send_command('gs c change_weapon')
 	
+	if player.sub_job_level >= 20 and (player.sub_job == 'NIN' or player.sub_job == 'DNC') then
+		dual_wield = true
+	else
+		dual_wield = false
+	end	
+	
 	WeaponLock = false
 end
 -- % Normal	^ Ctrl	! Alt	@ Win	# Apps	~ Shift
 function user_setup() 
+	send_command('send @all bind  numpad7   qa Cissilea WS "Savage Blade" t')
+	send_command('send @all bind  numpad8   qa Cissilea MA "Horde Lullaby" t')
+	send_command('send @all bind ~numpad8   qa Cissilea MA "Horde Lullaby II" t')
+	send_command('send @all bind ~numpad7 send Cissilea /SentinelsScherzo')
+	send_command('send @all bind !numpad8 exec Brd_Refresh.txt')
+	send_command('send @all bind ~numpad9   qa Cissilea MA "Magic Finale" t')
+	send_command('send @all bind !numpad9 exec Brd1.txt')
+	
+	startup()
+end
+
+function setup_job_aliases()
 	send_command('send @all alias brd1 exec BRD1.txt')
 	send_command('send @all alias brd2 exec BRD2.txt')
 	send_command('send @all alias brdsv exec BRDSV.txt')
@@ -25,90 +41,80 @@ function user_setup()
 	send_command('send @all alias hoff send Cissilea hb off')
     send_command('send @all alias shm send Cissilea gs c hmarch')
 	
-	send_command('send @all alias sst send Cissilea /Pianissimo')
-	send_command('send @all alias sd  send Cissilea /GoldCapriccio') 
+	send_command('send @all alias sst send Cissilea Pianissimo')
+	send_command('send @all alias sd  send Cissilea GoldCapriccio') 
 	
-	send_command('send @all alias sreg  send Cissilea /ArmysPaeon6') 
-	send_command('send @all alias sreg2 send Cissilea /ArmysPaeon5') 
-	send_command('send @all alias sreg3 send Cissilea /ArmysPaeon4') 
-	send_command('send @all alias sref  send Cissilea /MagesBallad3') 
-	send_command('send @all alias sref2 send Cissilea /MagesBallad2') 
-	send_command('send @all alias sref3 send Cissilea /MagesBallad') 
+	send_command('send @all alias sreg  send Cissilea ArmysPaeon6') 
+	send_command('send @all alias sreg2 send Cissilea ArmysPaeon5') 
+	send_command('send @all alias sreg3 send Cissilea ArmysPaeon4') 
+	send_command('send @all alias sref  send Cissilea MagesBallad3') 
+	send_command('send @all alias sref2 send Cissilea MagesBallad2') 
+	send_command('send @all alias sref3 send Cissilea MagesBallad') 
 	
-	send_command('send @all alias satt  send Cissilea /ValorMinuet5') 
-	send_command('send @all alias satt2 send Cissilea /ValorMinuet4') 
-	send_command('send @all alias satt3 send Cissilea /ValorMinuet3') 
-	send_command('send @all alias satt4 send Cissilea /ValorMinuet2') 
-	send_command('send @all alias satt5 send Cissilea /ValorMinuet') 
-	send_command('send @all alias sdef  send Cissilea /KnightsMinne5') 
-	send_command('send @all alias sdef2 send Cissilea /KnightsMinne4') 
-	send_command('send @all alias sdef3 send Cissilea /KnightsMinne3') 
-	send_command('send @all alias sacc  send Cissilea /BladeMadrigal') 
-	send_command('send @all alias sacc2 send Cissilea /SwordMadrigal') 
-	send_command('send @all alias seva  send Cissilea /SheepfoeMambo') 
-	send_command('send @all alias seva2 send Cissilea /DragonfoeMambo') 
-	send_command('send @all alias shas  send Cissilea /AdvancingMarch') 
-	send_command('send @all alias shas2 send Cissilea /VictoryMarch') 
-	send_command('send @all alias smov  send Cissilea /ChocoboMazurka') 
-	send_command('send @all alias smov2 send Cissilea /RaptorMazurka') 
-	send_command('send @all alias sdt	send Cissilea /SentinelsScherzo') 
+	send_command('send @all alias satt  send Cissilea ValorMinuet5') 
+	send_command('send @all alias satt2 send Cissilea ValorMinuet4') 
+	send_command('send @all alias satt3 send Cissilea ValorMinuet3') 
+	send_command('send @all alias satt4 send Cissilea ValorMinuet2') 
+	send_command('send @all alias satt5 send Cissilea ValorMinuet') 
+	send_command('send @all alias sdef  send Cissilea KnightsMinne5') 
+	send_command('send @all alias sdef2 send Cissilea KnightsMinne4') 
+	send_command('send @all alias sdef3 send Cissilea KnightsMinne3') 
+	send_command('send @all alias sacc  send Cissilea BladeMadrigal') 
+	send_command('send @all alias sacc2 send Cissilea SwordMadrigal') 
+	send_command('send @all alias seva  send Cissilea SheepfoeMambo') 
+	send_command('send @all alias seva2 send Cissilea DragonfoeMambo') 
+	send_command('send @all alias shas  send Cissilea AdvancingMarch') 
+	send_command('send @all alias shas2 send Cissilea VictoryMarch') 
+	send_command('send @all alias smov  send Cissilea ChocoboMazurka') 
+	send_command('send @all alias smov2 send Cissilea RaptorMazurka') 
+	send_command('send @all alias sdt	send Cissilea SentinelsScherzo') 
 	
-	send_command('send @all alias sstr  send Cissilea /HerculeanEtude') 
-	send_command('send @all alias sstr2 send Cissilea /SinewyEtude') 
-	send_command('send @all alias sdex  send Cissilea /UncannyEtude') 
-	send_command('send @all alias sdex2 send Cissilea /DextrousEtude') 
-	send_command('send @all alias svit  send Cissilea /VitalEtude') 
-	send_command('send @all alias svit2 send Cissilea /VivaciousEtude') 
-	send_command('send @all alias sagi  send Cissilea /SwiftEtude') 
-	send_command('send @all alias sagi2 send Cissilea /QuickEtude') 
-	send_command('send @all alias sint  send Cissilea /SageEtude') 
-	send_command('send @all alias sint2 send Cissilea /LearnedEtude') 
-	send_command('send @all alias smnd  send Cissilea /LogicalEtude')
-	send_command('send @all alias smnd2 send Cissilea /SpiritedEtude')
+	send_command('send @all alias sstr  send Cissilea HerculeanEtude') 
+	send_command('send @all alias sstr2 send Cissilea SinewyEtude') 
+	send_command('send @all alias sdex  send Cissilea UncannyEtude') 
+	send_command('send @all alias sdex2 send Cissilea DextrousEtude') 
+	send_command('send @all alias svit  send Cissilea VitalEtude') 
+	send_command('send @all alias svit2 send Cissilea VivaciousEtude') 
+	send_command('send @all alias sagi  send Cissilea SwiftEtude') 
+	send_command('send @all alias sagi2 send Cissilea QuickEtude') 
+	send_command('send @all alias sint  send Cissilea SageEtude') 
+	send_command('send @all alias sint2 send Cissilea LearnedEtude') 
+	send_command('send @all alias smnd  send Cissilea LogicalEtude')
+	send_command('send @all alias smnd2 send Cissilea SpiritedEtude')
 	
-	send_command('send @all alias sfc  send Cissilea /FireCarol2')
-	send_command('send @all alias sfc2 send Cissilea /FireCarol')
-	send_command('send @all alias sic  send Cissilea /IceCarol2')
-	send_command('send @all alias sic2 send Cissilea /IceCarol')
-	send_command('send @all alias swic  send Cissilea /WindCarol2')
-	send_command('send @all alias swic2 send Cissilea /WindCarol')
-	send_command('send @all alias sec  send Cissilea /EarthCarol2')
-	send_command('send @all alias sec2 send Cissilea /EarthCarol')
-	send_command('send @all alias swac  send Cissilea /WaterCarol2')
-	send_command('send @all alias swac2 send Cissilea /WaterCarol')
-	send_command('send @all alias stc  send Cissilea /LightningCarol2')
-	send_command('send @all alias stc2 send Cissilea /LightningCarol')
-	send_command('send @all alias sdc  send Cissilea /DarkCarol2')
-	send_command('send @all alias sdc2 send Cissilea /DarkCarol')
-	send_command('send @all alias slc  send Cissilea /LightCarol2')
-	send_command('send @all alias slc2 send Cissilea /LightCarol')
+	send_command('send @all alias sfc   send Cissilea FireCarol2')
+	send_command('send @all alias sfc2  send Cissilea FireCarol')
+	send_command('send @all alias sic   send Cissilea IceCarol2')
+	send_command('send @all alias sic2  send Cissilea IceCarol')
+	send_command('send @all alias swic  send Cissilea WindCarol2')
+	send_command('send @all alias swic2 send Cissilea WindCarol')
+	send_command('send @all alias sec   send Cissilea EarthCarol2')
+	send_command('send @all alias sec2  send Cissilea EarthCarol')
+	send_command('send @all alias swac  send Cissilea WaterCarol2')
+	send_command('send @all alias swac2 send Cissilea WaterCarol')
+	send_command('send @all alias stc   send Cissilea LightningCarol2')
+	send_command('send @all alias stc2  send Cissilea LightningCarol')
+	send_command('send @all alias sdc   send Cissilea DarkCarol2')
+	send_command('send @all alias sdc2  send Cissilea DarkCarol')
+	send_command('send @all alias slc   send Cissilea LightCarol2')
+	send_command('send @all alias slc2  send Cissilea LightCarol')
 	
-	send_command('send @all alias sfd send Cissilea /FireThrenody2')
-	send_command('send @all alias sid send Cissilea /IceThrenody2')
-	send_command('send @all alias sad send Cissilea /WindThrenody2')
-	send_command('send @all alias sed send Cissilea /EarthThrenody2')
-	send_command('send @all alias swd send Cissilea /WaterThrenody2')
-	send_command('send @all alias std send Cissilea /LightningThrenody2')
-	send_command('send @all alias sld send Cissilea /LightThrenody2')
-	send_command('send @all alias sdd send Cissilea /DarkThrenody2')
-	
-	send_command('send @all bind  numpad7  sta Cissilea /SavageBlade')
-	send_command('send @all bind  numpad8  sta Cissilea /HordeLullaby')
-	send_command('send @all bind ~numpad8  sta Cissilea /HordeLullaby2')
-	send_command('send @all bind ~numpad7 send Cissilea /SentinelsScherzo')
-	send_command('send @all bind !numpad8 exec Brd_Refresh.txt')
-	send_command('send @all bind ~numpad9  sta Cissilea /MagicFinale')
-	send_command('send @all bind !numpad9 exec Brd1.txt')
-	
-	if player.sub_job_level >= 20 and (player.sub_job == 'NIN' or player.sub_job == 'DNC') then
-		dual_wield = true
-	else
-		dual_wield = false
-	end	
-	customize_melee_set()
-	send_command('gs c startup') 
+	send_command('send @all alias sfd send Cissilea FireThrenody2')
+	send_command('send @all alias sid send Cissilea IceThrenody2')
+	send_command('send @all alias sad send Cissilea WindThrenody2')
+	send_command('send @all alias sed send Cissilea EarthThrenody2')
+	send_command('send @all alias swd send Cissilea WaterThrenody2')
+	send_command('send @all alias std send Cissilea LightningThrenody2')
+	send_command('send @all alias sld send Cissilea LightThrenody2')
+	send_command('send @all alias sdd send Cissilea DarkThrenody2')
 end
 
+function startup()
+	setup_job_aliases()
+	customize_melee_set()
+	send_command('wait 3; gs c lock') 
+	send_command('wait 5; input /lockstyleset 2') 
+end
 
 function init_gear_sets()
 	--- Weapon Sets ---
@@ -427,11 +433,7 @@ function job_state_change(field, new_value, old_value)
 end
 
 function job_self_command(cmdParams, eventArgs)
-	if cmdParams[1]:lower() == 'startup' then
-		send_command('wait 3; gs c lock') 
-		send_command('wait 5; input /lockstyleset 2') 
-	
-	elseif cmdParams[1]:lower() == 'change_weapon' then
+	if cmdParams[1]:lower() == 'change_weapon' then
 		if dual_wield then windower.add_to_chat(206, 'Dual Wield Weapon Set') return end
 		WeaponLock = false
 		enable('main','sub')

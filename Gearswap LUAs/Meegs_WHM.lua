@@ -4,7 +4,6 @@ function get_sets()
 end
 
 function job_setup()	
-	windower.send_command('sta !packets on') -- For SendTarget to work
 	send_command('lua l spamfilter')
 	
 	barstatus = S{'Baramnesra', 'Barvira', 'Barparalyzra', 'Barsilencera', 'Barpetra', 'Barpoisonra', 'Barblindra', 'Barsleepra'} 
@@ -20,7 +19,7 @@ end
 function user_setup()
 	send_command('send @all alias pr5 send Meegs /Protectra5') 
 	send_command('send @all alias sh5 send Meegs /Shellra5') 
-	send_command('send @all alias ari sta Meegs /Arise <t>')
+	send_command('send @all alias ari qa Meegs MA Arise target')
 	send_command('send @all alias reg exec whmregen.txt')
 	send_command('send @all alias wstr send Meegs /BoostSTR')
 	send_command('send @all alias wdex send Meegs /BoostDEX')
@@ -30,9 +29,12 @@ function user_setup()
 	send_command('send @all alias wchr send Meegs /BoostCHR')
 	send_command('send @all alias whb exec hbwhm.txt') 
 	send_command('send @all alias whb2 exec hbwhm2.txt') 
-	send_command('send @all alias ben send Meegs gs c spam Benediction') 
-	send_command('send @all alias sac send Meegs gs c spam Sacrosanctity') 
-	send_command('send @all alias asy send Meegs gs c spam Asylum') 
+	send_command('send @all alias ben qa Meegs JA Benediction') 
+	send_command('send @all alias sac qa Meegs JA Sacrosanctity') 
+	send_command('send @all alias asy qa Meegs JA Asylum') 
+	--send_command('send @all alias ben send Meegs gs c spam Benediction') 
+	--send_command('send @all alias sac send Meegs gs c spam Sacrosanctity') 
+	--send_command('send @all alias asy send Meegs gs c spam Asylum') 
 	
 	customize_melee_set()
 	send_command('wait 5; input /lockstyleset 1')

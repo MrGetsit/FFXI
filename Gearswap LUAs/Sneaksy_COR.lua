@@ -18,19 +18,14 @@ function job_setup()
     info.default_ja_ids = S{35, 204}
     info.default_u_ja_ids = S{201, 202, 203, 205, 207}
 	
+	send_command('lua l Gnosis')
 	send_command('lua l rolltracker') 
 	send_command('lua l Skillchains')
-	windower.send_command('sta !packets on') -- For SendTarget to work
 	
     state.WeaponLock = M(false, 'Weapon Lock')	
 	state.WeaponSet = M{['description']='Weapon Set', 'Sword', 'Dagger'}
 	state.WeaponSetR = M{['description']='Ranged Weapon Set', 'TP', 'WS'}
     state.OffenseMode:options('Hybrid', 'Defense', 'Normal' )
-    send_command('bind @w gs c toggle WeaponLock')	
-    send_command('bind %capslock gs c cycle WeaponSet')	
-    send_command('bind !capslock gs c cycle WeaponSetR')		
-    send_command('bind @S gs c cycle OffenseMode')
-    send_command('bind ^= gs c cycle treasuremode')
 	
 	engaged_ammo = 'Chrono Bullet'
 	ammo_case = 'Fomalhaut'	
@@ -41,6 +36,47 @@ function job_setup()
 end
 
 function user_setup()
+    send_command('bind @w gs c toggle WeaponLock')	
+    send_command('bind %capslock gs c cycle WeaponSet')	
+    send_command('bind !capslock gs c cycle WeaponSetR')		
+    send_command('bind @S gs c cycle OffenseMode')
+    send_command('bind ^= gs c cycle treasuremode')
+	
+	send_command('send @all bind  numpad1   qa Sneaksy WS "Savage Blade" t') 
+	send_command('send @all bind  numpad2   qa Sneaksy WS "Leaden Salute" t') 
+	send_command('send @all bind  numpad3   qa Sneaksy JA "Light Shot" t') 
+	send_command('send @all bind !numpad1   qa Sneaksy WS "Last Stand" t') 
+	send_command('send @all bind !numpad2   qa Sneaksy WS "Hot Shot" t') 
+	send_command('send @all bind !numpad3 send Sneaksy gs c auto') 
+	send_command('send @all bind ~numpad1   qa Sneaksy JA "Chaos Roll"') 
+	send_command('send @all bind ~numpad2   qa Sneaksy JA "Samurai Roll"') 
+	send_command('send @all bind ~numpad3 send Sneaksy DoubleUp') -- Doesn't have its own ID
+	send_command('send @all bind @numpad1   qa Sneaksy JA "Crooked Cards"') 
+	send_command('send @all bind @numpad2   qa Sneaksy JA "Fold"') 
+	send_command('send @all bind @numpad3   qa Sneaksy JA "Snake Eye"') 
+	
+	if player.sub_job == 'DNC' then
+		send_command('send @all bind ^numpad1   qa Sneaksy JA "Healing Waltz" Spikex') 
+		send_command('send @all bind ^numpad2 send Sneaksy gs c cure_lowest') 
+		send_command('send @all bind ^numpad3   qa Sneaksy JA "Haste Samba"')  
+		--send_command('send @all bind %pageup send Sneaksy /ReverseFlourish ') 
+		send_command('send @all bind %pagedown   qa Sneaksy JA "Box Step" t ') 
+		send_command('send @all bind ~pagedown   qa Sneaksy JA Quickstep t') 
+		send_command('send @all bind ^pagedown   qa Sneaksy JA "Stutter Step" t') 
+		send_command('send @all bind %end send Sneaksy BuildingFlourish ') 
+	elseif player.sub_job == 'THF' then
+		send_command('send @all bind ^numpad1 send Sneaksy Steal ') 
+		send_command('send @all bind ^numpad2 send Sneaksy TrickAttack ') 
+		send_command('send @all bind ^numpad3 send Sneaksy SneakAttack ') 
+	elseif player.sub_job == 'WAR' then
+		send_command('send @all bind ^numpad1 send Sneaksy Berserk ') 
+		send_command('send @all bind ^numpad2 send Sneaksy Warcry ') 
+		send_command('send @all bind ^numpad3 send Sneaksy Aggressor ') 
+	end
+	startup()
+end
+
+function setup_job_aliases()
 	send_command('send @all alias sj send Sneaksy /SpectralJig') 
 	send_command('send @all alias rxp send Sneaksy /CorsairsRoll') 
 	send_command('send @all alias rtp send Sneaksy /TacticiansRoll') 
@@ -59,38 +95,10 @@ function user_setup()
 	send_command('send @all alias rpma send Sneaksy /PuppetRoll') 
 	send_command('send @all alias rmov send Sneaksy /BoltersRoll') 
 	send_command('send @all alias rref send Sneaksy /EvokersRoll') 
+end
 
-	send_command('send @all bind  numpad1 send Sneaksy /SavageBlade ') 
-	send_command('send @all bind  numpad2  sta Sneaksy /LeadenSalute ') 
-	send_command('send @all bind  numpad3 send Sneaksy /LightShot ') 
-	send_command('send @all bind !numpad1  sta Sneaksy /LastStand ') 
-	send_command('send @all bind !numpad2  sta Sneaksy /HotShot ') 
-	send_command('send @all bind !numpad3 send Sneaksy gs c auto ') 
-	send_command('send @all bind ~numpad1 send Sneaksy /ChaosRoll ') 
-	send_command('send @all bind ~numpad2 send Sneaksy /SamuraiRoll ') 
-	send_command('send @all bind ~numpad3 send Sneaksy /DoubleUp ') 
-	send_command('send @all bind @numpad1 send Sneaksy /CrookedCards ') 
-	send_command('send @all bind @numpad2 send Sneaksy /Fold ') 
-	send_command('send @all bind @numpad3 send Sneaksy /SnakeEye ') 
-	
-	if player.sub_job == 'DNC' then
-		send_command('send @all bind ^numpad1  sta Sneaksy /HealingWaltz <stpc> ') 
-		send_command('send @all bind ^numpad2  sta Sneaksy /CuringWaltz3 <stpc> ') 
-		send_command('send @all bind ^numpad3 send Sneaksy /HasteSamba ')  
-		--send_command('send @all bind %pageup send Sneaksy /ReverseFlourish ') 
-		send_command('send @all bind %pagedown send Sneaksy /Boxstep ') 
-		send_command('send @all bind ~pagedown send Sneaksy /Quickstep ') 
-		send_command('send @all bind ^pagedown send Sneaksy /StutterStep ') 
-		send_command('send @all bind %end send Sneaksy /BuildingFlourish ') 
-	elseif player.sub_job == 'THF' then
-		send_command('send @all bind ^numpad1 send Sneaksy /Steal ') 
-		send_command('send @all bind ^numpad2 send Sneaksy /TrickAttack ') 
-		send_command('send @all bind ^numpad3 send Sneaksy /SneakAttack ') 
-	elseif player.sub_job == 'WAR' then
-		send_command('send @all bind ^numpad1 send Sneaksy /Berserk ') 
-		send_command('send @all bind ^numpad2 send Sneaksy /Warcry ') 
-		send_command('send @all bind ^numpad3 send Sneaksy /Aggressor ') 
-	end
+function startup()
+	setup_job_aliases()
 	send_command('gs c set treasuremode tag')
 	send_command('wait 5; input /lockstyleset 2') 
 end
@@ -391,14 +399,14 @@ function job_state_change(field, new_value, old_value)
 		if player.equipment.main == "Tauret" then
 			send_command('input /equip main')
 		end
-		send_command('send @all bind  numpad1 send Sneaksy /SavageBlade ') 
-		send_command('send @all bind !numpad1  sta Sneaksy /LastStand ')
+		send_command('send @all bind  numpad1 qa Sneaksy WS "Savage Blade" target ') 
+		send_command('send @all bind !numpad1 qa Sneaksy WS "Last Stand" target ')
 	elseif state.WeaponSet.value == "Dagger" then
 		if player.equipment.main == "Naegling" then
 			send_command('input /equip main')
 		end
-		send_command('send @all bind  numpad1 send Sneaksy /AeolianEdge ') 
-		send_command('send @all bind !numpad1  sta Sneaksy /Evisceration ') 
+		send_command('send @all bind  numpad1 send Sneaksy WS "Aeolian Edge" target ') 
+		send_command('send @all bind !numpad1 send Sneaksy WS "Evisceration" target ') 
 	end
     customize_melee_set()
 end
@@ -433,9 +441,26 @@ function job_self_command(command, eventArgs)
 		else
 			stop_shooting()
 		end
-	elseif command[1]:lower() == 'test' then
-		tprint(data)
+	elseif command[1]:lower() == 'cure_lowest' then
+		send_command('CuringWaltz3 '..get_lowest_hp_member().id) 
 	end
+end
+
+function get_lowest_hp_member()
+	local party = windower.ffxi.get_party()
+	local lowest_member = nil
+	local lowest_hpp = 101 -- Anything real will be <= 100
+	
+	for key, member in pairs(party) do
+		if type(member) == 'table' and key:match('^p%d') and member.hpp then
+			if member.hpp < lowest_hpp then
+				lowest_hpp = member.hpp
+				lowest_member = member
+			end
+		end
+	end
+	
+	return lowest_member
 end
 
 function target()
@@ -472,5 +497,31 @@ function stop_shooting()
 		windower.add_to_chat(160, 'Autofire Off')
 		windower.unregister_event(autofire)
 		autofire = nil
+	end
+end
+
+function tprint(tbl, indent)
+	if not indent then indent = 0 end
+	local spaces = string.rep("  ", indent) -- Use two spaces for indentation
+
+	for k, v in pairs(tbl) do
+		local key_str
+		if type(k) == "number" then
+			key_str = "[" .. k .. "]"
+		else
+			key_str = "['" .. k .. "']"
+		end
+
+		if type(v) == "table" then
+		   print(2, spaces .. key_str .. " = {") 
+			tprint(v, indent + 1)
+		   print(2, spaces .. "}")
+		else
+			local value_str = tostring(v)
+			if type(v) == "string" then
+				value_str = "'" .. value_str .. "'"
+			end
+			print(2, spaces .. key_str .. " = " .. value_str .. ",")
+		end
 	end
 end

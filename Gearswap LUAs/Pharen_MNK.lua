@@ -4,8 +4,6 @@ function get_sets()
 end
 function job_setup()	
 	send_command('lua l Skillchains')
-	send_command('lua l Gnosis')
-	windower.send_command('sta !packets on') -- For SendTarget to work	
     state.OffenseMode:options('Normal', 'Defense')
     send_command('bind @S gs c cycle OffenseMode')
 	weapon_set = 'h2h'
@@ -20,14 +18,14 @@ function user_setup()
 	send_command('send @all bind @numpad4 send Pharen gs c swap h2h')
 	send_command('send @all bind @numpad5 send Pharen gs c swap staff')
 	
-	send_command('send @all bind  numpad6 send Pharen /Boost') 
-	send_command('send @all bind ~numpad4 send Pharen /Provoke') 
-	send_command('send @all bind ~numpad5 send Pharen /Chakra') 
+	send_command('send @all bind  numpad6   qa Pharen JA Boost') 
+	send_command('send @all bind ~numpad4   qa Pharen JA Provoke t') 
+	send_command('send @all bind ~numpad5   qa Pharen JA Chakra') 
 	send_command('send @all bind ~numpad6 send Pharen exec MonkDBuffs.txt') 
-	send_command('send @all bind ^numpad4 send Pharen /Counterstance') 
-	send_command('send @all bind ^numpad5 send Pharen /Impetus') 
+	send_command('send @all bind ^numpad4 send Pharen Counterstance') 
+	send_command('send @all bind ^numpad5 send Pharen Impetus') 
 	send_command('send @all bind ^numpad6 send Pharen exec MonkOBuffs.txt') 	
-	send_command('send @all bind %pageup send Pharen /ChiBlast ') 
+	send_command('send @all bind %pageup send Pharen ChiBlast ') 
 	
 	send_command('wait 5; input /lockstyle on')
 	setup_weapon_keybinds()
@@ -215,16 +213,16 @@ function job_aftercast(spell, action, spellMap, eventArgs)
 end
 function setup_weapon_keybinds()
 	if weapon_set == 'staff' then
-		send_command('send @all bind numpad4 send Pharen /ShellCrusher')
-		send_command('send @all bind numpad5 send Pharen /Shattersoul') 
+		send_command('send @all bind numpad4 qa Pharen WS "Shell Crusher" t')
+		send_command('send @all bind numpad5 qa Pharen WS "Shattersoul" t') 
 		weapon_text = 'Switched to:  Staff'
 		
 	else
-		send_command('send @all bind numpad4 send Pharen /Victory Smite')
-		send_command('send @all bind numpad5 send Pharen /ShijinSpiral') 
-		send_command('send @all bind !numpad4 send Pharen /DragonKick') 
-		send_command('send @all bind !numpad5 send Pharen /RagingFists') 
-		send_command('send @all bind !numpad6 send Pharen /HowlingFist') 
+		send_command('send @all bind  numpad4 qa Pharen WS "Victory Smite" t')
+		send_command('send @all bind  numpad5 qa Pharen WS "Shijin Spiral" t') 
+		send_command('send @all bind !numpad4 qa Pharen WS "Dragon Kick" t') 
+		send_command('send @all bind !numpad5 qa Pharen WS "Raging Fists" t') 
+		send_command('send @all bind !numpad6 qa Pharen WS "Howling Fist" t') 
 		weapon_text = 'Switched to:  Hand-to-Hand'
 	end
 	customize_melee_set()

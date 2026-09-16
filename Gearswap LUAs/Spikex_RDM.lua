@@ -4,8 +4,6 @@ function get_sets()
 	texts = require('texts') 
 end
 function job_setup()
-	windower.send_command('sta !packets on') -- For SendTarget to work	
-	send_command('lua u debuffed')
 	send_command('lua l debuffgrid')
 	send_command('lua l Skillchains')
 	send_command('lua l Battlemod')
@@ -54,6 +52,16 @@ function job_setup()
 	})	
 	weapon_lock_display:hide()
 	
+	dual_wield = false
+	WeaponLock = false
+	if player.sub_job and player.sub_job_level >= 20 and (player.sub_job == 'NIN' or player.sub_job == 'DNC') then
+		dual_wield = true
+	else
+		dual_wield = false
+	end	
+end
+
+function user_setup()
 	send_command('bind @w gs c lock')
 	send_command('bind @e gs c toggle Immunobreak')
 	send_command('bind @h gs c toggle_hoxne')
@@ -61,12 +69,69 @@ function job_setup()
 	send_command('bind !capslock gs c cycle WeaponType')
 	send_command('bind @S gs c cycle OffenseMode')
 	
-	dual_wield = false
-	WeaponLock = false
+	send_command('send @all bind %4  send Spikex Cure4 <stpc>')
+	send_command('send @all bind !4  send Spikex gs c cure_lowest')
+	send_command('send @all bind %5  send Spikex Haste2 <stpc>')
+	send_command('send @all bind !5  send Spikex Composure')
+	send_command('send @all bind ~%5 send Spikex Regen2 <stpc>')
+	send_command('send @all bind %6  send Spikex Refresh3 <stpc>')
+	send_command('send @all bind ~%1 send Spikex Temper2')
+	send_command('send @all bind ~%2 send Spikex Phalanx2 Spikex')
+	send_command('send @all bind ^%2 send Spikex Phalanx2 <stpc>')
+	send_command('send @all bind ~%3 send Spikex GainStr')
+	send_command('send @all bind ~%4 send Spikex gs c enspell')
+	send_command('send @all bind %7  send Spikex Blink')
+	send_command('send @all bind %8  send Spikex Stoneskin')
+	send_command('send @all bind %9  send Spikex Protect5 <stpc>')
+	send_command('send @all bind %0  send Spikex Shell5 <stpc>')
+	
+	send_command('send @all bind %e  send Spikex Dia3')
+	send_command('send @all bind !e  send Spikex Diaga')
+	send_command('send @all bind ~%e send Spikex Saboteur')
+	send_command('send @all bind %q  send Spikex Dispel')
+	send_command('send @all bind !q  send Spikex Slow2')
+	send_command('send @all bind ~%q send Spikex Paralyze2')
+	send_command('send @all bind ^%q send Spikex Blind2')
+	send_command('send @all bind @%q send Spikex Inundation')
+	send_command('send @all bind %z  send Spikex Frazzle3')
+	send_command('send @all bind !z  send Spikex Distract3')
+	send_command('send @all bind ~%z send Spikex Silence')
+	send_command('send @all bind ^%z send Spikex Addle2')
+	send_command('send @all bind %`  send Spikex Sleep2')
+	send_command('send @all bind !`  send Spikex Sleep2 <stnpc>')
+	send_command('send @all bind %~` send Spikex Break <stnpc>')
+	
+	if player.sub_job == 'SCH' then
+		send_command('lua l StratagemCounter')
+		send_command('send @all bind %x send Spikex Accession')
+		send_command('send @all bind !x send Spikex LightArts')
+		send_command('send @all bind @x send Spikex AddendumWhite')
+		send_command('send @all bind @4 send Spikex Windstorm')
+		send_command('send @all bind %c send Spikex Manifestation')
+		send_command('send @all bind !c send Spikex DarkArts')
+		send_command('send @all bind @c send Spikex AddendumBlack')
+	elseif player.sub_job == 'WAR' then
+		send_command('send @all bind !z  send Spikex Defender')
+		send_command('send @all bind %x  send Spikex Berserk')
+		send_command('send @all bind ~%x send Spikex Warcry')
+		send_command('send @all bind !e  send Spikex Provoke')
+	elseif player.sub_job == 'RUN' then
+		send_command('send @all bind !z  send Spikex Swordplay')
+		send_command('send @all bind %x  send Spikex gs c rune')
+		send_command('send @all bind ~%x send Spikex gs c cycle Runes')
+		send_command('send @all bind ^x  send Spikex gs c cycleback Runes')
+		send_command('send @all bind !x  send Spikex Vallation')
+		send_command('send @all bind @x  send Spikex Pflug')
+	elseif player.sub_job == 'NIN' then
+		send_command('send @all bind %x  send Spikex UtsusemiNi')
+		send_command('send @all bind !x  send Spikex UtsusemiIchi')
+		send_command('send @all bind %c  send Spikex gs c spam')
+	end
+	startup()
 end
 
-function user_setup()
-	send_command('send @all alias imp gs c impact') -- exec RDM_Impact.txt
+function setup_job_aliases()
+	send_command('send @all alias imp gs c impact')
 	send_command('send @all alias rb  exec RDM_Buffs.txt')
 	send_command('send @all alias rb2 exec RDM_Buffs2.txt')
 	send_command('send @all alias rb3 exec RDM_Buffs3.txt')
@@ -85,79 +150,14 @@ function user_setup()
 	send_command('alias f5 /Fire5')
 	send_command('alias b5 /Blizzard5')
 	send_command('alias t5 /Thunder5')
-	
-	send_command('alias ss4 sta @all /Stone4 <t>')
-	send_command('alias ss5 sta @all /Stone5 <t>')
-	
+end
+
+function startup()
 	setup_weapon_keybinds()
-	send_command('send @all bind %3   sta Spikex /SanguineBlade')
-	send_command('send @all bind !3   sta Spikex /CircleBlade')
-	
-	send_command('send @all bind %4   sta Spikex /Cure4 <stpc>')
-	send_command('send @all bind !4   sta Spikex /Cure3 <stpc>')
-	send_command('send @all bind %5   sta Spikex /Haste2 <stpc>')
-	send_command('send @all bind !5  send Spikex /Composure')
-	send_command('send @all bind ~%5  sta Spikex /Regen2 <stpc>')
-	send_command('send @all bind %6   sta Spikex /Refresh3 <stpc>')
-	send_command('send @all bind ~%1 send Spikex /Temper2')
-	send_command('send @all bind ~%2 send Spikex /Phalanx2 Spikex')
-	send_command('send @all bind ^%2  sta Spikex /Phalanx2 <stpc>')
-	send_command('send @all bind ~%3 send Spikex /GainStr')
-	send_command('send @all bind ~%4 send Spikex gs c enspell')
-	send_command('send @all bind %7  send Spikex /Blink')
-	send_command('send @all bind %8  send Spikex /Stoneskin')
-	send_command('send @all bind %9  send Spikex /Protect5 <stpc>')
-	send_command('send @all bind %0  send Spikex /Shell5 <stpc>')
-	
-	send_command('send @all bind %e   sta Spikex /Dia3')
-	send_command('send @all bind !e  send Spikex /Diaga')
-	send_command('send @all bind ~%e send Spikex /Saboteur')
-	send_command('send @all bind %q   sta Spikex /Dispel')
-	send_command('send @all bind !q   sta Spikex /Slow2')
-	send_command('send @all bind ~%q  sta Spikex /Paralyze2')
-	send_command('send @all bind ^%q  sta Spikex /Blind2')
-	send_command('send @all bind @%q  sta Spikex /Inundation')
-	send_command('send @all bind %z  send Spikex /Frazzle3')
-	send_command('send @all bind !z  send Spikex /Distract3')
-	send_command('send @all bind ~%z send Spikex /Silence')
-	send_command('send @all bind ^%z send Spikex /Addle2')
-	send_command('send @all bind %`   sta Spikex /Sleep2')
-	send_command('send @all bind !`   sta Spikex /Sleep2 <stnpc>')
-	send_command('send @all bind %~` send Spikex /Break <stnpc>')
-	
-	if player.sub_job == 'SCH' then
-		send_command('lua l StratagemCounter')
-		send_command('send @all bind %x send Spikex /Accession')
-		send_command('send @all bind !x send Spikex /LightArts')
-		send_command('send @all bind @x send Spikex /AddendumWhite')
-		send_command('send @all bind @4 send Spikex /Windstorm')
-		send_command('send @all bind ^x  sta Spikex /stna <stpc>')
-		send_command('send @all bind %c send Spikex /Manifestation')
-		send_command('send @all bind !c send Spikex /DarkArts')
-		send_command('send @all bind @c send Spikex /AddendumBlack')
-	elseif player.sub_job == 'WAR' then
-		send_command('send @all bind !z  send Spikex /Defender')
-		send_command('send @all bind %x  send Spikex /Berserk')
-		send_command('send @all bind ~%x send Spikex /Warcry')
-		send_command('send @all bind !e   sta Spikex /Provoke <stnpc>')
-	elseif player.sub_job == 'RUN' then
-		send_command('send @all bind !z  send Spikex /Swordplay')
-		send_command('send @all bind %x  send Spikex gs c rune')
-		send_command('send @all bind ~%x send Spikex gs c cycle Runes')
-		send_command('send @all bind ^x  send Spikex gs c cycleback Runes')
-		send_command('send @all bind !x  send Spikex /Vallation')
-		send_command('send @all bind @x  send Spikex /Pflug')
-	elseif player.sub_job == 'NIN' then
-		send_command('send @all bind %x  send Spikex /UtsusemiNi')
-		send_command('send @all bind !x  send Spikex /UtsusemiIchi')
-		send_command('send @all bind %c  send Spikex gs c spam')
-	end
-	if player.sub_job and player.sub_job_level >= 20 and (player.sub_job == 'NIN' or player.sub_job == 'DNC') then
-		dual_wield = true
-	else
-		dual_wield = false
-	end	
-	send_command('gs c startup')
+	setup_job_aliases()
+	customize_melee_set()
+	send_command('wait 3; gs c lock')
+	send_command('wait 5; input /lockstyleset 5')
 end
 
 function user_unload()
@@ -595,23 +595,25 @@ function setup_weapon_keybinds()
 	local main = current_weapon().main
 	
 	if main == 'Naegling' then
-		send_command('send @all bind %1 send Spikex /SavageBlade')
-		send_command('send @all bind %2 send Spikex /ChantDuCygne')
-		send_command('send @all bind !1 send Spikex /RedLotusBlade')
-		send_command('send @all bind !2 send Spikex /SeraphBlade')
+		send_command('send @all bind %1 send Spikex SavageBlade')
+		send_command('send @all bind %2 send Spikex ChantDuCygne')
+		send_command('send @all bind !1 send Spikex RedLotusBlade')
+		send_command('send @all bind !2 send Spikex SeraphBlade')
+		send_command('send @all bind %3 send Spikex SanguineBlade')
+		send_command('send @all bind !3 send Spikex CircleBlade"')
 	
 	elseif main == 'Crocea Mors' then
-		send_command('send @all bind %1 send Spikex /RedLotusBlade')
-		send_command('send @all bind %2 send Spikex /SeraphBlade')
-		send_command('send @all bind !1 send Spikex /SavageBlade')
-		send_command('send @all bind !2 send Spikex /ChantDuCygne')
+		send_command('send @all bind %1 send Spikex RedLotusBlade')
+		send_command('send @all bind %2 send Spikex SeraphBlade')
+		send_command('send @all bind !1 send Spikex SavageBlade')
+		send_command('send @all bind !2 send Spikex ChantDuCygne')
 	
 	elseif main == 'Maxentius' then
-		send_command('send @all bind %1 send Spikex /BlackHalo')
+		send_command('send @all bind %1 send Spikex BlackHalo')
 	
 	elseif main == 'Tauret' then
-		send_command('send @all bind %1 send Spikex /Evisceration')
-		send_command('send @all bind %2 send Spikex /AeolianEdge')
+		send_command('send @all bind %1 send Spikex Evisceration')
+		send_command('send @all bind %2 send Spikex AeolianEdge')
 	end
 end
 
@@ -849,12 +851,7 @@ function job_state_change(field, new_value, old_value)
 end
 
 function job_self_command(cmdParams, eventArgs)	
-	if cmdParams[1]:lower() == 'startup' then
-		customize_melee_set()
-		send_command('wait 3; gs c lock')
-		send_command('wait 5; input /lockstyleset 5')
-		
-	elseif cmdParams[1]:lower() == 'toggle_hoxne' then
+	if cmdParams[1]:lower() == 'toggle_hoxne' then
 		if hoxne_equipped then
 			enable('range', 'ammo')
 			hoxne_equipped = false
@@ -927,7 +924,27 @@ function job_self_command(cmdParams, eventArgs)
 		
 	elseif cmdParams[1]:lower() == 'rune' then
 		send_command('@input /ja '..state.Runes.value..' <me>')
+		
+	elseif cmdParams[1]:lower() == 'cure_lowest' then
+		send_command('Cure4 '..get_lowest_hp_member().id)
 	end
+end
+
+function get_lowest_hp_member()
+	local party = windower.ffxi.get_party()
+	local lowest_member = nil
+	local lowest_hpp = 101 -- Anything real will be <= 100
+	
+	for key, member in pairs(party) do
+		if type(member) == 'table' and key:match('^p%d') and member.hpp then
+			if member.hpp < lowest_hpp then
+				lowest_hpp = member.hpp
+				lowest_member = member
+			end
+		end
+	end
+	
+	return lowest_member
 end
 
 function cast_impact()
