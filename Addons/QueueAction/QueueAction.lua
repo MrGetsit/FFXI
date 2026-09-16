@@ -1,7 +1,12 @@
 _addon.name = 'QueueAction'
 _addon.author = 'Spikex'
-_addon.version = '1.0'
+_addon.version = '1.01'
 _addon.commands = {'QueueAction', 'qa'}
+
+-- Fixed abiltiies not being queued if used on character
+-- Fixed Dancer abilities using category 14
+-- Fixed SOME abilities needing explicit typecasting
+-- Changed WS/JA checks for TP to queue anyway and skip attempts if tp too low, instead of being rejected outright
 
 require('tables')
 require('strings')
@@ -16,6 +21,7 @@ weapon_skills = res.weapon_skills
 BASE_RETRY_INTERVAL = 0.5
 MAX_ATTEMPTS = 20
 pending_action = nil -- { type, ability_id, ability_name, recast_id, target_id, attempts, last_sent }
+current_player = nil
 
 ACTION_INFO = {
 	WS = { resources = weapon_skills,	confirm_category = 3 },
@@ -25,25 +31,31 @@ ACTION_INFO = {
 
 windower.register_event('addon command', function(receiver, action_type, action, target)
 	if not action then print('No valid QueueAction command found. qa [reciever] [action_type] [action] [target]') return end
+	if not current_player then current_player = windower.ffxi.get_player() end
 	
 	-- Find characters between quotes, replace spaces with underscores, remove quotes
-	action = action:gsub(' ', '_')
+	if receiver ~= current_player.name then action = action:gsub(' ', '_') end
 	
 	-- Add target id if there is valid target
-	local valid_target = nil
+	local target_id = nil
 	if target then
 		if target:lower() == 'target' or target:lower() == 't' then
-			valid_target = windower.ffxi.get_mob_by_target('t')
+			target_id = windower.ffxi.get_mob_by_target('t').id
 		else
-			valid_target = windower.ffxi.get_mob_by_name(target)
-		end		
+			target_id = windower.ffxi.get_mob_by_name(target).id
+		end	
 	end
-	if valid_target then 
-		command = 'qa ' .. receiver .. ' ' .. action_type .. ' ' .. action .. ' ' .. valid_target.id
+	
+	if receiver == current_player.name then
+		if not target_id then target_id = current_player.id end
+		queue_action(action_type, action, target_id)
 	else
-		command = 'qa ' .. receiver .. ' ' .. action_type .. ' ' .. action
+		if target_id then 
+			windower.send_ipc_message('qa ' .. receiver .. ' ' .. action_type .. ' ' .. action .. ' ' .. target_id )
+		else
+			windower.send_ipc_message('qa ' .. receiver .. ' ' .. action_type .. ' ' .. action )
+		end
 	end
-	windower.send_ipc_message(command)
 end)
 
 windower.register_event('ipc message', function(msg)
@@ -68,7 +80,7 @@ windower.register_event('ipc message', function(msg)
 	queue_action(ipc_action_type, ipc_action, ipc_target_id, player)
 end)
 
-function queue_action(action_type, action_name, target_id, player)
+function queue_action(action_type, action_name, target_id)
 	local incoming_action = ACTION_INFO[action_type]
 	local ability = incoming_action.resources:with('en', action_name)
 	if not ability then
@@ -78,17 +90,17 @@ function queue_action(action_type, action_name, target_id, player)
 	
 	start_time = 0
 	if action_type == 'WS' then 
-		if player.vitals.tp < 800 then
+		if windower.ffxi.get_player().vitals.tp < 800 then
 			print(ability.en .. ' canceled. Not enough TP.')
 			return
 		end
 	else
 		cooldown = 0
 		if action_type == 'MA' then
-			cooldown = windower.ffxi.get_spell_recasts()[ability.recast_id] or 0
+			cooldown = windower.ffxi.get_spell_recasts()[ability.id] or 0
 			cooldown = math.floor(cooldown / 60)
 		else
-			cooldown = windower.ffxi.get_ability_recasts()[ability.recast_id] or 0
+			cooldown = windower.ffxi.get_ability_recasts()[ability.id] or 0
 		end
 		if cooldown > 1 and cooldown <= 10 then 
 			print(ability.en .. ' queued, waiting on cooldown.')
@@ -103,7 +115,7 @@ function queue_action(action_type, action_name, target_id, player)
 		type = action_type,
 		ability_id = ability.id,
 		ability_name = ability.en,
-		recast_id = ability.recast_id,
+		tp_cost = ability.tp_cost,
 		target_id = target_id,
 		confirm_category = incoming_action.confirm_category,
 		retry_interval = BASE_RETRY_INTERVAL,
@@ -122,7 +134,17 @@ function send_pending_action(action)
 	-- local debug_msg = 'Trying to use: '..action.ability_name..' on: '..action.target_id
 	-- if action.recast_id then debug_msg = debug_msg .. ' ' ..action.recast_id end
 	-- print(debug_msg)
-	windower.send_command('"'..action.ability_name..'" '..action.target_id)
+	local skip_attempt = false
+	if action_type ~= 'MA' then 
+		local tp_check = windower.ffxi.get_player().vitals.tp
+		if action_type == 'WS' and tp_check < 800 then
+			skip_attempt = true
+		elseif action_type == 'JA' and tp_check < action.tp_cost then
+			skip_attempt = true
+		end
+	end
+	
+	if not skip_attempt then windower.send_command(action.type .. ' "' .. action.ability_name .. '" ' .. action.target_id) end
 	
 	action.attempts = action.attempts + 1
 	action.last_sent = os.clock()
@@ -146,7 +168,7 @@ windower.register_event('action', function(act)
 	if not pending_action or not windower.ffxi.get_mob_by_target('me') then return end
 	
 	--print(act.category .. ' ' .. act.param .. ' ' .. pending_action.confirm_category .. ' ' .. pending_action.ability_id)
-	if act.category == pending_action.confirm_category then
+	if act.category == pending_action.confirm_category or act.category == 14 then
 		if act.param == pending_action.ability_id then
 			print(pending_action.ability_name .. ' cast successful!')
 			pending_action = nil
@@ -155,29 +177,3 @@ windower.register_event('action', function(act)
 		end
 	end
 end)
-
-function tprint(tbl, indent)
-	if not indent then indent = 0 end
-	local spaces = string.rep("  ", indent) -- Use two spaces for indentation
-
-	for k, v in pairs(tbl) do
-		local key_str
-		if type(k) == "number" then
-			key_str = "[" .. k .. "]"
-		else
-			key_str = "['" .. k .. "']"
-		end
-
-		if type(v) == "table" then
-		   print(2, spaces .. key_str .. " = {") 
-			tprint(v, indent + 1)
-		   print(2, spaces .. "}")
-		else
-			local value_str = tostring(v)
-			if type(v) == "string" then
-				value_str = "'" .. value_str .. "'"
-			end
-			print(2, spaces .. key_str .. " = " .. value_str .. ",")
-		end
-	end
-end
