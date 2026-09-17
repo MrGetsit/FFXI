@@ -23,9 +23,9 @@ function user_setup()
 	send_command('send @all bind ~numpad5   qa Pharen JA Chakra') 
 	send_command('send @all bind ~numpad6 send Pharen exec MonkDBuffs.txt') 
 	send_command('send @all bind ^numpad4 send Pharen Counterstance') 
-	send_command('send @all bind ^numpad5 send Pharen Impetus') 
-	send_command('send @all bind ^numpad6 send Pharen exec MonkOBuffs.txt') 	
-	send_command('send @all bind %pageup send Pharen ChiBlast ') 
+	send_command('send @all bind ^numpad5   qa Pharen JA Impetus') 
+	send_command('send @all bind ^numpad6 send Pharen exec MonkOBuffs.txt')
+	send_command('send @all bind %pageup    qa Pharen JA "Chi Blast" t') 
 	
 	send_command('wait 5; input /lockstyle on')
 	setup_weapon_keybinds()
@@ -43,12 +43,12 @@ function init_gear_sets()
 	
    --- Precast Sets ---	
 	sets.precast.JA['Boost']	= { waist 	= "Ask Sash" }
-	sets.precast.JA['Chakra']	= { Body 	= "Anch. Cyclas +1", "Melee Gloves" }
-	sets.precast.JA['Chi Blast']= { Hands 	= "Temple Gloves" }
-	sets.precast.JA['Dodge']	= { Feet 	= "Anch. Gaiters +4" }
-	sets.precast.JA['Focus']	= { Head 	= "Temple Crown" }
-	sets.precast.JA['Footwork']	= { Feet 	= "Bhikku Gaiters +3" }
-	sets.precast.JA['Mantra']	= { Feet 	= "Hes. Gaiters" }
+	sets.precast.JA['Chakra']	= { body 	= "Anch. Cyclas +1", hand = "Melee Gloves" }
+	sets.precast.JA['Chi Blast']= { hands 	= "Temple Gloves" }
+	sets.precast.JA['Dodge']	= { feet 	= "Anch. Gaiters +4" }
+	sets.precast.JA['Focus']	= { head 	= "Temple Crown" }
+	sets.precast.JA['Footwork']	= { feet 	= "Bhikku Gaiters +3" }
+	sets.precast.JA['Mantra']	= { feet 	= "Hes. Gaiters" }
 	
     sets.precast.WS = {
 		ammo	= "Knobkierrie",
@@ -169,23 +169,16 @@ function job_self_command(cmdParams, eventArgs)
 	end
 end
 
-function job_post_precast(spell, action, spellMap, eventArgs)
-	if spell.type == 'WeaponSkill' then
-		if hoxne_equipped then
-			equip({back = gear.CritCape})
-		end
-	end
-end
 function customize_melee_set(meleeSet)
     if state.OffenseMode.value == "Defense" or player.status == 'Idle' or incapacitated then
 		meleeSet = sets.defense
 	else
 		meleeSet = sets.engaged
     end	
-	if impetus_active then		
+	if impetus_active then
 		meleeSet = set_combine(meleeSet, { body = "Bhikku Cyclas +3", ear2 = "Schere earring"})
 	end
-	if footwork_active then		
+	if footwork_active then
 		meleeSet = set_combine(meleeSet, { feet = "Anch. Gaiters +4" })
 	end
 	if boost_active then
@@ -202,10 +195,15 @@ function customize_melee_set(meleeSet)
     equip(meleeSet)
 end
 function job_post_precast(spell, action, spellMap, eventArgs)
-	if impetus_active and spell.name == 'Victory Smite' then
-		equip({body = "Bhikku Cyclas +3" })
-	elseif footwork_active and (spell.name == 'Dragon Kick' or spell.name == 'Tornado Kick') then
-		equip({feet = "Anch. Gaiters +4" })
+	if spell.type == 'WeaponSkill' then
+		if hoxne_equipped then
+			equip({back = gear.CritCape})
+		end
+		if impetus_active and spell.name == 'Victory Smite' then
+			equip({body = "Bhikku Cyclas +3" })
+		elseif footwork_active and (spell.name == 'Dragon Kick' or spell.name == 'Tornado Kick') then
+			equip({feet = "Anch. Gaiters +4" })
+		end
 	end
 end
 function job_aftercast(spell, action, spellMap, eventArgs)	
@@ -280,9 +278,3 @@ function job_buff_change(buff,gain)
     end
 	customize_melee_set()
 end
-
-windower.register_event('hpp change', function(new_hpp, old_hpp)
-    if new_hpp < 10 then
-		send_command('input /ja "Chakra" <me>')
-    end
-end)

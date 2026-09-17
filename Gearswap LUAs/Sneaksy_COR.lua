@@ -302,7 +302,7 @@ function job_buff_change(buff,gain)
 		if gain then
 			incapacitated = true
 			enable('range')
-			equip({range = 'Prime Gun'})
+			equip({range = 'Earp'})
 			disable('range')
 			return
 		else
@@ -395,18 +395,20 @@ function job_state_change(field, new_value, old_value)
     else
         enable('main','sub')
 	end
-	if state.WeaponSet.value == "Sword" then	
-		if player.equipment.main == "Tauret" then
-			send_command('input /equip main')
+	if field == 'Weapon Set' then
+		if state.WeaponSet.value == "Sword" then	
+			if player.equipment.main == "Tauret" then
+				send_command('input /equip main')
+			end
+			send_command('send @all bind  numpad1 qa Sneaksy WS "Savage Blade" target ') 
+			send_command('send @all bind !numpad1 qa Sneaksy WS "Last Stand" target ')
+		elseif state.WeaponSet.value == "Dagger" then
+			if player.equipment.main == "Naegling" then
+				send_command('input /equip main')
+			end
+			send_command('send @all bind  numpad1 send Sneaksy WS "Aeolian Edge" target ') 
+			send_command('send @all bind !numpad1 send Sneaksy WS "Evisceration" target ')
 		end
-		send_command('send @all bind  numpad1 qa Sneaksy WS "Savage Blade" target ') 
-		send_command('send @all bind !numpad1 qa Sneaksy WS "Last Stand" target ')
-	elseif state.WeaponSet.value == "Dagger" then
-		if player.equipment.main == "Naegling" then
-			send_command('input /equip main')
-		end
-		send_command('send @all bind  numpad1 send Sneaksy WS "Aeolian Edge" target ') 
-		send_command('send @all bind !numpad1 send Sneaksy WS "Evisceration" target ') 
 	end
     customize_melee_set()
 end
@@ -464,7 +466,7 @@ function get_lowest_hp_member()
 end
 
 function target()
-    if not auto then stop_shooting() return end 
+    if not auto or shot_pending then stop_shooting() return end 
 	
 	if not player.equipment or
 	player.equipment.ammo == 'empty' then 
@@ -478,6 +480,7 @@ function target()
 		stop_shooting()
 	return end
 	windower.ffxi.turn(math.atan2(tar.x - player.x, tar.y - player.y) - 1.5708)
+	shot_pending = true
 	shoot:schedule(1.5)
 	
 	local recast = windower.ffxi.get_ability_recasts()[84]
@@ -487,6 +490,7 @@ function target()
 end
 
 function shoot()
+	shot_pending = false
 	last_shot_time = os.clock()
     windower.send_command('input /shoot <t>')
 end

@@ -720,8 +720,8 @@ function job_buff_change(buff,gain)
 	elseif buff == "silence" then
 		if gain then
 			send_command('@input /p Silenced.')
+			if not silenced then auto_echo_drops() end
 			silenced = true
-			auto_echo_drops()
 		else
 			silenced = false
 		end
@@ -729,15 +729,18 @@ function job_buff_change(buff,gain)
 end
 
 function job_post_pretarget(spell, action, spellMap, eventArgs)
-	cancel = false	
+	local cancel = false
 	if incapacitated or midaction() then
 		cancel = true
+		
 	elseif spell.action_type == 'Magic' then -- Don't change gear on CD
 		local recast = windower.ffxi.get_spell_recasts()[spell.recast_id]
-		if recast and recast >= 1 then cancel = true end		
+		if recast and recast >= 1 then cancel = true end
+		
 	elseif spell.type == 'WeaponSkill' then
 		if player.tp <= 1000 then cancel = true	end
 	end
+	
 	if cancel then
 		cancel_spell()
 		eventArgs.handled = true
@@ -760,7 +763,7 @@ function job_post_precast(spell, action, spellMap, eventArgs)
 end
 
 function job_post_midcast(spell, action, spellMap, eventArgs)
-	midcast_update = nil
+	local midcast_update = nil
 	if spell.action_type == 'Magic' then
 		if spell.skill == 'Enhancing Magic' then
 			if spell.english:startswith('Gain') then
@@ -832,7 +835,8 @@ end
 
 function job_aftercast(spell)
 	if spell.name == 'Impact' then
-		if windower.ffxi.get_spell_recasts()[spell.recast_id] >= 1 then 
+		local recast = windower.ffxi.get_spell_recasts()[spell.recast_id]
+		if recast and recast >= 1 then 
 			casting_impact = false
 		end
 	end
@@ -875,7 +879,7 @@ function job_self_command(cmdParams, eventArgs)
 			burst_timer = nil
 		end
 		
-		magic_bursting = true		
+		magic_bursting = true
 		burst_timer = coroutine.schedule(function() 
 			magic_bursting = false
 			burst_timer = nil
@@ -887,9 +891,10 @@ function job_self_command(cmdParams, eventArgs)
 			enable('head', 'body')
 			equip({head = "empty", body = "Crepuscular Cloak"})
 			disable('head', 'body')
+			impact_call = (impact_call or 0) + 1
 			attempts = 0
 			casting_impact = true
-			coroutine.schedule(function() cast_impact() end, 0.5)
+			coroutine.schedule(function() cast_impact(impact_call) end, 0.5)
 		end
 	elseif cmdParams[1]:lower() == 'enspell' then
 		if world.day_element == 'Fire' then
@@ -948,14 +953,15 @@ function get_lowest_hp_member()
 end
 
 function cast_impact()
+	if call_id ~= impact_call then return end -- Superseded by a newer /impact
 	if casting_impact and attempts < 15 then
-		--print('imp attempt '..attempts)
 		send_command('Spontaneity')
 		send_command('Impact')
 		attempts = attempts + 1
-		coroutine.schedule(function() cast_impact() end, 0.5)
+		coroutine.schedule(function() cast_impact(call_id) end, 0.5)
 	else
 		enable('head', 'body')
+	end', 'body')
 	end
 end
 

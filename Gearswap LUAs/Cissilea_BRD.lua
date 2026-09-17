@@ -5,11 +5,11 @@ end
 
 function job_setup()	
 	state.WeaponLock = M(false, 'Weapon Lock')
-	state.WeaponSet = M{'Sword', 'Club', 'Dagger'}
+	state.WeaponSet = M{['description']='Weapon Set', 'Sword', 'Club', 'Dagger'}
 	state.OffenseMode:options('Normal', 'Defense')
 	send_command('bind @S gs c cycle OffenseMode')
     send_command('bind %capslock gs c change_weapon')
-    send_command('bind @w gs c lock')
+	send_command('bind @w gs c toggle WeaponLock')
     send_command('gs c change_weapon')
 	
 	if player.sub_job_level >= 20 and (player.sub_job == 'NIN' or player.sub_job == 'DNC') then
@@ -17,8 +17,6 @@ function job_setup()
 	else
 		dual_wield = false
 	end	
-	
-	WeaponLock = false
 end
 -- % Normal	^ Ctrl	! Alt	@ Win	# Apps	~ Shift
 function user_setup() 
@@ -112,7 +110,7 @@ end
 function startup()
 	setup_job_aliases()
 	customize_melee_set()
-	send_command('wait 3; gs c lock') 
+	send_command('wait 3; gs c toggle WeaponLock') 
 	send_command('wait 5; input /lockstyleset 2') 
 end
 
@@ -361,8 +359,8 @@ function job_buff_change(buff,gain)
 	elseif buff == "silence" then
 		if gain then
 			send_command('@input /p Silenced.')
+			if not silenced then auto_echo_drops() end
 			silenced = true
-			auto_echo_drops()
 		else
 			silenced = false
 		end
@@ -375,7 +373,7 @@ function customize_melee_set()
 	else
 		meleeSet = sets.engaged
 	end
-	if not WeaponLock then
+	if not state.WeaponLock.value then
 		if dual_wield then 
 			meleeSet = set_combine(meleeSet, sets.SwordDW)
 		else
@@ -407,24 +405,25 @@ function job_aftercast(spell, action, spellMap, eventArgs)
 end
 
 function job_post_pretarget(spell, action, spellMap, eventArgs)
-	if spell.type == 'BardSong' and spell.name:endswith('Lullaby') then
-		--send_command('hb off') 
-			
+	local cancel = false
+	if incapacitated or midaction() then
+		cancel = true
+		
 	elseif spell.name == 'Honor March' then
 		equip({range="Marsyas"})
-			
+		
 	elseif spell.action_type == 'Magic' then -- Don't change gear on CD
-		if windower.ffxi.get_spell_recasts()[spell.recast_id] >= 1 then
-			cancel_spell()
-			eventArgs.handled = true
-			return
-		end
+		local recast = windower.ffxi.get_spell_recasts()[spell.recast_id]
+		if recast and recast >= 1 then cancel = true end
+		
 	elseif spell.type == 'WeaponSkill' then
-		if player.tp <= 1000 then
-			cancel_spell()
-			eventArgs.handled = true
-			return
-		end
+		if player.tp <= 1000 then cancel = true	end
+	end
+	
+	if cancel then
+		cancel_spell()
+		eventArgs.handled = true
+		return
 	end
 end
 
@@ -435,33 +434,22 @@ end
 function job_self_command(cmdParams, eventArgs)
 	if cmdParams[1]:lower() == 'change_weapon' then
 		if dual_wield then windower.add_to_chat(206, 'Dual Wield Weapon Set') return end
-		WeaponLock = false
+		state.WeaponLock.value = false
 		enable('main','sub')
 		if state.WeaponSet == 'Sword' then
 			msg = string.char(0x87, 0x41) .. ' Dagger'
-			state.WeaponSet = 'Dagger'
-			send_command('send @all bind numpad7 send Cissilea /Evisceration') 
+			state.WeaponSet:set('Dagger')
+			send_command('send @all bind numpad7 qa Cissilea WS Evisceration target') 
 		elseif state.WeaponSet == 'Dagger' then
 			msg = string.char(0x87, 0x42) .. ' Club'
-			state.WeaponSet = 'Club'
-			send_command('send @all bind numpad7 send Cissilea /Judgment') 
+			state.WeaponSet:set('Club')
+			send_command('send @all bind numpad7 qa Cissilea WS Judgment target') 
 		else
 			msg = string.char(0x87, 0x40) .. ' Sword'
-			state.WeaponSet = 'Sword'
-			send_command('send @all bind numpad7 send Cissilea /SavageBlade') 
+			state.WeaponSet:set('Sword')
+			send_command('send @all bind numpad7 qa Cissilea WS "Savage Blade" target') 
 		end
 		windower.add_to_chat(206, 'Weapon Set '..msg)
-
-	elseif cmdParams[1]:lower() == 'lock' then
-		WeaponLock = not WeaponLock
-		if WeaponLock then
-			disable('main','sub')
-			windower.add_to_chat(206, 'Weapon Lock: On')
-		else
-			enable('main','sub')
-			windower.add_to_chat(206, 'Weapon Lock: Off')
-			customize_melee_set()
-		end		
 		
 	elseif cmdParams[1]:lower() == 'hmarch' then
 		enable('range')

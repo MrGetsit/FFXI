@@ -3,17 +3,17 @@ function get_sets()
     include('Mote-Include.lua')
 end
 
-function job_setup()	
+function job_setup()
 	send_command('lua l spamfilter')
 	
 	barstatus = S{'Baramnesra', 'Barvira', 'Barparalyzra', 'Barsilencera', 'Barpetra', 'Barpoisonra', 'Barblindra', 'Barsleepra'} 
 	
-    state.WeaponLock = M(false, 'Weapon Lock')	
+    state.WeaponLock = M(false, 'Weapon Lock')
 	state.WeaponSet = M{['description']='Weapon Set', 'DPS', 'Heal'}
     state.OffenseMode:options('Defense', 'Normal')
-    send_command('bind @w gs c toggle WeaponLock')	
-    send_command('bind %capslock gs c cycle WeaponSet')	
-    send_command('bind @S gs c cycle OffenseMode')		
+    send_command('bind @w gs c toggle WeaponLock')
+    send_command('bind %capslock gs c cycle WeaponSet')
+    send_command('bind @S gs c cycle OffenseMode')
 end
 
 function user_setup()
@@ -31,10 +31,7 @@ function user_setup()
 	send_command('send @all alias whb2 exec hbwhm2.txt') 
 	send_command('send @all alias ben qa Meegs JA Benediction') 
 	send_command('send @all alias sac qa Meegs JA Sacrosanctity') 
-	send_command('send @all alias asy qa Meegs JA Asylum') 
-	--send_command('send @all alias ben send Meegs gs c spam Benediction') 
-	--send_command('send @all alias sac send Meegs gs c spam Sacrosanctity') 
-	--send_command('send @all alias asy send Meegs gs c spam Asylum') 
+	send_command('send @all alias asy qa Meegs JA Asylum')
 	
 	customize_melee_set()
 	send_command('wait 5; input /lockstyleset 1')
@@ -174,6 +171,22 @@ function job_state_change(field, new_value, old_value)
     customize_melee_set()
 end
 
+function job_post_pretarget(spell, action, spellMap, eventArgs)
+	if incapacitated or midaction() then
+		cancel_spell()
+		eventArgs.handled = true
+		return
+	end
+	if spell.action_type == 'Magic' then
+		local recast = windower.ffxi.get_spell_recasts()[spell.recast_id]
+		if recast and recast >= 1 then
+			cancel_spell()
+			eventArgs.handled = true
+			return
+		end
+	end
+end
+
 function job_post_midcast(spell, action, spellMap, eventArgs)
 	if spell.action_type == 'Magic' then
 		if spell.skill == 'Enhancing Magic' then
@@ -184,34 +197,10 @@ function job_post_midcast(spell, action, spellMap, eventArgs)
 	end
 end
 
-function job_aftercast(spell, action, spellMap, eventArgs)	
-	if spell.name == 'Benediction' or spell.name == 'Sacrosanctity' or spell.name == 'Asylum' then
-		local recast = windower.ffxi.get_ability_recasts()[spell.recast_id]
-		print(recast)
-		if recast and recast >= 1 then 
-			attempts = 100
-		end		
-	end
+function job_aftercast(spell, action, spellMap, eventArgs)
 	customize_melee_set()
 end
-function job_self_command(cmdParams, eventArgs)
-	if cmdParams[1]:lower() == 'spam' then
-		attempts = 0
-		use_ability(cmdParams[2])
-	end
-end
 
-function use_ability(ability_to_use)
-	if ability_to_use and attempts < 10 then
-		print(attempts..' Using: '..ability_to_use)
-		send_command(ability_to_use)
-		attempts = attempts + 1
-		coroutine.schedule(function() use_ability(ability_to_use) end, 0.5)
-	else
-		using_ability = false
-	end
-end
-		
 function job_buff_change(buff,gain)
     if buff == "terror" or buff == "petrification" or buff == "stun" then
         if gain then
@@ -234,14 +223,14 @@ function job_buff_change(buff,gain)
 	elseif buff == "silence" then
 		if gain then
 			send_command('@input /p Silenced.')
+			if not silenced then auto_echo_drops() end
 			silenced = true
-			auto_echo_drops()
 		else
 			silenced = false
 		end
 	elseif buff == "sleep" then
 		if gain then
-			equip({main = 'Prime Maul'})
+			equip({main = 'Lorg Mor'})
 		end
     end
 end
