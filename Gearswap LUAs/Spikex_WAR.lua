@@ -3,8 +3,6 @@ function get_sets()
 	include('Mote-Include.lua')
 end
 function job_setup()
-	windower.send_command('sta !packets on') -- For SendTarget to work
-
 	state.OffenseMode:options('Normal', 'Defense', 'Hybrid') -- 'Hybrid', 
 	
 	--state.MainWeapon = M{'Qutrub Knife', 'Twinned Blade', 'Ophidian Sword', 'Lost Sickle', 'Iapetus', 'Debahocho', 'Ethereal Tachi', 'Thunder Hammer', 'Erudite\'s Staff' }
@@ -29,15 +27,15 @@ function user_setup()
 	
 	send_command('send @all alias ms send Spikex MightyStrikes') 
 	
-	send_command('send @all bind %q   sta Spikex Restraint')
+	send_command('send @all bind %q  send Spikex Restraint')
 	send_command('send @all bind !q  send Spikex Hasso')
 	send_command('send @all bind ^q  send Spikex Meditate')
-	send_command('send @all bind %e   sta Spikex Provoke')
-	send_command('send @all bind !e   sta Spikex Tomahawk')
+	send_command('send @all bind %e  send Spikex Provoke')
+	send_command('send @all bind !e  send Spikex Tomahawk')
 	send_command('send @all bind %4  send Spikex Berserk')
 	send_command('send @all bind %5  send Spikex Warcry')
-	send_command('send @all bind ^4  send Spikex Aggressor')
-	send_command('send @all bind ^5  send Spikex BloodRage')
+	send_command('send @all bind ~%4 send Spikex Aggressor')
+	send_command('send @all bind ~%5 send Spikex BloodRage')
 	send_command('send @all bind %z  send Spikex Defender')
 	send_command('send @all bind %x  send Spikex Retaliation')
 	
@@ -142,6 +140,7 @@ function init_gear_sets()
 		}
 		
 	--- Other Sets ---
+	sets.hoxne = { ammo = "Hoxne Ampulla", waist = "Plat. Mog. Belt", }
 	sets.idle = sets.defense
 	sets.idle.Town = set_combine(sets.idle, {ring1="Warp Ring", ring2="Dim. Ring (Holla)"})	    
 	
@@ -223,17 +222,39 @@ end
 function customize_melee_set()
 	if state.OffenseMode.value == "Defense" or
 	player.status == 'Idle' or incapacitated then
-		equip(sets.defense)
+		meleeSet = sets.defense
 	elseif state.OffenseMode.value == "Hybrid" then
-		equip(sets.hybrid)
+		meleeSet = sets.hybrid
 	else
-		equip(sets.engaged)
+		meleeSet = sets.engaged
+	end	
+	if hoxne_equipped then
+		meleeSet = set_combine(meleeSet, sets.hoxne)
 	end
+	equip(meleeSet)
 	if not incapacitated then check_weapon() end
 end
 
 function job_buff_change(buff,gain)
-	if buff == "doom" then
+	if buff == "terror" or buff == "petrification" or buff == "stun" then
+		if gain then
+			incapacitated = true
+		else
+			incapacitated = false
+		end
+	elseif buff == "sleep" then
+		if gain then
+			incapacitated = true
+			enable('main')
+			equip({main = 'Caliburnus'})
+			disable('main')
+			return
+		else
+			incapacitated = false
+			enable('main')
+			check_weapon()
+		end
+	elseif buff == "doom" then
 		if gain then
 			enable('ring1','ring2','waist','neck')
 			equip(sets.buff.Doom)
@@ -246,13 +267,6 @@ function job_buff_change(buff,gain)
 	elseif buff == "charm" then
 		if gain then
 			send_command('@input /p Charmed.')
-		end
-	end
-	if buff == "sleep" or buff == "terror" or buff == "petrification" or buff == "stun" then
-		if gain then
-			incapacitated = true
-		else
-			incapacitated = false
 		end
 	end
 	customize_melee_set()
@@ -296,6 +310,22 @@ function job_self_command(cmdParams, eventArgs)
 	elseif cmdParams[1]:lower() == 'lock' then
 		WeaponLock = not WeaponLock
 		toggle_weapon_lock(WeaponLock)
+		
+	elseif cmdParams[1]:lower() == 'toggle_hoxne' then
+		if hoxne_equipped then
+			enable('range', 'ammo')
+			hoxne_equipped = false
+			msg = 'Unequipped'
+		else
+			equip({ammo = "Hoxne Ampulla"})
+			disable('range', 'ammo')
+			hoxne_equipped = true
+			msg = 'Equipped'
+			coroutine.schedule( function() 
+				windower.add_to_chat(210, '<< Hoxne Ready to Use >>')	
+				send_command('@input /item "Hoxne Ampulla" <me>')
+			end, 6)
+		end
 	end
 end
 

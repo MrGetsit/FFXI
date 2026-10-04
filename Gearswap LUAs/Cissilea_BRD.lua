@@ -4,12 +4,10 @@ function get_sets()
 end
 
 function job_setup()	
-	state.WeaponLock = M(false, 'Weapon Lock')
-	state.WeaponSet = M{['description']='Weapon Set', 'Sword', 'Club', 'Dagger'}
+	state.WeaponSet = M{'Sword', 'Club', 'Dagger'}
 	state.OffenseMode:options('Normal', 'Defense')
 	send_command('bind @S gs c cycle OffenseMode')
     send_command('bind %capslock gs c change_weapon')
-	send_command('bind @w gs c toggle WeaponLock')
     send_command('gs c change_weapon')
 	
 	if player.sub_job_level >= 20 and (player.sub_job == 'NIN' or player.sub_job == 'DNC') then
@@ -21,12 +19,12 @@ end
 -- % Normal	^ Ctrl	! Alt	@ Win	# Apps	~ Shift
 function user_setup() 
 	send_command('send @all bind  numpad7   qa Cissilea WS "Savage Blade" t')
-	send_command('send @all bind  numpad8   qa Cissilea MA "Horde Lullaby" t')
-	send_command('send @all bind ~numpad8   qa Cissilea MA "Horde Lullaby II" t')
+	send_command('send @all bind  numpad8   qa Cissilea MA "Horde Lullaby" mt')
+	send_command('send @all bind  numpad9   qa Cissilea MA "Magic Finale" mt')
 	send_command('send @all bind ~numpad7 send Cissilea /SentinelsScherzo')
-	send_command('send @all bind !numpad8 exec Brd_Refresh.txt')
-	send_command('send @all bind ~numpad9   qa Cissilea MA "Magic Finale" t')
-	send_command('send @all bind !numpad9 exec Brd1.txt')
+	send_command('send @all bind ~numpad8   qa Cissilea MA "Horde Lullaby II" mt')
+	send_command('send @all bind ~numpad9   qa Cissilea MA "Ice Threnody II" mt')	-- Distract, Paralyze
+	send_command('send @all bind !numpad9   qa Cissilea MA "Dark Threnody II" mt')	-- Frazzle
 	
 	startup()
 end
@@ -37,80 +35,79 @@ function setup_job_aliases()
 	send_command('send @all alias brdsv exec BRDSV.txt')
 	send_command('send @all alias hon send Cissilea hb on')
 	send_command('send @all alias hoff send Cissilea hb off')
-    send_command('send @all alias shm send Cissilea gs c hmarch')
-	
+    send_command('send @all alias shm send Cissilea gs c hmarch')	
+    send_command('send @all alias shm2 send Cissilea gs c hmarch2')	
 	send_command('send @all alias sst send Cissilea Pianissimo')
-	send_command('send @all alias sd  send Cissilea GoldCapriccio') 
 	
-	send_command('send @all alias sreg  send Cissilea ArmysPaeon6') 
-	send_command('send @all alias sreg2 send Cissilea ArmysPaeon5') 
-	send_command('send @all alias sreg3 send Cissilea ArmysPaeon4') 
-	send_command('send @all alias sref  send Cissilea MagesBallad3') 
-	send_command('send @all alias sref2 send Cissilea MagesBallad2') 
-	send_command('send @all alias sref3 send Cissilea MagesBallad') 
+	send_command('send @all alias sd    qa Cissilea MA "Gold Capriccio"') 
+	send_command('send @all alias smov  qa Cissilea MA "Chocobo Mazurka"') 
+	send_command('send @all alias smov2 qa Cissilea MA "Raptor Mazurka"') 
+	send_command('send @all alias sss	qa Cissilea MA "Sentinel\'s Scherzo"')
 	
-	send_command('send @all alias satt  send Cissilea ValorMinuet5') 
-	send_command('send @all alias satt2 send Cissilea ValorMinuet4') 
-	send_command('send @all alias satt3 send Cissilea ValorMinuet3') 
-	send_command('send @all alias satt4 send Cissilea ValorMinuet2') 
-	send_command('send @all alias satt5 send Cissilea ValorMinuet') 
-	send_command('send @all alias sdef  send Cissilea KnightsMinne5') 
-	send_command('send @all alias sdef2 send Cissilea KnightsMinne4') 
-	send_command('send @all alias sdef3 send Cissilea KnightsMinne3') 
-	send_command('send @all alias sacc  send Cissilea BladeMadrigal') 
-	send_command('send @all alias sacc2 send Cissilea SwordMadrigal') 
-	send_command('send @all alias seva  send Cissilea SheepfoeMambo') 
-	send_command('send @all alias seva2 send Cissilea DragonfoeMambo') 
-	send_command('send @all alias shas  send Cissilea AdvancingMarch') 
-	send_command('send @all alias shas2 send Cissilea VictoryMarch') 
-	send_command('send @all alias smov  send Cissilea ChocoboMazurka') 
-	send_command('send @all alias smov2 send Cissilea RaptorMazurka') 
-	send_command('send @all alias sdt	send Cissilea SentinelsScherzo') 
+	send_command('send @all alias sreg  qa Cissilea MA "Army\'s Paeon VI"') 
+	send_command('send @all alias sreg2 qa Cissilea MA "Army\'s Paeon V"') 
+	send_command('send @all alias sreg3 qa Cissilea MA "Army\'s Paeon IV"') 
+	send_command('send @all alias sref  qa Cissilea MA "Mage\'s Ballad III"') 
+	send_command('send @all alias sref2 qa Cissilea MA "Mage\'s Ballad II"') 
+	send_command('send @all alias sref3 qa Cissilea MA "Mage\'s Ballad"') 	
+	send_command('send @all alias satt  qa Cissilea MA "Valor Minuet V"') 
+	send_command('send @all alias satt2 qa Cissilea MA "Valor Minuet IV"') 
+	send_command('send @all alias satt3 qa Cissilea MA "Valor Minuet III"') 
+	send_command('send @all alias satt4 qa Cissilea MA "Valor Minuet II"') 
+	send_command('send @all alias satt5 qa Cissilea MA "Valor Minuet"') 
+	send_command('send @all alias sdef  qa Cissilea MA "Knight\'s Minne V"') 
+	send_command('send @all alias sdef2 qa Cissilea MA "Knight\'s Minne IV"') 
+	send_command('send @all alias sdef3 qa Cissilea MA "Knight\'s Minne III"') 
+	send_command('send @all alias sacc  qa Cissilea MA "Blade Madrigal"') 
+	send_command('send @all alias sacc2 qa Cissilea MA "Sword Madrigal"') 
+	send_command('send @all alias seva  qa Cissilea MA "Sheepfoe Mambo"') 
+	send_command('send @all alias seva2 qa Cissilea MA "Dragonfoe Mambo"') 
+	send_command('send @all alias shas  qa Cissilea MA "Advancing March"') 
+	send_command('send @all alias shas2 qa Cissilea MA "Victory March"') 
 	
-	send_command('send @all alias sstr  send Cissilea HerculeanEtude') 
-	send_command('send @all alias sstr2 send Cissilea SinewyEtude') 
-	send_command('send @all alias sdex  send Cissilea UncannyEtude') 
-	send_command('send @all alias sdex2 send Cissilea DextrousEtude') 
-	send_command('send @all alias svit  send Cissilea VitalEtude') 
-	send_command('send @all alias svit2 send Cissilea VivaciousEtude') 
-	send_command('send @all alias sagi  send Cissilea SwiftEtude') 
-	send_command('send @all alias sagi2 send Cissilea QuickEtude') 
-	send_command('send @all alias sint  send Cissilea SageEtude') 
-	send_command('send @all alias sint2 send Cissilea LearnedEtude') 
-	send_command('send @all alias smnd  send Cissilea LogicalEtude')
-	send_command('send @all alias smnd2 send Cissilea SpiritedEtude')
+	send_command('send @all alias sstr  qa Cissilea MA "Herculean Etude"') 
+	send_command('send @all alias sstr2 qa Cissilea MA "Sinewy Etude"') 
+	send_command('send @all alias sdex  qa Cissilea MA "Uncanny Etude"') 
+	send_command('send @all alias sdex2 qa Cissilea MA "Dextrous Etude"') 
+	send_command('send @all alias svit  qa Cissilea MA "Vital Etude"') 
+	send_command('send @all alias svit2 qa Cissilea MA "Vivacious Etude"') 
+	send_command('send @all alias sagi  qa Cissilea MA "Swift Etude"') 
+	send_command('send @all alias sagi2 qa Cissilea MA "Quick Etude"') 
+	send_command('send @all alias sint  qa Cissilea MA "Sage Etude"') 
+	send_command('send @all alias sint2 qa Cissilea MA "Learned Etude"') 
+	send_command('send @all alias smnd  qa Cissilea MA "Logical Etude"')
+	send_command('send @all alias smnd2 qa Cissilea MA "Spirited Etude"')	
 	
-	send_command('send @all alias sfc   send Cissilea FireCarol2')
-	send_command('send @all alias sfc2  send Cissilea FireCarol')
-	send_command('send @all alias sic   send Cissilea IceCarol2')
-	send_command('send @all alias sic2  send Cissilea IceCarol')
-	send_command('send @all alias swic  send Cissilea WindCarol2')
-	send_command('send @all alias swic2 send Cissilea WindCarol')
-	send_command('send @all alias sec   send Cissilea EarthCarol2')
-	send_command('send @all alias sec2  send Cissilea EarthCarol')
-	send_command('send @all alias swac  send Cissilea WaterCarol2')
-	send_command('send @all alias swac2 send Cissilea WaterCarol')
-	send_command('send @all alias stc   send Cissilea LightningCarol2')
-	send_command('send @all alias stc2  send Cissilea LightningCarol')
-	send_command('send @all alias sdc   send Cissilea DarkCarol2')
-	send_command('send @all alias sdc2  send Cissilea DarkCarol')
-	send_command('send @all alias slc   send Cissilea LightCarol2')
-	send_command('send @all alias slc2  send Cissilea LightCarol')
+	send_command('send @all alias sfc   qa Cissilea MA "Fire Carol II"')
+	send_command('send @all alias sfc2  qa Cissilea MA "Fire Carol"')
+	send_command('send @all alias sic   qa Cissilea MA "Ice Carol II"')
+	send_command('send @all alias sic2  qa Cissilea MA "Ice Carol"')
+	send_command('send @all alias swic  qa Cissilea MA "Wind Carol II"')
+	send_command('send @all alias swic2 qa Cissilea MA "Wind Carol"')
+	send_command('send @all alias sec   qa Cissilea MA "Earth Carol II"')
+	send_command('send @all alias sec2  qa Cissilea MA "Earth Carol"')
+	send_command('send @all alias swac  qa Cissilea MA "Water Carol II"')
+	send_command('send @all alias swac2 qa Cissilea MA "Water Carol"')
+	send_command('send @all alias stc   qa Cissilea MA "Lightning Carol II"')
+	send_command('send @all alias stc2  qa Cissilea MA "Lightning Carol"')
+	send_command('send @all alias sdc   qa Cissilea MA "Dark Carol II"')
+	send_command('send @all alias sdc2  qa Cissilea MA "Dark Carol"')
+	send_command('send @all alias slc   qa Cissilea MA "Light Carol II"')
+	send_command('send @all alias slc2  qa Cissilea MA "Light Carol"')
 	
-	send_command('send @all alias sfd send Cissilea FireThrenody2')
-	send_command('send @all alias sid send Cissilea IceThrenody2')
-	send_command('send @all alias sad send Cissilea WindThrenody2')
-	send_command('send @all alias sed send Cissilea EarthThrenody2')
-	send_command('send @all alias swd send Cissilea WaterThrenody2')
-	send_command('send @all alias std send Cissilea LightningThrenody2')
-	send_command('send @all alias sld send Cissilea LightThrenody2')
-	send_command('send @all alias sdd send Cissilea DarkThrenody2')
+	send_command('send @all alias sfd   qa Cissilea MA "Fire Threnody II"')
+	send_command('send @all alias sid   qa Cissilea MA "Ice Threnody II"')
+	send_command('send @all alias sad   qa Cissilea MA "Wind Threnody II"')
+	send_command('send @all alias sed   qa Cissilea MA "Earth Threnody II"')
+	send_command('send @all alias swd   qa Cissilea MA "Water Threnody II"')
+	send_command('send @all alias std   qa Cissilea MA "Lightning Threnody II"')
+	send_command('send @all alias sld   qa Cissilea MA "Light Threnody II"')
+	send_command('send @all alias sdd   qa Cissilea MA "Dark Threnody II"')
 end
 
 function startup()
 	setup_job_aliases()
 	customize_melee_set()
-	send_command('wait 3; gs c toggle WeaponLock') 
 	send_command('wait 5; input /lockstyleset 2') 
 end
 
@@ -131,6 +128,10 @@ function init_gear_sets()
 	gear.LinosWS =	{ name="Linos", augments={'Accuracy+15 Attack+15','Weapon skill damage +3%','STR+8',}}
 	
    --- Precast Sets ---	
+	sets.precast.JA['Nightingale']	= { feet = "Bihu Slippers +4" }
+	sets.precast.JA['Soul Voice']	= { legs = "Bihu Cann. +4" }
+	sets.precast.JA['Troubadour']	= { body = "Bihu Justaucorps +4" }
+	
 	sets.precast.FC = {							-- 77
 		--main	= "Kali",						-- 07
 		head	= "Welkin Crown",				-- 07
@@ -197,18 +198,18 @@ function init_gear_sets()
 
 	sets.precast.WS = {	
 		range	= gear.LinosWS,
-		head	= "Null Masque",
+		head	= "Nyame Helm",
 		neck	= "Rep. Plat. Medal",
 		ear1	= "Ishvara Earring",
 		ear2	= "Moonshade Earring",
-		body	= "Bihu Jstcorps. +3",
+		body	= "Bihu Jstcorps. +4",
 		hands	= "Bihu Cuffs +4",
 		ring1	= "Rufescent ring",
 		ring2	= "Gurebu's Ring",
 		back	= gear.CapeWS,
-		waist	= {name="Plat. Mog. Belt", priority=1},
-		legs	= "Bihu Cann. +4",
-		feet	= "Nyame Sollerets",
+		waist	= "Sailfi Belt +1",
+		legs	= "Revelation Brais",
+		feet	= "Revelation Sab.",
 		}
 
 	--- Midcast Sets ---
@@ -273,7 +274,7 @@ function init_gear_sets()
 	sets.midcast['Enfeebling Magic'] = sets.midcast['Lullaby']
 
 	sets.midcast['Healing Magic'] = {
-		main	= "Daybreak",
+		--main	= "Daybreak",
 		head	= "Vanya Hood",
 		neck	= {name="Null Loop",				priority= 1},
 		ear1	= "Alabaster Earring",
@@ -299,7 +300,7 @@ function init_gear_sets()
 		ring1	= "Murky ring",
 		ring2	= "Gurebu's Ring",
 		back	= "Null Shawl",
-		waist	= "Null Belt",
+		waist	= "Sailfi Belt +1",
 		legs	= "Revelation Brais",
 		feet	= "Revelation Sab.",
 		}
@@ -336,7 +337,7 @@ function job_buff_change(buff,gain)
 		if gain then
 			incapacitated = true
 			enable('main')
-			equip({main = 'Prime Dagger'})
+			equip({main = 'Mpu Gandring'})
 			disable('main')
 			return
 		else
@@ -359,10 +360,18 @@ function job_buff_change(buff,gain)
 	elseif buff == "silence" then
 		if gain then
 			send_command('@input /p Silenced.')
-			if not silenced then auto_echo_drops() end
 			silenced = true
+			auto_echo_drops()
 		else
 			silenced = false
+		end
+	elseif spell_order then
+		if buff == "Nightingale" then
+			send_command('qa Cissilea JA Troubadour')
+		elseif buff == "Troubadour" then
+			send_command('qa Cissilea MA "Honor March"')
+		elseif buff == "March" then
+			spell_order = false
 		end
     end
 end
@@ -373,51 +382,32 @@ function customize_melee_set()
 	else
 		meleeSet = sets.engaged
 	end
-	if not state.WeaponLock.value then
-		if dual_wield then 
-			meleeSet = set_combine(meleeSet, sets.SwordDW)
-		else
-			meleeSet = set_combine(meleeSet, sets[state.WeaponSet])
-		end
+	if dual_wield then 
+		meleeSet = set_combine(meleeSet, sets.SwordDW)
+	else
+		meleeSet = set_combine(meleeSet, sets[state.WeaponSet])
 	end
 	equip(meleeSet)
 end
 
-function job_precast(spell, action, spellMap, eventArgs)
-	if midaction() then
-		cancel_spell()
-		eventArgs.handled = true
-		return
-	end	
-	
-	if spell.type == 'BardSong' then
-		if spell.name == 'Honor March' then
-			equip(sets.precast['Honor March'])
-		else
-			equip(sets.precast.Song)
-		end
-		eventArgs.handled = true
-	end
-end
-
-function job_aftercast(spell, action, spellMap, eventArgs)
-	customize_melee_set()
-end
-
 function job_post_pretarget(spell, action, spellMap, eventArgs)
 	local cancel = false
-	if incapacitated or midaction() then
-		cancel = true
 		
-	elseif spell.name == 'Honor March' then
+	if spell.name == 'Honor March' then
 		equip({range="Marsyas"})
 		
+	elseif casting then 
+		cancel = true
+			
 	elseif spell.action_type == 'Magic' then -- Don't change gear on CD
-		local recast = windower.ffxi.get_spell_recasts()[spell.recast_id]
-		if recast and recast >= 1 then cancel = true end
+		if windower.ffxi.get_spell_recasts()[spell.recast_id] >= 1 then
+			cancel = true
+		end
 		
 	elseif spell.type == 'WeaponSkill' then
-		if player.tp <= 1000 then cancel = true	end
+		if player.tp <= 1000 then
+			cancel = true
+		end
 	end
 	
 	if cancel then
@@ -427,34 +417,72 @@ function job_post_pretarget(spell, action, spellMap, eventArgs)
 	end
 end
 
+function job_precast(spell, action, spellMap, eventArgs)
+	if spell.type == 'BardSong' then
+		if spell.name == 'Honor March' then
+			equip(sets.precast['Honor March'])
+		else
+			equip(sets.precast.Song)
+		end
+		eventArgs.handled = true
+	elseif midaction() then
+		cancel_spell()
+		eventArgs.handled = true
+		return
+	end
+	casting = true
+	cast_timer_id = (cast_timer_id or 0) + 1
+	local this_timer = cast_timer_id
+	coroutine.schedule(function()
+		if this_timer ~= cast_timer_id then return end
+		casting = false
+	end, 4)
+end
+
+function job_aftercast(spell, action, spellMap, eventArgs)
+	casting = false
+	cast_timer_id = (cast_timer_id or 0) + 1
+	customize_melee_set()
+end
+
 function job_state_change(field, new_value, old_value)
+	casting = false
 	customize_melee_set()
 end
 
 function job_self_command(cmdParams, eventArgs)
 	if cmdParams[1]:lower() == 'change_weapon' then
 		if dual_wield then windower.add_to_chat(206, 'Dual Wield Weapon Set') return end
-		state.WeaponLock.value = false
 		enable('main','sub')
 		if state.WeaponSet == 'Sword' then
 			msg = string.char(0x87, 0x41) .. ' Dagger'
-			state.WeaponSet:set('Dagger')
-			send_command('send @all bind numpad7 qa Cissilea WS Evisceration target') 
+			state.WeaponSet = 'Dagger'
+			send_command('send @all bind numpad7 send Cissilea /Evisceration') 
 		elseif state.WeaponSet == 'Dagger' then
 			msg = string.char(0x87, 0x42) .. ' Club'
-			state.WeaponSet:set('Club')
-			send_command('send @all bind numpad7 qa Cissilea WS Judgment target') 
+			state.WeaponSet = 'Club'
+			send_command('send @all bind numpad7 send Cissilea /Judgment') 
 		else
 			msg = string.char(0x87, 0x40) .. ' Sword'
-			state.WeaponSet:set('Sword')
-			send_command('send @all bind numpad7 qa Cissilea WS "Savage Blade" target') 
+			state.WeaponSet = 'Sword'
+			send_command('send @all bind numpad7 send Cissilea /SavageBlade') 
 		end
 		windower.add_to_chat(206, 'Weapon Set '..msg)
 		
 	elseif cmdParams[1]:lower() == 'hmarch' then
 		enable('range')
 		equip({range="Marsyas"})
-		send_command('Honor March') 
+		marching = true
+		send_command('qa Cissilea MA "Honor March"') 
+		return
+		
+	elseif cmdParams[1]:lower() == 'hmarch2' then
+		print('should work')
+		enable('range')
+		equip({range="Marsyas"})
+		marching = true
+		send_command('qa Cissilea JA Nightingale')
+		spell_order = true
 		return
 	end
 	customize_melee_set()

@@ -9,26 +9,44 @@ function job_setup()
 	weapon_set = 'h2h'
 end
 -- % Normal	^ Ctrl	! Alt	@ Win	# Apps	~ Shift
-function user_setup() 	
-	send_command('send @all alias mis send Pharen /InnerStrength')
-	send_command('send @all alias mhp send Pharen /Mantra')
-	
+function user_setup() 		
 	send_command('bind @h gs c toggle_hoxne')
 	send_command('bind capslock gs c swap')
 	send_command('send @all bind @numpad4 send Pharen gs c swap h2h')
 	send_command('send @all bind @numpad5 send Pharen gs c swap staff')
 	
+	send_command('send @all alias mis qa Pharen JA "Inner Strength"')
+	send_command('send @all alias mhf qa Pharen JA "Hundred Fists"')
+	send_command('send @all alias mhp qa Pharen JA "Mantra"')
+	
 	send_command('send @all bind  numpad6   qa Pharen JA Boost') 
-	send_command('send @all bind ~numpad4   qa Pharen JA Provoke t') 
+	send_command('send @all bind ~numpad4   qa Pharen JA Provoke mt') 
 	send_command('send @all bind ~numpad5   qa Pharen JA Chakra') 
 	send_command('send @all bind ~numpad6 send Pharen exec MonkDBuffs.txt') 
-	send_command('send @all bind ^numpad4 send Pharen Counterstance') 
 	send_command('send @all bind ^numpad5   qa Pharen JA Impetus') 
 	send_command('send @all bind ^numpad6 send Pharen exec MonkOBuffs.txt')
 	send_command('send @all bind %pageup    qa Pharen JA "Chi Blast" t') 
 	
 	send_command('wait 5; input /lockstyle on')
 	setup_weapon_keybinds()
+end
+
+function setup_weapon_keybinds()
+	if weapon_set == 'staff' then
+		send_command('send @all bind numpad4 qa Pharen WS "Shell Crusher" t')
+		send_command('send @all bind numpad5 qa Pharen WS "Shattersoul" t') 
+		weapon_text = 'Switched to:  Staff'
+		
+	else
+		send_command('send @all bind  numpad4 qa Pharen WS "Victory Smite" t')
+		send_command('send @all bind  numpad5 qa Pharen WS "Shijin Spiral" t') 
+		send_command('send @all bind !numpad4 qa Pharen WS "Dragon Kick" t') 
+		send_command('send @all bind !numpad5 qa Pharen WS "Raging Fists" t') 
+		send_command('send @all bind !numpad6 qa Pharen WS "Howling Fist" t') 
+		weapon_text = 'Switched to:  Hand-to-Hand'
+	end
+	customize_melee_set()
+	windower.add_to_chat(209, weapon_text)
 end
 
 function init_gear_sets()
@@ -132,49 +150,22 @@ function init_gear_sets()
         }
 
     --- Other Sets ---
-    sets.idle = sets.defense
-    sets.idle.Town = set_combine(sets.idle, {ring1="Warp Ring", ring2="Dim. Ring (Holla)"})	 
-end
-function job_self_command(cmdParams, eventArgs)
-	if cmdParams[1]:lower() == 'toggle_hoxne' then
-		if hoxne_equipped then
-			enable('range', 'ammo')
-			hoxne_equipped = false
-			msg = 'Unequipped'
-		else
-			equip({ammo = "Hoxne Ampulla"})
-			disable('range', 'ammo')
-			hoxne_equipped = true
-			msg = 'Equipped'
-			coroutine.schedule( function() 
-				windower.add_to_chat(210, '<< Hoxne Ready to Use >>')	
-				send_command('@input /item "Hoxne Ampulla" <me>')
-			end, 6)
-		end
-		windower.add_to_chat(210, '<< Hoxne '..msg.. ' >>')
-		customize_melee_set()
-	elseif cmdParams[1]:lower() == 'swap' then
-		if not cmdParams[2] then
-			if weapon_set == 'staff' then
-				weapon_set = 'h2h'
-			else
-				weapon_set = 'staff'
-			end
-		elseif cmdParams[2]:lower() == 'staff' then
-			weapon_set = 'staff'
-		else
-			weapon_set = 'h2h'
-		end
-		setup_weapon_keybinds()
-	end
+    --sets.idle.Town = set_combine(sets.idle, {ring1="Warp Ring", ring2="Dim. Ring (Holla)"})	 
 end
 
-function customize_melee_set(meleeSet)
+function customize_melee_set()
+	local meleeSet = nil
     if state.OffenseMode.value == "Defense" or player.status == 'Idle' or incapacitated then
 		meleeSet = sets.defense
+		if incapacitated then equip(meleeSet) return end
 	else
 		meleeSet = sets.engaged
     end	
+	if weapon_set == 'staff' then
+		meleeSet = set_combine(meleeSet, sets.Staff)
+	else
+		meleeSet = set_combine(meleeSet, sets.H2H)
+	end
 	if impetus_active then
 		meleeSet = set_combine(meleeSet, { body = "Bhikku Cyclas +3", ear2 = "Schere earring"})
 	end
@@ -187,13 +178,9 @@ function customize_melee_set(meleeSet)
 	if hoxne_equipped then
 		meleeSet = set_combine(meleeSet, { back = gear.STPCape })
 	end
-	if weapon_set == 'staff' then
-		meleeSet = set_combine(meleeSet, sets.Staff)
-	else
-		meleeSet = set_combine(meleeSet, sets.H2H)
-	end
     equip(meleeSet)
 end
+
 function job_post_precast(spell, action, spellMap, eventArgs)
 	if spell.type == 'WeaponSkill' then
 		if hoxne_equipped then
@@ -206,26 +193,11 @@ function job_post_precast(spell, action, spellMap, eventArgs)
 		end
 	end
 end
+
 function job_aftercast(spell, action, spellMap, eventArgs)	
 	customize_melee_set()
 end
-function setup_weapon_keybinds()
-	if weapon_set == 'staff' then
-		send_command('send @all bind numpad4 qa Pharen WS "Shell Crusher" t')
-		send_command('send @all bind numpad5 qa Pharen WS "Shattersoul" t') 
-		weapon_text = 'Switched to:  Staff'
-		
-	else
-		send_command('send @all bind  numpad4 qa Pharen WS "Victory Smite" t')
-		send_command('send @all bind  numpad5 qa Pharen WS "Shijin Spiral" t') 
-		send_command('send @all bind !numpad4 qa Pharen WS "Dragon Kick" t') 
-		send_command('send @all bind !numpad5 qa Pharen WS "Raging Fists" t') 
-		send_command('send @all bind !numpad6 qa Pharen WS "Howling Fist" t') 
-		weapon_text = 'Switched to:  Hand-to-Hand'
-	end
-	customize_melee_set()
-	windower.add_to_chat(209, weapon_text)
-end
+
 function job_buff_change(buff,gain)
     if buff == "terror" or buff == "petrification" or buff == "stun" then
         if gain then
@@ -277,4 +249,38 @@ function job_buff_change(buff,gain)
 		end
     end
 	customize_melee_set()
+end
+
+function job_self_command(cmdParams, eventArgs)
+	if cmdParams[1]:lower() == 'toggle_hoxne' then
+		if hoxne_equipped then
+			enable('range', 'ammo')
+			hoxne_equipped = false
+			msg = 'Unequipped'
+		else
+			equip({ammo = "Hoxne Ampulla"})
+			disable('range', 'ammo')
+			hoxne_equipped = true
+			msg = 'Equipped'
+			coroutine.schedule( function() 
+				windower.add_to_chat(210, '<< Hoxne Ready to Use >>')	
+				send_command('@input /item "Hoxne Ampulla" <me>')
+			end, 6)
+		end
+		windower.add_to_chat(210, '<< Hoxne '..msg.. ' >>')
+		customize_melee_set()
+	elseif cmdParams[1]:lower() == 'swap' then
+		if not cmdParams[2] then
+			if weapon_set == 'staff' then
+				weapon_set = 'h2h'
+			else
+				weapon_set = 'staff'
+			end
+		elseif cmdParams[2]:lower() == 'staff' then
+			weapon_set = 'staff'
+		else
+			weapon_set = 'h2h'
+		end
+		setup_weapon_keybinds()
+	end
 end

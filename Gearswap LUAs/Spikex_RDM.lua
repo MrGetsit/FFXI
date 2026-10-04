@@ -3,11 +3,26 @@ function get_sets()
 	include('Mote-Include.lua')
 	texts = require('texts') 
 end
+
 function job_setup()
-	send_command('lua l debuffgrid')
+	send_command('lua l DebuffGrid')
 	send_command('lua l Skillchains')
 	send_command('lua l Battlemod')
+	send_command('lua l PartyBuffs')
+	send_command('lua l SpamFilter')
+	send_command('lua l Dressup')
 	
+--[[			Debuffs by element
+	Fire		Addle		Amnesia	Burn		MA Down	Plague/Virus
+	Ice		Bind		EVA Down	Frost		Paralyze
+	Wind		Choke		DEF Down	Gravity	Silence
+	Earth		ACC Down	Break		Rasp		Slow
+	Lightning	MDEF Down	Shock		Stun
+	Water		ATT Down	Drown		Poison
+	Light		Charm		Dia		Flash		Lullaby	MACC Down	Repose
+	Darkness	Bio		Blind		MEVA Down	Sleep
+]]
+
 	rune_enchantments = S{'Lux','Tenebrae', 'Ignis', 'Gelus', 'Flabra', 'Tellus', 'Sulpor', 'Unda' }
 	barstatus = S{'Baramnesia', 'Barvirus', 'Barparalyze', 'Barsilence', 'Barpetrify', 'Barpoison', 'Barblind', 'Barsleep'} 
 	magic_weaponskills = S{'Aeolian Edge','Burning Blade','Red Lotus Blade','Shining Blade','Seraph Blade','Sanguine Blade'}
@@ -15,6 +30,9 @@ function job_setup()
 	state.Runes = M{['description']='Runes', 'Lux', 'Tenebrae','Ignis', 'Gelus', 'Flabra', 'Tellus', 'Sulpor', 'Unda' }
 	state.Immunobreak = M(false, 'Immunobreak')	
 	state.OffenseMode:options('Normal', 'Defense', 'Hybrid')
+	
+	spam_list = {'Thunder', 'Blizzard', 'Fire', 'Water', 'Stone'}
+	nextsp = 0
 	
 	weapon_sets = {
 		Physical = {
@@ -52,19 +70,16 @@ function job_setup()
 	})	
 	weapon_lock_display:hide()
 	
-	dual_wield = false
 	WeaponLock = false
-	if player.sub_job and player.sub_job_level >= 20 and (player.sub_job == 'NIN' or player.sub_job == 'DNC') then
-		dual_wield = true
-	else
-		dual_wield = false
-	end	
+	check_dual_wield()
 end
 
 function user_setup()
 	send_command('bind @w gs c lock')
 	send_command('bind @e gs c toggle Immunobreak')
 	send_command('bind @h gs c toggle_hoxne')
+	send_command('bind %c gs c next_spell 4')
+	send_command('bind ~%c gs c next_spell 5')
 	send_command('bind capslock  gs c cycle WeaponSet')
 	send_command('bind !capslock gs c cycle WeaponType')
 	send_command('bind @S gs c cycle OffenseMode')
@@ -125,39 +140,75 @@ function user_setup()
 	elseif player.sub_job == 'NIN' then
 		send_command('send @all bind %x  send Spikex UtsusemiNi')
 		send_command('send @all bind !x  send Spikex UtsusemiIchi')
-		send_command('send @all bind %c  send Spikex gs c spam')
 	end
 	startup()
 end
 
+function setup_weapon_keybinds()
+	local main = current_weapon().main
+	
+	if main == 'Naegling' then
+		send_command('send @all bind %1 qa Spikex WS "Savage Blade" t')
+		send_command('send @all bind %2 qa Spikex WS "Chant du Cygne" t')
+		send_command('send @all bind !1 qa Spikex WS "Red Lotus Blade" t')
+		send_command('send @all bind !2 qa Spikex WS "Seraph Blade" t')
+		send_command('send @all bind %3 qa Spikex WS "Sanguine Blade" t')
+		send_command('send @all bind !3 qa Spikex WS "Circle Blade" t')
+	
+	elseif main == 'Crocea Mors' then
+		send_command('send @all bind %1 qa Spikex WS "Red Lotus Blade" t')
+		send_command('send @all bind %2 qa Spikex WS "Seraph Blade" t')
+		send_command('send @all bind !1 qa Spikex WS "Savage Blade" t')
+		send_command('send @all bind !2 qa Spikex WS "Chant du Cygne" t')
+	
+	elseif main == 'Maxentius' then
+		send_command('send @all bind %1 qa Spikex WS "Black Halo"')
+	
+	elseif main == 'Tauret' then
+		send_command('send @all bind %1 qa Spikex WS "Evisceration" t')
+		send_command('send @all bind %2 qa Spikex WS "Aeolian Edge" t')
+	end
+end
+
 function setup_job_aliases()
 	send_command('send @all alias imp gs c impact')
-	send_command('send @all alias rb  exec RDM_Buffs.txt')
-	send_command('send @all alias rb2 exec RDM_Buffs2.txt')
-	send_command('send @all alias rb3 exec RDM_Buffs3.txt')
-	send_command('send @all alias rbs exec RDM_BuffsSelf.txt')
-	send_command('send @all alias av aquaveil')
+	send_command('send @all alias rb  send Spikex gs c spell_order RDM_Buffs.txt')
+	send_command('send @all alias rb2 send Spikex gs c spell_order RDM_Buffs2.txt')
+	send_command('send @all alias rb3 send Spikex gs c spell_order RDM_Buffs3.txt')
+	send_command('send @all alias rbs send Spikex gs c spell_order RDM_BuffsSelf.txt')
+	send_command('send @all alias av "Aquaveil"')
 	
-	send_command('alias s4 /Stone4')
-	send_command('alias w4 /Water4')
-	send_command('alias a4 /Aero4')
-	send_command('alias f4 /Fire4')
-	send_command('alias b4 /Blizzard4')
-	send_command('alias t4 /Thunder4')
-	send_command('alias s5 /Stone5')
-	send_command('alias w5 /Water5')
-	send_command('alias a5 /Aero5')
-	send_command('alias f5 /Fire5')
-	send_command('alias b5 /Blizzard5')
-	send_command('alias t5 /Thunder5')
+	send_command('alias s3 qa Spikex MA "Stone III" t')
+	send_command('alias w3 qa Spikex MA "Water III" t')
+	send_command('alias a3 qa Spikex MA "Aero III" t')
+	send_command('alias f3 qa Spikex MA "Fire III" t')
+	send_command('alias b3 qa Spikex MA "Blizzard III" t')
+	send_command('alias t3 qa Spikex MA "Thunder III" t')
+	send_command('alias s4 qa Spikex MA "Stone IV" t')
+	send_command('alias w4 qa Spikex MA "Water IV" t')
+	send_command('alias a4 qa Spikex MA "Aero IV" t')
+	send_command('alias f4 qa Spikex MA "Fire IV" t')
+	send_command('alias b4 qa Spikex MA "Blizzard IV" t')
+	send_command('alias t4 qa Spikex MA "Thunder IV" t')
+	send_command('alias s5 qa Spikex MA "Stone V" t')
+	send_command('alias w5 qa Spikex MA "Water V" t')
+	send_command('alias a5 qa Spikex MA "Aero V" t')
+	send_command('alias f5 qa Spikex MA "Fire V" t')
+	send_command('alias b5 qa Spikex MA "Blizzard V" t')
+	send_command('alias t5 qa Spikex MA "Thunder V" t')
+end
+
+function job_update(cmdParams, eventArgs) -- Runs on subjob change, and all the time randomly, needed to keep dual wield accurate
+	check_dual_wield()
+	casting = false
+	customize_melee_set()
 end
 
 function startup()
 	setup_weapon_keybinds()
 	setup_job_aliases()
-	customize_melee_set()
-	send_command('wait 3; gs c lock')
-	send_command('wait 5; input /lockstyleset 5')
+	coroutine.schedule( function() customize_melee_set() end, 1)
+	coroutine.schedule( function() send_command('input /lockstyleset 4') end, 5)
 end
 
 function user_unload()
@@ -169,7 +220,6 @@ end
 
 function init_gear_sets()
 	--- Gear Sets ---	
-	gear.Shield		= { sub = "Diamond Aspis" }
 	gear.CapeMND 	= { name = "Sucellos's Cape", augments={'MND+20','Mag. Acc+20 /Mag. Dmg.+20','MND+10','"Fast Cast"+10','Phys. dmg. taken-10%',} }
 	gear.CapeINT 	= { name = "Sucellos's Cape", augments={'INT+20','Mag. Acc+20 /Mag. Dmg.+20','INT+10','"Mag.Atk.Bns."+10',} }
 	gear.CapeIWS 	= { name = "Sucellos's Cape", augments={'INT+20','Mag. Acc+20 /Mag. Dmg.+20','INT+10','Weapon skill damage +10%',} }
@@ -198,21 +248,6 @@ function init_gear_sets()
 	sets.precast.WS = {						-- 2378 HP
 		ammo	= "Oshasha's Treatise",
 		head	= "Viti. Chapeau +4",
-		neck	= "Sibyl Scarf",
-		ear1	= "Malignance earring",
-		ear2	= "Friomisi Earring",
-		body	= "Lethargy Sayon +3",
-		hands	= "Leth. Ganth. +3",
-		ring1	= "Cornelia's Ring",
-		ring2	= "Metamor. Ring +1",
-		back	= gear.CapeSWS,
-		waist	= "Sacro Cord",
-		legs	= "Leth. Fuseau +3",
-		feet	= "Leth. Houseaux +3",
-		}
-	sets.precast.WS['Savage Blade'] = {
-		ammo	= "Oshasha's Treatise",
-		head	= "Viti. Chapeau +4",
 		neck	= "Rep. Plat. Medal",
 		ear1	= "Sherida earring",
 		ear2	= "Ishvara earring",
@@ -222,12 +257,9 @@ function init_gear_sets()
 		ring2	= "Epaminondas's Ring",
 		back	= gear.CapeSWS,
 		waist	= "Sailfi Belt +1",
-		legs	= "Leth. Fuseau +3",
+		legs	= "Nyame Flanchard",
 		feet	= "Leth. Houseaux +3",
 		}	
-	sets.precast.WS['Death Blossom'] = sets.precast.WS['Savage Blade']
-	sets.precast.WS['Black Halo'] = sets.precast.WS['Savage Blade']
-	
 	sets.precast.WS['Chant du Cygne'] = {
 		ammo	= "Yetshila +1",
 		head	= "Blistering Sallet +1",
@@ -429,12 +461,12 @@ function init_gear_sets()
 	
 	sets.midcast['Enhancing Magic'] = {
 		sub		= "Ammurapi Shield",	-- 10
-		ammo	= "Homiliary",
+		ammo	= "Staunch Tathlum +1",
 		head	= "Leth. Chappel +3",	-- 10
 		neck	= "Dls. Torque +2",		-- 25
 		ear1	= "Alabaster Earring",
 		ear2	= "Lethargy Earring",	-- 7/9
-		body	= "Lethargy Sayon +3",	-- 10
+		body	= "Vitiation Tabard +4",-- 15
 		hands	= "Atro. Gloves +4", 	-- 20
 		ring1	= "Eihwaz Ring",		-- HP
 		ring2	= "Etana Ring",			-- HP
@@ -443,8 +475,13 @@ function init_gear_sets()
 		legs	= "Leth. Fuseau +3",	-- 10
 		feet	= "Leth. Houseaux +3",	-- 55
 		}
+	sets.midcast.EnhOther = set_combine(sets.midcast['Enhancing Magic'], {
+		body	= "Lethargy Sayon +3",
+		hands	= "Lethargy Gantherots +3",
+		})
+	
 	sets.midcast.EnhSkill = { 			-- 700	2624 HP Temper/2, Enspells
-		main	= "Pukulatmuj +1",		-- 10
+		main	= "Pukulatmuj +1",		-- 11
 		sub		= "Forfend +1",			-- 10
 		ammo	= "Homiliary",
 		head	= "Befouled Crown",		-- 16
@@ -460,7 +497,7 @@ function init_gear_sets()
 		legs	= "Atrophy Tights +4", 	-- 22 / 22
 		feet  	= "Leth. Houseaux +3",	-- 35
 		}
-	sets.midcast.Phalanx = {			-- 2593 HP
+	sets.midcast['Phalanx'] = {			-- 2593 HP
 		main	= "Sakpata's Sword",	-- +5
 		sub		= "Deacon Sword",		-- +4
 		ammo	= "Homiliary",
@@ -477,6 +514,7 @@ function init_gear_sets()
 		legs	= "Chironic Hose", 		-- +4
 		feet	= "Taeon Boots",		-- +3
 		}
+	sets.midcast['Phalanx II'] = sets.midcast['Phalanx']
 	sets.midcast.SelfProt = set_combine(sets.midcast['Enhancing Magic'], {
 		ear1	= "Brachyura Earring", })
 	sets.midcast.GainSpell = set_combine(sets.midcast['Enhancing Magic'], {
@@ -505,7 +543,7 @@ function init_gear_sets()
 		
 	sets.midcast.Cure = {
 		main	= "Daybreak",			-- 30
-		ammo	= "Staunch Tathlum",
+		ammo	= "Staunch Tathlum +1",
 		head	= "Nyame Helm",			-- HP
 		neck	= "Nodens Gorget",		-- 5
 		ear1	= "Malignance Earring",
@@ -559,7 +597,7 @@ function init_gear_sets()
 		feet	= "Malignance Boots",
 		}
 	sets.defense = {
-		ammo	= "Staunch Tathlum",
+		ammo	= "Staunch Tathlum +1",
 		head	= "Null Masque",		-- 10
 		neck	= "Warder's Charm +1",	
 		ear1	= "Eabani Earring",
@@ -591,33 +629,8 @@ function current_weapon()
 	return weapon_sets[state.WeaponType.value][state.WeaponSet.value]
 end
 
-function setup_weapon_keybinds()
-	local main = current_weapon().main
-	
-	if main == 'Naegling' then
-		send_command('send @all bind %1 send Spikex SavageBlade')
-		send_command('send @all bind %2 send Spikex ChantDuCygne')
-		send_command('send @all bind !1 send Spikex RedLotusBlade')
-		send_command('send @all bind !2 send Spikex SeraphBlade')
-		send_command('send @all bind %3 send Spikex SanguineBlade')
-		send_command('send @all bind !3 send Spikex CircleBlade"')
-	
-	elseif main == 'Crocea Mors' then
-		send_command('send @all bind %1 send Spikex RedLotusBlade')
-		send_command('send @all bind %2 send Spikex SeraphBlade')
-		send_command('send @all bind !1 send Spikex SavageBlade')
-		send_command('send @all bind !2 send Spikex ChantDuCygne')
-	
-	elseif main == 'Maxentius' then
-		send_command('send @all bind %1 send Spikex BlackHalo')
-	
-	elseif main == 'Tauret' then
-		send_command('send @all bind %1 send Spikex Evisceration')
-		send_command('send @all bind %2 send Spikex AeolianEdge')
-	end
-end
-
 function customize_melee_set()
+	local meleeSet = nil
 	if state.OffenseMode.value == "Defense" or
 	player.status == 'Idle' or incapacitated then
 		meleeSet = sets.defense
@@ -643,7 +656,6 @@ function customize_melee_set()
 			meleeSet = set_combine(meleeSet, weapon_update)
 		end
 	end
-	
 	equip(meleeSet)
 	
 	if temp_weapons then
@@ -652,24 +664,22 @@ function customize_melee_set()
 	end
 end
 
-function check_weapon(EquipSet)
+function check_weapon()
 	local WeaponUpdate = nil
 	if temp_weapons then
 		enable('main','sub')
 		WeaponUpdate = {main = tempmain, sub = tempsub}
-	end
 
-	if not WeaponLock then
+	elseif not WeaponLock then
 		local weapon = current_weapon()
 		local main_matches = player.equipment.main == weapon.main
 		local sub_matches = player.equipment.sub == weapon.sub
 		
 		if not main_matches or not sub_matches then
-			toggle_weapon_lock(false)
 			if dual_wield then
 				WeaponUpdate = {main = weapon.main, sub = weapon.sub}
 			else
-				WeaponUpdate = {main = weapon.main, sub = gear.Shield}
+				WeaponUpdate = {main = weapon.main, sub = "Diamond Aspis"}
 			end
 		end
 	end
@@ -695,9 +705,8 @@ function job_buff_change(buff,gain)
 	elseif buff == "charm" then
 		if gain then
 			send_command('@input /p Charmed.')
-		end
-	end
-	if buff == "sleep" then
+		end		
+	elseif buff == "sleep" then
 		if gain then
 			incapacitated = true
 			if WeaponLock then save_temp_weapons() end
@@ -709,8 +718,7 @@ function job_buff_change(buff,gain)
 			incapacitated = false
 			customize_melee_set()
 		end
-	end
-	if buff == "terror" or buff == "petrification" or buff == "stun" then
+	elseif buff == "terror" or buff == "petrification" or buff == "stun" then
 		if gain then
 			incapacitated = true
 		else
@@ -720,17 +728,28 @@ function job_buff_change(buff,gain)
 	elseif buff == "silence" then
 		if gain then
 			send_command('@input /p Silenced.')
-			if not silenced then auto_echo_drops() end
 			silenced = true
+			auto_echo_drops()
 		else
 			silenced = false
 		end
+	elseif buff == "Spontaneity" then
+		if gain then
+			send_command('qa Spikex MA "Impact" t')
+		end
+	elseif spell_order then
+		if buff == "Composure" then
+			send_command('qa Spikex MA "Haste II"')
+		elseif buff == "Haste" then
+			spell_order = false
+			coroutine.schedule(function() send_command('exec '..use_file) end, 2)			
+		end	
 	end
 end
 
 function job_post_pretarget(spell, action, spellMap, eventArgs)
 	local cancel = false
-	if incapacitated or midaction() then
+	if incapacitated or midaction() or casting then
 		cancel = true
 		
 	elseif spell.action_type == 'Magic' then -- Don't change gear on CD
@@ -743,6 +762,7 @@ function job_post_pretarget(spell, action, spellMap, eventArgs)
 	
 	if cancel then
 		cancel_spell()
+		eventArgs.cancel = true
 		eventArgs.handled = true
 		return
 	end
@@ -760,13 +780,23 @@ function job_post_precast(spell, action, spellMap, eventArgs)
 			equip({ear2="Moonshade Earring"})
 		end
 	end
+	casting = true
+	cast_timer_id = (cast_timer_id or 0) + 1
+	local this_timer = cast_timer_id
+	coroutine.schedule(function()
+		if this_timer ~= cast_timer_id then return end
+		casting = false
+	end, 4)
 end
 
 function job_post_midcast(spell, action, spellMap, eventArgs)
 	local midcast_update = nil
 	if spell.action_type == 'Magic' then
 		if spell.skill == 'Enhancing Magic' then
-			if spell.english:startswith('Gain') then
+			if spell.target.type ~= 'SELF' then
+				midcast_update = sets.midcast.EnhOther
+				
+			elseif spell.english:startswith('Gain') then
 				midcast_update = sets.midcast.GainSpell
 			
 			elseif spell.english:startswith('Temper') or 
@@ -774,14 +804,10 @@ function job_post_midcast(spell, action, spellMap, eventArgs)
 				if WeaponLock then save_temp_weapons() end
 				midcast_update = sets.midcast.EnhSkill
 			
-			elseif spell.target.type == 'SELF' then
-				if (spell.english:startswith('Shell') or 
+			elseif (spell.english:startswith('Shell') or 
 				spell.english:startswith('Protect')) then
 					midcast_update = sets.midcast.SelfProt
-				
-				elseif spell.english:startswith('Phalanx') then
-					midcast_update = sets.midcast.Phalanx
-				end
+					
 			elseif barstatus:contains(spell.english) then
 				midcast_update = sets.midcast.BarStatus
 			end
@@ -834,11 +860,10 @@ function job_post_midcast(spell, action, spellMap, eventArgs)
 end
 
 function job_aftercast(spell)
+	casting = false
+	cast_timer_id = (cast_timer_id or 0) + 1
 	if spell.name == 'Impact' then
-		local recast = windower.ffxi.get_spell_recasts()[spell.recast_id]
-		if recast and recast >= 1 then 
-			casting_impact = false
-		end
+		enable('head', 'body')		
 	end
 	customize_melee_set()
 end
@@ -850,7 +875,6 @@ function job_state_change(field, new_value, old_value)
 		end
 		setup_weapon_keybinds()
 		if WeaponLock then toggle_weapon_lock(false) end
-		customize_melee_set()
 	end
 end
 
@@ -873,6 +897,10 @@ function job_self_command(cmdParams, eventArgs)
 		windower.add_to_chat(210, '<< Hoxne '..msg.. ' >>')
 		customize_melee_set()
 		
+	elseif cmdParams[1]:lower() == 'next_spell' then
+		send_command(spam_list[nextsp] .. cmdParams[2])
+		nextsp = nextsp % #spam_list + 1
+		
 	elseif cmdParams[1]:lower() == 'burst' then
 		if burst_timer then
 			coroutine.close(burst_timer)
@@ -890,11 +918,13 @@ function job_self_command(cmdParams, eventArgs)
 		if target then	
 			enable('head', 'body')
 			equip({head = "empty", body = "Crepuscular Cloak"})
-			disable('head', 'body')
-			impact_call = (impact_call or 0) + 1
-			attempts = 0
-			casting_impact = true
-			coroutine.schedule(function() cast_impact(impact_call) end, 0.5)
+			disable('head', 'body')			
+			local spontaneity_recast = windower.ffxi.get_ability_recasts()[37]
+			if spontaneity_recast > 0 then
+				send_command('qa Spikex MA "Impact" t')
+			else
+				send_command('qa Spikex JA "Spontaneity"')
+			end
 		end
 	elseif cmdParams[1]:lower() == 'enspell' then
 		if world.day_element == 'Fire' then
@@ -910,17 +940,6 @@ function job_self_command(cmdParams, eventArgs)
 		else
 			send_command('Enthunder')
 		end	
-	elseif cmdParams[1]:lower() == 'spam' then	
-		if cycle == 0 then
-			send_command('s5')
-		elseif cycle == 1 then
-			send_command('s4')
-		else
-			send_command('s3')
-			cycle = 0
-			return
-		end
-		cycle = cycle + 1
 			
 	elseif cmdParams[1]:lower() == 'lock' then
 		WeaponLock = not WeaponLock
@@ -932,6 +951,11 @@ function job_self_command(cmdParams, eventArgs)
 		
 	elseif cmdParams[1]:lower() == 'cure_lowest' then
 		send_command('Cure4 '..get_lowest_hp_member().id)
+		
+	elseif cmdParams[1] == 'spell_order' then
+		use_file = cmdParams[2]
+		spell_order = true		
+		send_command('qa Spikex JA Composure')
 	end
 end
 
@@ -961,7 +985,6 @@ function cast_impact()
 		coroutine.schedule(function() cast_impact(call_id) end, 0.5)
 	else
 		enable('head', 'body')
-	end', 'body')
 	end
 end
 
@@ -989,4 +1012,13 @@ function auto_echo_drops ()
 	if not silenced then return end
 	send_command('input /item "Echo Drops" <me>')
 	coroutine.schedule(function() auto_echo_drops() end, 2)
+end
+
+function check_dual_wield()
+	if player.sub_job and player.sub_job_level >= 20 then
+		if player.sub_job == 'NIN' or player.sub_job == 'DNC' then
+			dual_wield = true
+		return end
+	end
+	dual_wield = false
 end

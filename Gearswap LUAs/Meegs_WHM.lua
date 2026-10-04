@@ -40,7 +40,7 @@ end
 function init_gear_sets()
     --- Weapon Sets ---
     sets.DPS 	= 	{ main="Kaja Rod", sub="Ammurapi Shield"}
-    sets.Heal 	= 	{ main="Queller Rod", sub="Culminus"}
+    sets.Heal 	= 	{ main="Daybreak", sub="Culminus"}
 	
 	gear.HeadCP = { name="Vanya Hood", augments={'MP+50','"Cure" potency +7%','Enmity-6'} }
 	gear.HeadFC = { name="Vanya Hood", augments={'MP+50','"Fast Cast"+10','Haste+2%'} }
@@ -55,13 +55,15 @@ function init_gear_sets()
 	sets.precast.JA['Divine Veil']		= { head 	= "Ebers Cap +3" }
 	sets.precast.JA['Sublimation']		= { waist	= "Embla Sash" }
 	
-    sets.precast.FC = {						-- 55%
+    sets.precast.FC = {						-- 74%
+		main	= "C. Palug Hammer",		-- 7%
 		sub		= "Chanter's Shield",		-- 3%
 		head	= "Ebers Cap +3",			-- 13%
-		neck	= "Cleric's Torque +2",		-- 1%
+		neck	= "Cleric's Torque +2",		-- 8%
 		ear1  	= "Alabaster earring",
 		ear2	= "Loquac. Earring",		-- 2%
 		body	= "Inyanga Jubbah +2",		-- 14%
+		hands 	= "Fanatic Gloves",			-- 5%
 		ring1	= "Gelatinous Ring",
 		ring2	= "Naji's Ring",			-- 1%
 		back  	= gear.CapeFC,				-- 10%
@@ -124,7 +126,7 @@ function init_gear_sets()
 
     --- Engaged Sets ---
     sets.defense = {					-- DT
-		main	= "Queller Rod",		-- Ref
+		main	= "Daybreak",			-- Ref
 		sub		= "Culminus",			-- Def
 		ammo  	= "Homiliary",
 		head	= "Ebers Cap +3",
@@ -152,7 +154,7 @@ function customize_melee_set(meleeSet)
 	else
 		meleeSet = sets.engaged
     end	
-	if not state.WeaponLock.value then
+	if not state.WeaponLock.value and not incapacitated then
 		if state.WeaponSet.current == 'DPS' then
 			meleeSet = set_combine(meleeSet, sets.DPS)
 		else
@@ -223,16 +225,22 @@ function job_buff_change(buff,gain)
 	elseif buff == "silence" then
 		if gain then
 			send_command('@input /p Silenced.')
-			if not silenced then auto_echo_drops() end
 			silenced = true
+			auto_echo_drops()
 		else
 			silenced = false
 		end
 	elseif buff == "sleep" then
 		if gain then
+			incapacitated = true
+			enable('main')
 			equip({main = 'Lorg Mor'})
+			disable('main')
+		else
+			incapacitated = false
+			customize_melee_set()
 		end
-    end
+	end
 end
 
 function auto_echo_drops ()

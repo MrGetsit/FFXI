@@ -19,16 +19,15 @@ function job_setup()
     info.default_u_ja_ids = S{201, 202, 203, 205, 207}
 	
 	send_command('lua l Gnosis')
-	send_command('lua l rolltracker') 
+	--send_command('lua l rolltracker') 
 	send_command('lua l Skillchains')
 	
     state.WeaponLock = M(false, 'Weapon Lock')	
 	state.WeaponSet = M{['description']='Weapon Set', 'Sword', 'Dagger'}
-	state.WeaponSetR = M{['description']='Ranged Weapon Set', 'TP', 'WS'}
+	state.WeaponSetR = M{['description']='Ranged Weapon Set', 'TP', 'Magical', 'Physical'}
     state.OffenseMode:options('Hybrid', 'Defense', 'Normal' )
 	
-	engaged_ammo = 'Chrono Bullet'
-	ammo_case = 'Fomalhaut'	
+	engaged_ammo = 'Living Bullet'
 	
 	auto = false
 	autofire = nil
@@ -44,20 +43,20 @@ function user_setup()
 	
 	send_command('send @all bind  numpad1   qa Sneaksy WS "Savage Blade" t') 
 	send_command('send @all bind  numpad2   qa Sneaksy WS "Leaden Salute" t') 
-	send_command('send @all bind  numpad3   qa Sneaksy JA "Light Shot" t') 
+	send_command('send @all bind  numpad3   qa Sneaksy JA "Light Shot" mt') 
 	send_command('send @all bind !numpad1   qa Sneaksy WS "Last Stand" t') 
 	send_command('send @all bind !numpad2   qa Sneaksy WS "Hot Shot" t') 
 	send_command('send @all bind !numpad3 send Sneaksy gs c auto') 
 	send_command('send @all bind ~numpad1   qa Sneaksy JA "Chaos Roll"') 
 	send_command('send @all bind ~numpad2   qa Sneaksy JA "Samurai Roll"') 
-	send_command('send @all bind ~numpad3 send Sneaksy DoubleUp') -- Doesn't have its own ID
+	send_command('send @all bind ~numpad3   qa Sneaksy JA "Double-Up"') -- Doesn't have its own ID
 	send_command('send @all bind @numpad1   qa Sneaksy JA "Crooked Cards"') 
 	send_command('send @all bind @numpad2   qa Sneaksy JA "Fold"') 
-	send_command('send @all bind @numpad3   qa Sneaksy JA "Snake Eye"') 
+	send_command('send @all bind @numpad3 send Sneaksy JA "Snake Eye"') 
 	
 	if player.sub_job == 'DNC' then
 		send_command('send @all bind ^numpad1   qa Sneaksy JA "Healing Waltz" Spikex') 
-		send_command('send @all bind ^numpad2 send Sneaksy gs c cure_lowest') 
+		send_command('send @all bind ^numpad2 send Sneaksy gs c CureLowest') 
 		send_command('send @all bind ^numpad3   qa Sneaksy JA "Haste Samba"')  
 		--send_command('send @all bind %pageup send Sneaksy /ReverseFlourish ') 
 		send_command('send @all bind %pagedown   qa Sneaksy JA "Box Step" t ') 
@@ -109,10 +108,11 @@ end
 
 function init_gear_sets()
     --- Weapon Sets ---
-    sets.Sword 	= { main	= "Naegling", 		sub	= "Gleti's Knife" }
-    sets.Dagger = { main	= "Tauret", 		sub	= "Naegling" }
-    sets.TP 	= { range	= "Anarchy +2", 	ammo= engaged_ammo }
-    sets.WS 	= { range	= "Fomalhaut",		ammo= "Chrono Bullet" }
+    sets.Sword 		= { main	= "Naegling", 		sub	= "Gleti's Knife" }
+    sets.Dagger 	= { main	= "Tauret", 		sub	= "Naegling" }
+    sets.TP 		= { range	= "Anarchy +2", 	ammo= engaged_ammo }
+    sets.Magical 	= { range	= "Death Penalty",	ammo= "Living Bullet" }
+    sets.Physical 	= { range	= "Fomalhaut",		ammo= "Chrono Bullet" }
 
 	sets.Comp	= { range	= "Compensator" }
 	
@@ -158,9 +158,25 @@ function init_gear_sets()
 		feet 	= "Meg. Jam. +2",		-- 10
 		--feet 	= "Pursuer's Gaiters",	-- 		10
 		}
+		
+	sets.precast.CorsairShot = {		-- 413 MACC
+		ammo	= "Animikii bullet",
+		head 	= "Malignance Chapeau",	-- 50
+		neck 	= "Null Loop",			-- 50
+		ear1 	= "Crep. Earring",		-- 10
+		ear2 	= "Alabaster Earring",	-- 15
+		body 	= "Lanun Frac +4",		-- 45	+64 MAB
+		hands	= "Chasseur's Gants +3",-- 62
+		ring1	= "Chirich Ring +1",
+		ring2 	= "Crepuscular Ring",	-- 10
+		back	= "Null Shawl",			-- 50
+		waist	= "Null Belt",			-- 30
+		legs 	= "Malignance Tights",	-- 50
+		--feet 	= "Malignance Boots",
+		feet 	= "Lanun Bottes +4",	-- 41	+58 MAB
+		}
 			
     sets.precast.WS = { 
-		ammo	= "Chrono Bullet",
 		head	= "Clemen. Somen",
 		neck	= "Sibyl Scarf",
 		ear1	= "Ishvara Earring",
@@ -175,7 +191,6 @@ function init_gear_sets()
 		feet 	= "Lanun bottes +4",
 		}    
 	sets.precast.WS['Last Stand'] = { 
-		ammo	= "Chrono Bullet",
 		head	= "Clemen. Somen",
 		neck	= "Null Loop",
 		ear1	= "Telos Earring",
@@ -204,13 +219,11 @@ function init_gear_sets()
 		ring2	= "Regal Ring",
 		back	= gear.CapeSTR,
 		waist	= "Sailfi Belt +1",  
-		legs 	= "Lanun Trews +4",
+		legs 	= "Nyame Flanchard",
 		feet 	= "Lanun Bottes +4",
 	}
 		
-    --- Midcast Sets ---
-	sets.midcast.CorsairShot = {ammo="Animikii bullet"}
-	
+    --- Midcast Sets ---	
 	sets.midcast.RA = {
 		--head 	= "Malignance Chapeau",
 		head 	= "Ikenga's Hat",
@@ -230,6 +243,7 @@ function init_gear_sets()
 		feet 	= "Malignance Boots",
 		--feet 	= "Ikenga's Clogs",
 		}
+		
     --- Engaged Sets ---
     sets.engaged = {					-- 26
 		ammo 	= engaged_ammo,
@@ -264,7 +278,6 @@ function init_gear_sets()
 		}
 
     sets.defense = {
-		ammo 	= engaged_ammo,
 		head	= "Nyame Helm",
 		neck 	= "Null Loop",
 		ear1 	= "Alabaster Earring",	-- 05
@@ -322,6 +335,12 @@ function job_buff_change(buff,gain)
 		if gain then
 			send_command('@input /p Charmed.')
 		end
+	elseif buff == "Snake Eye" then
+		if gain then
+			se_active = true
+		else
+			se_active = false
+		end
     end
 end
 
@@ -332,8 +351,15 @@ function job_post_pretarget(spell, action, spellMap, eventArgs)
 		return
 	end	
 	
+	if spell.name == "Snake Eye" and se_active then
+		windower.send_command('input /party Snake Eye already active.')
+		cancel_spell()
+		eventArgs.handled = true
+		return
+	end
+	
 	if spell.type == "WeaponSkill" then
-		if player.equipment.ammo == 'Hauksbok Bullet' then
+		if player.equipment.ammo == 'Hauksbok Bullet' or player.equipment.ammo == 'Animikii Bullet' then
 			equip({ammo="empty"})
 		end
 		if auto then auto = false end
@@ -366,7 +392,8 @@ function job_post_precast(spell, action, spellMap, eventArgs)
 	end
 end
 
-function customize_melee_set(meleeSet)
+function customize_melee_set()
+	local meleeSet = nil
     if state.OffenseMode.value == "Defense" or incapacitated then
 		meleeSet = sets.defense
 	elseif state.OffenseMode.value == "Hybrid" then
@@ -386,6 +413,12 @@ function job_aftercast(spell, action, spellMap, eventArgs)
 	if player.equipment.ammo == 'Hauksbok Bullet' then
 		equip({ammo="empty"})
 	end
+	if spell.name == 'Snake Eye' then	
+		coroutine.schedule( function() 
+			local recast = windower.ffxi.get_ability_recasts()[spell.recast_id]
+			if recast == 0 then windower.send_command('input /party Snake Eye Reset!') end
+		end, 2)
+	end
     customize_melee_set()
 end
 
@@ -395,22 +428,25 @@ function job_state_change(field, new_value, old_value)
     else
         enable('main','sub')
 	end
-	if field == 'Weapon Set' then
-		if state.WeaponSet.value == "Sword" then	
-			if player.equipment.main == "Tauret" then
-				send_command('input /equip main')
-			end
-			send_command('send @all bind  numpad1 qa Sneaksy WS "Savage Blade" target ') 
-			send_command('send @all bind !numpad1 qa Sneaksy WS "Last Stand" target ')
-		elseif state.WeaponSet.value == "Dagger" then
-			if player.equipment.main == "Naegling" then
-				send_command('input /equip main')
-			end
-			send_command('send @all bind  numpad1 send Sneaksy WS "Aeolian Edge" target ') 
-			send_command('send @all bind !numpad1 send Sneaksy WS "Evisceration" target ')
+	if field == 'Ranged Weapon Set' then
+		if new_value == 'Physical' then
+			engaged_ammo = 'Chrono Bullet'
+		else
+			engaged_ammo = 'Living Bullet'
 		end
+	elseif state.WeaponSet.value == "Sword" then	
+		if player.equipment.main == "Tauret" then
+			send_command('input /equip main')
+		end
+		send_command('send @all bind  numpad1 qa Sneaksy WS "Savage Blade" target ') 
+		send_command('send @all bind !numpad1 qa Sneaksy WS "Last Stand" target ')
+	elseif state.WeaponSet.value == "Dagger" then
+		if player.equipment.main == "Naegling" then
+			send_command('input /equip main')
+		end
+		send_command('send @all bind  numpad1 qa Sneaksy WS "Aeolian Edge" t ') 
+		send_command('send @all bind !numpad1 qa Sneaksy WS "Evisceration" t ') 
 	end
-    customize_melee_set()
 end
 
 function job_update(cmdParams, eventArgs)
@@ -443,7 +479,8 @@ function job_self_command(command, eventArgs)
 		else
 			stop_shooting()
 		end
-	elseif command[1]:lower() == 'cure_lowest' then
+		
+	elseif command[1] == 'CureLowest' then
 		send_command('CuringWaltz3 '..get_lowest_hp_member().id) 
 	end
 end
@@ -466,12 +503,11 @@ function get_lowest_hp_member()
 end
 
 function target()
-    if not auto or shot_pending then stop_shooting() return end 
+    if not auto then stop_shooting() return end 
 	
 	if not player.equipment or
 	player.equipment.ammo == 'empty' then 
 		windower.send_command('input /party Out of ammo')
-		windower.send_command('input /item "'.. ammo_case ..'" ' .. player.name)
 		stop_shooting()
 	return end
 	
@@ -480,7 +516,6 @@ function target()
 		stop_shooting()
 	return end
 	windower.ffxi.turn(math.atan2(tar.x - player.x, tar.y - player.y) - 1.5708)
-	shot_pending = true
 	shoot:schedule(1.5)
 	
 	local recast = windower.ffxi.get_ability_recasts()[84]
@@ -490,7 +525,6 @@ function target()
 end
 
 function shoot()
-	shot_pending = false
 	last_shot_time = os.clock()
     windower.send_command('input /shoot <t>')
 end
@@ -501,31 +535,5 @@ function stop_shooting()
 		windower.add_to_chat(160, 'Autofire Off')
 		windower.unregister_event(autofire)
 		autofire = nil
-	end
-end
-
-function tprint(tbl, indent)
-	if not indent then indent = 0 end
-	local spaces = string.rep("  ", indent) -- Use two spaces for indentation
-
-	for k, v in pairs(tbl) do
-		local key_str
-		if type(k) == "number" then
-			key_str = "[" .. k .. "]"
-		else
-			key_str = "['" .. k .. "']"
-		end
-
-		if type(v) == "table" then
-		   print(2, spaces .. key_str .. " = {") 
-			tprint(v, indent + 1)
-		   print(2, spaces .. "}")
-		else
-			local value_str = tostring(v)
-			if type(v) == "string" then
-				value_str = "'" .. value_str .. "'"
-			end
-			print(2, spaces .. key_str .. " = " .. value_str .. ",")
-		end
 	end
 end
