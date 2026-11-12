@@ -5,6 +5,7 @@ end
 
 function job_setup()
 	send_command('lua l spamfilter')
+	send_command('lua l Gnosis')
 	
 	barstatus = S{'Baramnesra', 'Barvira', 'Barparalyzra', 'Barsilencera', 'Barpetra', 'Barpoisonra', 'Barblindra', 'Barsleepra'} 
 	
@@ -21,12 +22,29 @@ function user_setup()
 	send_command('send @all alias sh5 send Meegs /Shellra5') 
 	send_command('send @all alias ari qa Meegs MA Arise target')
 	send_command('send @all alias reg exec whmregen.txt')
+	send_command('send @all alias snk2 exec sneak2.txt')
+	
+	send_command('send @all alias wbf qa Meegs MA Barfira')
+	send_command('send @all alias wbb qa Meegs MA Barblizzara')
+	send_command('send @all alias wba qa Meegs MA Baraera')
+	send_command('send @all alias wbs qa Meegs MA Barstonra')
+	send_command('send @all alias wbt qa Meegs MA Barthundra')
+	send_command('send @all alias wbw qa Meegs MA Barwatera')
+	
+	send_command('send @all alias wbam qa Meegs MA Baramnesra')
+	send_command('send @all alias wbpa qa Meegs MA Barparalyzra')
+	send_command('send @all alias wbpe qa Meegs MA Barpetra')
+	send_command('send @all alias wbpo qa Meegs MA Barpoisonra')
+	send_command('send @all alias wbsl qa Meegs MA Barsleepra')
+	send_command('send @all alias wbsi qa Meegs MA Barsilencera')
+	
 	send_command('send @all alias wstr send Meegs /BoostSTR')
 	send_command('send @all alias wdex send Meegs /BoostDEX')
 	send_command('send @all alias wagi send Meegs /BoostAGI')
 	send_command('send @all alias wint send Meegs /BoostINT')
 	send_command('send @all alias wmnd send Meegs /BoostMND')
 	send_command('send @all alias wchr send Meegs /BoostCHR')
+	
 	send_command('send @all alias whb exec hbwhm.txt') 
 	send_command('send @all alias whb2 exec hbwhm2.txt') 
 	send_command('send @all alias ben qa Meegs JA Benediction') 
@@ -237,6 +255,7 @@ function job_buff_change(buff,gain)
 			equip({main = 'Lorg Mor'})
 			disable('main')
 		else
+			enable('main')
 			incapacitated = false
 			customize_melee_set()
 		end

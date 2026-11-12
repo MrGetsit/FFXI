@@ -18,8 +18,6 @@ function job_setup()
     info.default_ja_ids = S{35, 204}
     info.default_u_ja_ids = S{201, 202, 203, 205, 207}
 	
-	send_command('lua l Gnosis')
-	--send_command('lua l rolltracker') 
 	send_command('lua l Skillchains')
 	
     state.WeaponLock = M(false, 'Weapon Lock')	
@@ -87,7 +85,7 @@ function setup_job_aliases()
 	send_command('send @all alias rmab send Sneaksy /WizardsRoll') 
 	send_command('send @all alias reva send Sneaksy /NinjaRoll') 
 	send_command('send @all alias rmev send Sneaksy /RuneistsRoll') 
-	send_command('send @all alias rmde send Sneaksy /MagussRoll') 
+	send_command('send @all alias rmdb send Sneaksy /MagussRoll') 
 	send_command('send @all alias rcri send Sneaksy /RoguesRoll') 
 	send_command('send @all alias rpat send Sneaksy /BeastRoll') 
 	send_command('send @all alias rpac send Sneaksy /DrachenRoll') 
@@ -100,10 +98,6 @@ function startup()
 	setup_job_aliases()
 	send_command('gs c set treasuremode tag')
 	send_command('wait 5; input /lockstyleset 2') 
-end
-
-function user_unload()
-	send_command('sa lua u rolltracker') 
 end
 
 function init_gear_sets()
@@ -190,7 +184,10 @@ function init_gear_sets()
 		legs	= "Nyame Flanchard",  	
 		feet 	= "Lanun bottes +4",
 		}    
-	sets.precast.WS['Last Stand'] = { 
+    sets.precast.WS['Leaden Salute'] = set_combine(sets.precast.WS, {
+		head 	= "Pixie Hairpin +1",
+	})
+	sets.precast.WS['Last Stand'] = { -- Full ACC since it always misses
 		head	= "Clemen. Somen",
 		neck	= "Null Loop",
 		ear1	= "Telos Earring",
@@ -204,10 +201,6 @@ function init_gear_sets()
 		legs	= "Lanun Trews +4",  	
 		feet 	= "Malignance boots",
 		}
-    sets.precast.WS['Leaden Salute'] = set_combine(sets.precast.WS, {
-		head 	= "Pixie Hairpin +1",
-	})
-    sets.precast.WS['Aeolian Edge'] = sets.precast.WS['Hot Shot']
     sets.precast.WS['Savage Blade'] = {	
 		head 	= "Clemen. Somen",
         neck	= "Rep. Plat. Medal",
@@ -304,6 +297,23 @@ function init_gear_sets()
         }
 end
 
+function customize_melee_set()
+	local meleeSet = nil
+    if state.OffenseMode.value == "Defense" or incapacitated then
+		meleeSet = sets.defense
+	elseif state.OffenseMode.value == "Hybrid" then
+		meleeSet = sets.hybrid
+	else
+		meleeSet = sets.engaged
+    end	
+	if not state.WeaponLock.value then
+        meleeSet = set_combine(meleeSet, sets[state.WeaponSet.current])
+        meleeSet = set_combine(meleeSet, sets[state.WeaponSetR.current])
+	end
+	
+    equip(meleeSet)
+end
+
 function job_buff_change(buff,gain)
     if buff == "terror" or buff == "petrification" or buff == "stun" then
         if gain then
@@ -335,12 +345,25 @@ function job_buff_change(buff,gain)
 		if gain then
 			send_command('@input /p Charmed.')
 		end
+	elseif buff == "bust" then
+		if gain then
+			send_command('@input /p Bust.')
+		end
 	elseif buff == "Snake Eye" then
 		if gain then
 			se_active = true
 		else
 			se_active = false
 		end
+	elseif buff == "Haste Samba" then
+		if gain then
+            send_command('send Spikex gs c samba true')
+		else
+            send_command('send Spikex gs c samba')
+		end
+	elseif buff == "Contradance" and waltz_queue then
+		waltz_queue = false
+		send_command('CuringWaltz3 '..get_lowest_hp_member().id) 
     end
 end
 
@@ -355,10 +378,8 @@ function job_post_pretarget(spell, action, spellMap, eventArgs)
 		windower.send_command('input /party Snake Eye already active.')
 		cancel_spell()
 		eventArgs.handled = true
-		return
-	end
-	
-	if spell.type == "WeaponSkill" then
+		
+	elseif spell.type == "WeaponSkill" then
 		if player.equipment.ammo == 'Hauksbok Bullet' or player.equipment.ammo == 'Animikii Bullet' then
 			equip({ammo="empty"})
 		end
@@ -374,9 +395,7 @@ function job_post_pretarget(spell, action, spellMap, eventArgs)
 			eventArgs.handled = true
 			return
 		end		
-	end
-	
-	if not WeaponLock then
+	elseif not WeaponLock then
 		if player.tp <= 350 and spell.english:endswith('Roll') then
 			send_command('gs equip sets.Comp')
 		end
@@ -392,23 +411,6 @@ function job_post_precast(spell, action, spellMap, eventArgs)
 	end
 end
 
-function customize_melee_set()
-	local meleeSet = nil
-    if state.OffenseMode.value == "Defense" or incapacitated then
-		meleeSet = sets.defense
-	elseif state.OffenseMode.value == "Hybrid" then
-		meleeSet = sets.hybrid
-	else
-		meleeSet = sets.engaged
-    end	
-	if not state.WeaponLock.value then
-        meleeSet = set_combine(meleeSet, sets[state.WeaponSet.current])
-        meleeSet = set_combine(meleeSet, sets[state.WeaponSetR.current])
-	end
-	
-    equip(meleeSet)
-end
-
 function job_aftercast(spell, action, spellMap, eventArgs)	
 	if player.equipment.ammo == 'Hauksbok Bullet' then
 		equip({ammo="empty"})
@@ -418,6 +420,11 @@ function job_aftercast(spell, action, spellMap, eventArgs)
 			local recast = windower.ffxi.get_ability_recasts()[spell.recast_id]
 			if recast == 0 then windower.send_command('input /party Snake Eye Reset!') end
 		end, 2)
+	elseif spell.name == "Leaden Salute" then
+		if state.WeaponSetR.current ~= 'Magical' then print('Magic') state.WeaponSetR.current = 'Magical' end
+		
+	elseif spell.name == "Savage Blade" then
+		if state.WeaponSetR.current ~= 'TP' then print('TP') state.WeaponSetR.current = 'TP' end
 	end
     customize_melee_set()
 end
@@ -438,14 +445,14 @@ function job_state_change(field, new_value, old_value)
 		if player.equipment.main == "Tauret" then
 			send_command('input /equip main')
 		end
-		send_command('send @all bind  numpad1 qa Sneaksy WS "Savage Blade" target ') 
-		send_command('send @all bind !numpad1 qa Sneaksy WS "Last Stand" target ')
+		send_command('send @all bind  numpad1 qa Sneaksy WS "Savage Blade" t') 
+		send_command('send @all bind !numpad1 qa Sneaksy WS "Last Stand" t')
 	elseif state.WeaponSet.value == "Dagger" then
 		if player.equipment.main == "Naegling" then
 			send_command('input /equip main')
 		end
-		send_command('send @all bind  numpad1 qa Sneaksy WS "Aeolian Edge" t ') 
-		send_command('send @all bind !numpad1 qa Sneaksy WS "Evisceration" t ') 
+		send_command('send @all bind  numpad1 qa Sneaksy WS "Aeolian Edge" t') 
+		send_command('send @all bind !numpad1 qa Sneaksy WS "Evisceration" t') 
 	end
 end
 
@@ -480,8 +487,13 @@ function job_self_command(command, eventArgs)
 			stop_shooting()
 		end
 		
-	elseif command[1] == 'CureLowest' then
-		send_command('CuringWaltz3 '..get_lowest_hp_member().id) 
+	elseif command[1] == 'CureLowest' then		
+		if windower.ffxi.get_ability_recasts()[229] == 0 then
+			waltz_queue = true
+			send_command('qa Sneaksy JA Contradance') 
+		else
+			send_command('CuringWaltz3 '..get_lowest_hp_member().id) 
+		end
 	end
 end
 

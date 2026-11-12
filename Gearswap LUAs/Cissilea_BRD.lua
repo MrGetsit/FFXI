@@ -4,17 +4,10 @@ function get_sets()
 end
 
 function job_setup()	
-	state.WeaponSet = M{'Sword', 'Club', 'Dagger'}
+	state.WeaponSet = M{'Naegling', 'Carnwenhan'}
 	state.OffenseMode:options('Normal', 'Defense')
 	send_command('bind @S gs c cycle OffenseMode')
     send_command('bind %capslock gs c change_weapon')
-    send_command('gs c change_weapon')
-	
-	if player.sub_job_level >= 20 and (player.sub_job == 'NIN' or player.sub_job == 'DNC') then
-		dual_wield = true
-	else
-		dual_wield = false
-	end	
 end
 -- % Normal	^ Ctrl	! Alt	@ Win	# Apps	~ Shift
 function user_setup() 
@@ -26,23 +19,31 @@ function user_setup()
 	send_command('send @all bind ~numpad9   qa Cissilea MA "Ice Threnody II" mt')	-- Distract, Paralyze
 	send_command('send @all bind !numpad9   qa Cissilea MA "Dark Threnody II" mt')	-- Frazzle
 	
-	startup()
+	send_command('gs c startup')
 end
 
 function setup_job_aliases()
+	send_command('send @all alias bref exec BRD_Refresh.txt')
 	send_command('send @all alias brd1 exec BRD1.txt')
 	send_command('send @all alias brd2 exec BRD2.txt')
 	send_command('send @all alias brdsv exec BRDSV.txt')
+	send_command('send @all alias brdsv2 exec BRDSV2.txt')
 	send_command('send @all alias hon send Cissilea hb on')
 	send_command('send @all alias hoff send Cissilea hb off')
     send_command('send @all alias shm send Cissilea gs c hmarch')	
-    send_command('send @all alias shm2 send Cissilea gs c hmarch2')	
+    send_command('send @all alias shm2 send Cissilea gs c hmarch 2')	
+    send_command('send @all alias sari send Cissilea gs c sari')
+    send_command('send @all alias sari2 send Cissilea gs c sari 2')
+    send_command('send @all alias spdl send Cissilea gs c sari')
+    send_command('send @all alias spdl2 send Cissilea gs c sari 2')
 	send_command('send @all alias sst send Cissilea Pianissimo')
+	send_command('send @all alias snk3 exec sneak3.txt')
 	
 	send_command('send @all alias sd    qa Cissilea MA "Gold Capriccio"') 
 	send_command('send @all alias smov  qa Cissilea MA "Chocobo Mazurka"') 
 	send_command('send @all alias smov2 qa Cissilea MA "Raptor Mazurka"') 
 	send_command('send @all alias sss	qa Cissilea MA "Sentinel\'s Scherzo"')
+	send_command('send @all alias srr send Cissilea "Goddess\'s Hymnus"')
 	
 	send_command('send @all alias sreg  qa Cissilea MA "Army\'s Paeon VI"') 
 	send_command('send @all alias sreg2 qa Cissilea MA "Army\'s Paeon V"') 
@@ -62,8 +63,8 @@ function setup_job_aliases()
 	send_command('send @all alias sacc2 qa Cissilea MA "Sword Madrigal"') 
 	send_command('send @all alias seva  qa Cissilea MA "Sheepfoe Mambo"') 
 	send_command('send @all alias seva2 qa Cissilea MA "Dragonfoe Mambo"') 
-	send_command('send @all alias shas  qa Cissilea MA "Advancing March"') 
-	send_command('send @all alias shas2 qa Cissilea MA "Victory March"') 
+	send_command('send @all alias shas  qa Cissilea MA "Victory March"') 
+	send_command('send @all alias shas2 qa Cissilea MA "Advancing March"') 
 	
 	send_command('send @all alias sstr  qa Cissilea MA "Herculean Etude"') 
 	send_command('send @all alias sstr2 qa Cissilea MA "Sinewy Etude"') 
@@ -105,20 +106,17 @@ function setup_job_aliases()
 	send_command('send @all alias sdd   qa Cissilea MA "Dark Threnody II"')
 end
 
-function startup()
-	setup_job_aliases()
-	customize_melee_set()
-	send_command('wait 5; input /lockstyleset 2') 
+function setup_weapon_keybinds()
+	if state.WeaponSet.value == 'Carnwenhan' then
+		send_command('send @all bind  numpad7   qa Cissilea WS "Mordant Rime" t')
+		send_command('send @all bind !numpad7   qa Cissilea WS "Rudra\'s Storm" t')		
+	else
+		send_command('send @all bind  numpad7   qa Cissilea WS "Savage Blade" t')
+		send_command('send @all bind !numpad7   qa Cissilea WS "Burning Blade" t')
+	end
 end
 
 function init_gear_sets()
-	--- Weapon Sets ---
-	sets.Sword	=	{ main = "Naegling", sub="Genmei Shield" }
-	sets.Dagger	=	{ main = "Kali", sub="Genmei Shield"}
-	sets.Club	=	{ main = "Daybreak", sub="Genmei Shield"}
-	
-	sets.SwordDW=	{ main = "Naegling", sub="Centovente" }
-
 	gear.CapeFC	=	{ name="Intarabus's Cape", augments={'CHR+20','Mag. Acc+20 /Mag. Dmg.+20','"Fast Cast"+10',}}
 	gear.CapeSR =	{ name="Intarabus's Cape", augments={'HP+60','Eva.+20 /Mag. Eva.+20','Mag. Evasion+10','Enmity-10','Occ. inc. resist. to stat. ailments+10',}}
 	gear.CapeWS =	{ name="Intarabus's Cape", augments={'STR+20','Accuracy+20 Attack+20','STR+10','Weapon skill damage +10%','Damage taken-5%',}}
@@ -131,23 +129,7 @@ function init_gear_sets()
 	sets.precast.JA['Nightingale']	= { feet = "Bihu Slippers +4" }
 	sets.precast.JA['Soul Voice']	= { legs = "Bihu Cann. +4" }
 	sets.precast.JA['Troubadour']	= { body = "Bihu Justaucorps +4" }
-	
-	sets.precast.FC = {							-- 77
-		--main	= "Kali",						-- 07
-		head	= "Welkin Crown",				-- 07
-		neck	= "Orunmila's Torque",			-- 05
-		ear1	= "Alabaster earring",
-		ear2	= "Etiolation earring",			-- 01
-		body	= "Inyanga Jubbah +2",			-- 14
-		hands	= "Gende. Gages +1",			-- 07
-		ring1	= "Etana ring",
-		ring2	= "Kishar ring",				-- 04
-		back	= gear.CapeFC,					-- 10
-		waist	= {name="Plat. Mog. Belt", priority=1},
-		legs	= "Ayanmo Cosciales +2",		-- 06
-		feet	= "Fili Cothurnes +3",			-- 13
-	}
-	
+		
 	sets.precast.Song = {						-- 76
 		head	= "Fili Calot +3",				-- 16
 		neck	= "Orunmila's Torque",			-- 05
@@ -163,9 +145,9 @@ function init_gear_sets()
 		feet	= "Fili Cothurnes +3",			-- 13
 	}
 	
-	sets.precast['Honor March'] = {
-		range	= "Marsyas",
-		head	= "Fili Calot +3",				-- 16
+	sets.precast.FC = {							-- 77
+		--main	= "Kali",						-- 07
+		head	= "Welkin Crown",				-- 07
 		neck	= "Orunmila's Torque",			-- 05
 		ear1	= "Alabaster earring",
 		ear2	= "Etiolation earring",			-- 01
@@ -196,7 +178,7 @@ function init_gear_sets()
 		}
 	sets.precast.Cure = sets.precast.FC['Healing Magic']
 
-	sets.precast.WS = {	
+    sets.precast.WS = {	
 		range	= gear.LinosWS,
 		head	= "Nyame Helm",
 		neck	= "Rep. Plat. Medal",
@@ -211,9 +193,25 @@ function init_gear_sets()
 		legs	= "Revelation Brais",
 		feet	= "Revelation Sab.",
 		}
+	sets.precast.WS['Mordant Rime']  = {-- Need Crepuscular Knife for mordant rime
+		range	= gear.LinosWS,
+		head	= "Nyame Helm",
+		neck	= "Rep. Plat. Medal",	-- Need Bard's Charm +2
+		ear1	= "Ishvara Earring",	-- Need regal or fili +2	~100 / 150
+		ear2	= "Alabaster Earring",	
+		body	= "Bihu Jstcorps. +4",
+		hands	= "Bihu Cuffs +4",
+		ring1	= "Metamor. Ring +1",	-- Needs aug
+		ring2	= "Gurebu's Ring",		-- Epaminodas + ~700
+		back	= gear.CapeWS,
+		waist	= "Sailfi Belt +1",
+		legs	= "Revelation Brais",
+		feet	= "Revelation Sab.",
+		}
 
 	--- Midcast Sets ---
-	sets.midcast = {
+	sets.midcast.Song = {
+		main	= "Carnwenhan",
 		range	= "Miracle Cheer",
 		head	= "Fili Calot +3",
 		neck	= "Mnbw. Whistle +1",
@@ -225,8 +223,8 @@ function init_gear_sets()
 		feet	= "Fili Cothurnes +3",
 		}
 		
-	sets.midcast['Honor March'] = {
-		range	= "Marsyas",
+	sets.midcast.SongDuration = {
+		main	= "Carnwenhan",
 		head	= "Fili Calot +3",
 		neck	= "Mnbw. Whistle +1",
 		body	= "Fili Hongreline +3",
@@ -236,6 +234,23 @@ function init_gear_sets()
 		legs	= "Inyanga Shalwar +2",
 		feet	= "Brioso Slippers +3",
 		}
+		
+	sets.midcast.Debuff = {
+		range	= "Blurred Harp",
+		head	= "Brioso Roundlet +3",
+		neck	= "Mnbw. Whistle +1",
+		ear1	= {name="Alabaster Earring", priority=1},
+		ear2	= {name="Etiolation Earring", priority=2}, -- Gersemi
+		body	= "Brioso Justaucorps +4",
+		hands	= "Brioso Cuffs +3",
+		ring1	= "Murky ring",			-- 10
+		ring2	= "Gurebu's Ring",
+		back	= gear.CapeFC,
+		waist	= "Null Belt",
+		legs	= "Inyanga Shalwar +2",
+		feet	= "Brioso Slippers +3",
+		}		
+	sets.midcast['Enfeebling Magic'] = sets.midcast.Debuff
 		
 	sets.midcast.Dummy = { -- Dummy song
 		range	= "Daurdabla",
@@ -255,23 +270,6 @@ function init_gear_sets()
 	sets.midcast['Gold Capriccio'] = sets.midcast.Dummy
 	sets.midcast['Bewitching Etude'] = sets.midcast.Dummy
 
-	sets.midcast['Lullaby'] = {
-		range	= "Blurred Harp",
-		head	= "Brioso Roundlet +3",
-		neck	= "Mnbw. Whistle +1",
-		ear1	= {name="Alabaster Earring", priority=1},
-		ear2	= {name="Etiolation Earring", priority=2}, -- Gersemi
-		body	= "Brioso Justaucorps +4",
-		hands	= "Brioso Cuffs +3",
-		ring1	= "Murky ring",			-- 10
-		ring2	= "Gurebu's Ring",
-		back	= gear.CapeFC,
-		waist	= "Null Belt",
-		legs	= "Inyanga Shalwar +2",
-		feet	= "Brioso Slippers +3",
-		}
-		
-	sets.midcast['Enfeebling Magic'] = sets.midcast['Lullaby']
 
 	sets.midcast['Healing Magic'] = {
 		--main	= "Daybreak",
@@ -307,23 +305,23 @@ function init_gear_sets()
 		
 	sets.defense = {
 		range	= "Miracle Cheer",
-		head	= "Null Masque",		-- 10
+		head	= "Fili Calot",			-- 11	More MDB/MEV than Null or Nyame
 		neck	= "Warder's Charm +1",
 		ear1	= "Alabaster Earring",	-- 05
 		ear2	= "Fili Earring +1",	-- 04
-		body	= "Nyame Mail",			-- 09
-		hands	= "Nyame Gauntlets",	-- 07
+		body	= "Fili Hongreline +3",	--		Trade 3 MEV for MDB on Nyame, +5 Regen
+		hands	= "Bunzi's Gloves",		-- 08	3 more MDB for 30 DEF/EVA
 		ring1	= "Murky ring",			-- 10
 		ring2	= "Gurebu's Ring",
 		back	= gear.CapeSR,
 		waist	= "Null Belt",
-		legs	= "Nyame Flanchard",	-- 08
-		feet	= "Nyame Sollerets",	-- 07
+		legs	= "Fili Rhingrave +3",	-- 13	More MEV/MDB than Nyame
+		feet	= "Fili Cothurnes +3",	--		More MEV/MDB than Nyame
 		}
 
 	--- Other Sets ---
-	sets.idle = sets.defense
-	sets.idle.Town = set_combine(sets.idle, {ring1="Warp Ring", ring2="Dim. Ring (Holla)"})	 
+	sets.idle = set_combine(sets.defense, {	head = "Null Masque" })
+	sets.idle.Town = set_combine(sets.defense, { ring1 = "Warp Ring", ring2 = "Dim. Ring (Holla)" })	 
 end
 
 function job_buff_change(buff,gain)
@@ -369,24 +367,27 @@ function job_buff_change(buff,gain)
 		if buff == "Nightingale" then
 			send_command('qa Cissilea JA Troubadour')
 		elseif buff == "Troubadour" then
-			send_command('qa Cissilea MA "Honor March"')
+			send_command('qa Cissilea MA '..spell_order)
 		elseif buff == "March" then
-			spell_order = false
+			spell_order = nil
 		end
     end
 end
 
 function customize_melee_set()
-	if state.OffenseMode.value == "Defense" or player.status == 'Idle' or incapacitated then
+	if state.OffenseMode.value == "Defense" or incapacitated then
 		meleeSet = sets.defense
 	else
 		meleeSet = sets.engaged
 	end
+	
+	meleeSet = set_combine(meleeSet, { main = state.WeaponSet.current } )
 	if dual_wield then 
-		meleeSet = set_combine(meleeSet, sets.SwordDW)
+		meleeSet = set_combine(meleeSet, { sub = "Centovente" })
 	else
-		meleeSet = set_combine(meleeSet, sets[state.WeaponSet])
+		meleeSet = set_combine(meleeSet, { sub = "Genmei Shield" })
 	end
+	
 	equip(meleeSet)
 end
 
@@ -395,6 +396,9 @@ function job_post_pretarget(spell, action, spellMap, eventArgs)
 		
 	if spell.name == 'Honor March' then
 		equip({range="Marsyas"})
+		
+	elseif spell.name == 'Aria of Passion' then
+		equip({range="Loughnashade"})
 		
 	elseif casting then 
 		cancel = true
@@ -420,7 +424,9 @@ end
 function job_precast(spell, action, spellMap, eventArgs)
 	if spell.type == 'BardSong' then
 		if spell.name == 'Honor March' then
-			equip(sets.precast['Honor March'])
+			equip(set_combine(sets.precast.Song, {range="Marsyas"}))
+		elseif spell.name == 'Aria of Passion' then
+			equip(set_combine(sets.precast.Song, {range="Loughnashade"}))
 		else
 			equip(sets.precast.Song)
 		end
@@ -439,57 +445,84 @@ function job_precast(spell, action, spellMap, eventArgs)
 	end, 4)
 end
 
+function job_midcast(spell, action, spellMap, eventArgs)
+	if spell.type == 'BardSong' then
+		if spell.name == 'Honor March' then
+			equip(set_combine(sets.midcast.SongDuration, {range="Marsyas"}))
+		elseif spell.name == 'Aria of Passion' then
+			equip(set_combine(sets.midcast.SongDuration, {range="Loughnashade"}))
+		elseif S{'Magic Finale','Foe Lullaby','Foe Lullaby II','Horde Lullaby','Horde Lullaby II','Pining Nocturne','Foe Requiem VII','Carnage Elegy'}:contains(spell.english) or spell.english:endswith('Threnody II') then
+			equip(sets.midcast.Debuff)
+		else
+			equip(sets.midcast.Song)
+		end
+	end
+end
+
 function job_aftercast(spell, action, spellMap, eventArgs)
 	casting = false
 	cast_timer_id = (cast_timer_id or 0) + 1
 	customize_melee_set()
 end
 
-function job_state_change(field, new_value, old_value)
+function job_update(cmdParams, eventArgs)
+	check_dual_wield()
 	casting = false
 	customize_melee_set()
 end
 
-function job_self_command(cmdParams, eventArgs)
-	if cmdParams[1]:lower() == 'change_weapon' then
-		if dual_wield then windower.add_to_chat(206, 'Dual Wield Weapon Set') return end
-		enable('main','sub')
-		if state.WeaponSet == 'Sword' then
-			msg = string.char(0x87, 0x41) .. ' Dagger'
-			state.WeaponSet = 'Dagger'
-			send_command('send @all bind numpad7 send Cissilea /Evisceration') 
-		elseif state.WeaponSet == 'Dagger' then
-			msg = string.char(0x87, 0x42) .. ' Club'
-			state.WeaponSet = 'Club'
-			send_command('send @all bind numpad7 send Cissilea /Judgment') 
-		else
-			msg = string.char(0x87, 0x40) .. ' Sword'
-			state.WeaponSet = 'Sword'
-			send_command('send @all bind numpad7 send Cissilea /SavageBlade') 
-		end
-		windower.add_to_chat(206, 'Weapon Set '..msg)
-		
-	elseif cmdParams[1]:lower() == 'hmarch' then
-		enable('range')
-		equip({range="Marsyas"})
-		marching = true
-		send_command('qa Cissilea MA "Honor March"') 
-		return
-		
-	elseif cmdParams[1]:lower() == 'hmarch2' then
-		print('should work')
-		enable('range')
-		equip({range="Marsyas"})
-		marching = true
-		send_command('qa Cissilea JA Nightingale')
-		spell_order = true
-		return
-	end
+function job_state_change(field, new_value, old_value)
+	casting = false	
 	customize_melee_set()
+end
+
+function job_self_command(cmdParams, eventArgs)
+	if cmdParams[1] == 'startup' then
+		setup_job_aliases()
+		check_dual_wield()
+		customize_melee_set()
+		setup_weapon_keybinds()
+		send_command('wait 5; input /lockstyleset 2') 
+		
+	elseif cmdParams[1] == 'change_weapon' then
+		enable('main','sub')
+		state.WeaponSet:cycle()
+		setup_weapon_keybinds()
+		customize_melee_set()
+		
+	elseif cmdParams[1] == 'sari' then
+		enable('range')
+		equip({range="Loughnashade"})
+		if cmdParams[2] then 
+			spell_order = '"Aria of Passion"'
+			send_command('qa Cissilea JA Nightingale')
+		else
+			send_command('qa Cissilea MA "Aria of Passion"')
+		end
+		
+	elseif cmdParams[1] == 'hmarch' then
+		enable('range')
+		equip({range="Marsyas"})
+		if cmdParams[2] then 
+			spell_order = '"Honor March"'
+			send_command('qa Cissilea JA Nightingale')
+		else
+			send_command('qa Cissilea MA "Honor March"')
+		end
+	end
 end
 
 function auto_echo_drops ()
 	if not silenced then return end
 	send_command('input /item "Echo Drops" <me>')
 	coroutine.schedule(function() auto_echo_drops() end, 2)
+end
+
+function check_dual_wield()
+	if player.sub_job and player.sub_job_level >= 20 then
+		if player.sub_job == 'NIN' or player.sub_job == 'DNC' then
+			dual_wield = true
+		return end
+	end
+	dual_wield = false
 end

@@ -1,3 +1,13 @@
+--[[			Debuffs by element
+	Fire		MAB Down	Burn		Addle		Amnesia	Plague/Virus
+	Ice		EVA Down	Frost		Bind		Distract	Paralyze
+	Wind		DEF Down	Choke		Gravity	Silence
+	Earth		ACC Down	Rasp		Break		Slow
+	Lightning	MDB Down	Shock		Stun
+	Water		ATT Down	Drown		Poison
+	Light		MAC Down	Charm		Dia		Flash		Lullaby	Repose
+	Darkness	MEV Down	Bio		Blind		Impact	Sleep	
+]]
 function get_sets()
 	mote_include_version = 2
 	include('Mote-Include.lua')
@@ -8,23 +18,11 @@ function job_setup()
 	send_command('lua l DebuffGrid')
 	send_command('lua l Skillchains')
 	send_command('lua l Battlemod')
-	send_command('lua l PartyBuffs')
 	send_command('lua l SpamFilter')
-	send_command('lua l Dressup')
+	send_command('lua l PartyBuffs')
 	
---[[			Debuffs by element
-	Fire		Addle		Amnesia	Burn		MA Down	Plague/Virus
-	Ice		Bind		EVA Down	Frost		Paralyze
-	Wind		Choke		DEF Down	Gravity	Silence
-	Earth		ACC Down	Break		Rasp		Slow
-	Lightning	MDEF Down	Shock		Stun
-	Water		ATT Down	Drown		Poison
-	Light		Charm		Dia		Flash		Lullaby	MACC Down	Repose
-	Darkness	Bio		Blind		MEVA Down	Sleep
-]]
-
 	rune_enchantments = S{'Lux','Tenebrae', 'Ignis', 'Gelus', 'Flabra', 'Tellus', 'Sulpor', 'Unda' }
-	barstatus = S{'Baramnesia', 'Barvirus', 'Barparalyze', 'Barsilence', 'Barpetrify', 'Barpoison', 'Barblind', 'Barsleep'} 
+	barstatus = S{'Baramnesia', 'Barvirus', 'Barparalyze', 'Barsilence', 'Barpetrify', 'Barpoison', 'Barblind', 'Barsleep'}
 	magic_weaponskills = S{'Aeolian Edge','Burning Blade','Red Lotus Blade','Shining Blade','Seraph Blade','Sanguine Blade'}
 	
 	state.Runes = M{['description']='Runes', 'Lux', 'Tenebrae','Ignis', 'Gelus', 'Flabra', 'Tellus', 'Sulpor', 'Unda' }
@@ -47,35 +45,15 @@ function job_setup()
 	state.WeaponType = M{['description']='Weapon Type', 'Physical', 'Magical'}
 	state.WeaponSet  = M{['description']='Weapon Set', 'A', 'B'}
 	
-	weapon_lock_display = texts.new('LOCKED', {
-		pos = {x = 1140, y = 358},
-		text = {
-			size = 5,
-			font = 'Arial',
-			red = 255,
-			green = 50,
-			blue = 50,
-		},
-		bg = {
-			visible = true,
-			alpha = 100,
-			red = 0,
-			green = 0,
-			blue = 0,
-		},
-		flags = {
-			draggable = true,
-		},
-		padding = 2,
-	})	
-	weapon_lock_display:hide()
+	weapon_lock = false -- Keep from switching out of current Weapon
+	free_cast = false -- Allow switching weapons for spells
 	
-	WeaponLock = false
-	check_dual_wield()
+	send_command('gs c startup')
 end
 
 function user_setup()
-	send_command('bind @w gs c lock')
+	send_command('bind @w gs c free')
+	send_command('bind @a gs c lock')
 	send_command('bind @e gs c toggle Immunobreak')
 	send_command('bind @h gs c toggle_hoxne')
 	send_command('bind %c gs c next_spell 4')
@@ -141,7 +119,6 @@ function user_setup()
 		send_command('send @all bind %x  send Spikex UtsusemiNi')
 		send_command('send @all bind !x  send Spikex UtsusemiIchi')
 	end
-	startup()
 end
 
 function setup_weapon_keybinds()
@@ -162,7 +139,7 @@ function setup_weapon_keybinds()
 		send_command('send @all bind !2 qa Spikex WS "Chant du Cygne" t')
 	
 	elseif main == 'Maxentius' then
-		send_command('send @all bind %1 qa Spikex WS "Black Halo"')
+		send_command('send @all bind %1 qa Spikex WS "Black Halo" t')
 	
 	elseif main == 'Tauret' then
 		send_command('send @all bind %1 qa Spikex WS "Evisceration" t')
@@ -177,6 +154,12 @@ function setup_job_aliases()
 	send_command('send @all alias rb3 send Spikex gs c spell_order RDM_Buffs3.txt')
 	send_command('send @all alias rbs send Spikex gs c spell_order RDM_BuffsSelf.txt')
 	send_command('send @all alias av "Aquaveil"')
+	
+	send_command('alias fk input /party << Flaming Kick : WATER >>; qa Spikex MA Water t; qa Cissilea MA "Fire Threnody II" mt')
+	send_command('alias ff input /party << Flashflood : THUNDER >>; qa Spikex MA Thunder t; qa Cissilea MA "Water Threnody II" mt')
+	send_command('alias ig input /party << Icy Grasp : FIRE >>; qa Spikex MA Fire t; qa Cissilea MA "Ice Threnody II" mt')
+	send_command('alias ef input /party << Eroding Flesh : WIND >>; qa Spikex MA Aero t; qa Cissilea MA "Earth Threnody II" mt')
+	send_command('alias fs input /party << Fulminous Smash : STONE >>; qa Spikex MA Stone t; qa Cissilea MA "Ltng. Threnody II" mt')
 	
 	send_command('alias s3 qa Spikex MA "Stone III" t')
 	send_command('alias w3 qa Spikex MA "Water III" t')
@@ -204,18 +187,8 @@ function job_update(cmdParams, eventArgs) -- Runs on subjob change, and all the 
 	customize_melee_set()
 end
 
-function startup()
-	setup_weapon_keybinds()
-	setup_job_aliases()
-	coroutine.schedule( function() customize_melee_set() end, 1)
-	coroutine.schedule( function() send_command('input /lockstyleset 4') end, 5)
-end
-
 function user_unload()
 	send_command('lua u debuffgrid')
-	if weapon_lock_display then
-		weapon_lock_display:destroy()
-	end
 end
 
 function init_gear_sets()
@@ -231,7 +204,7 @@ function init_gear_sets()
 	--- Precast Sets ---
 	sets.precast.JA['Chainspell']	= { body="Viti. Tabard +4" }
 	--sets.precast.JA['Convert']		= { main="Murgleis" }
-	sets.precast.JA['Saboteur']		= { sub="Diamond Aspis", hands="Leth. Ganth. +3" }
+	sets.precast.JA['Saboteur']		= { hands="Leth. Ganth. +3" } -- sub="Diamond Aspis" but lose tp
 	
 	sets.precast.FC = {						-- 43 + 38
 		ammo  	= "Sapience Orb",			-- 2
@@ -288,7 +261,7 @@ function init_gear_sets()
 		ring1	= "Cornelia's Ring",
 		ring2	= "Freke Ring",
 		back	= gear.CapeIWS, -- Beats int MAB
-		waist	= "Sacro Cord",
+		waist	= "Orpheus's Sash",
 		legs	= "Leth. Fuseau +3",
 		feet	= "Leth. Houseaux +3",
 		}
@@ -302,8 +275,7 @@ function init_gear_sets()
 		hands	= "Leth. Ganth. +3",
 		ring1	= "Cornelia's Ring",
 		ring2	= "Archon Ring",
-		back	= gear.CapeSWS,
-		waist	= "Sacro Cord",
+		waist	= "Orpheus's Sash",
 		legs	= "Leth. Fuseau +3",
 		feet	= "Leth. Houseaux +3",
 		}
@@ -318,7 +290,7 @@ function init_gear_sets()
 		ring1	= "Cornelia's Ring",
 		ring2	= "Weather. Ring",
 		back	= gear.CapeSWS,
-		waist	= "Sacro Cord",
+		waist	= "Orpheus's Sash",
 		legs	= "Leth. Fuseau +3",
 		feet	= "Leth. Houseaux +3",
 		}
@@ -359,8 +331,6 @@ function init_gear_sets()
 		}
 		
 	sets.midcast['Enfeebling Magic'] = { -- Paralyze/2, Addle/2, Slow/2,	2378 HP
-		main	= "Daybreak",
-		sub		= "Ammurapi Shield",
 		ammo	= "Regal Gem",				-- 10
 		head	= "Viti. Chapeau +4",
 		neck	= "Dls. Torque +2",			-- 10
@@ -388,8 +358,6 @@ function init_gear_sets()
 	sets.midcast['Diaga'] = sets.midcast.Dia
 		
 	sets.midcast.EnfSkill = {
-		main	= "Daybreak",
-		sub		= "Ammurapi Shield",
 		ammo	= "Regal Gem",
 		head	= "Viti. Chapeau +4",
 		neck	= "Dls. Torque +2",
@@ -409,10 +377,6 @@ function init_gear_sets()
 	sets.midcast['Poison II'] = sets.midcast.EnfSkill
 	
 	sets.midcast.EnfAcc = {
-		main	= "Crocea Mors",
-		sub		= "Ammurapi Shield",
-		range	= {name="Ullr",			priority= 1},
-		ammo	= {name="Regal Gem",	priority= 2}, -- Equip when locked
 		head	= "Viti. Chapeau +4",
 		neck	= "Null Loop",
 		ear1	= "Vor Earring",
@@ -428,15 +392,12 @@ function init_gear_sets()
 		}
 	sets.midcast['Frazzle II'] = sets.midcast.EnfAcc
 	sets.midcast['Gravity'] = sets.midcast.EnfAcc
+	sets.midcast['Gravity II'] = sets.midcast.EnfAcc
 	sets.midcast['Stun'] = sets.midcast.EnfAcc
 	sets.midcast['Impact'] = sets.midcast.EnfAcc
 	sets.midcast['Dispel'] = set_combine(sets.midcast.EnfAcc, {neck="Dls. Torque +2"})
 	
 	sets.midcast.EnfDur = {
-		main	= "Crocea Mors",
-		sub		= "Ammurapi Shield",	
-		range	= {name="Ullr",			priority= 1},
-		ammo	= {name="Regal Gem",	priority= 2}, -- Equip when locked
 		head	= "Viti. Chapeau +4",
 		neck	= "Dls. Torque +2",	
 		ear1	= "Vor Earring",
@@ -460,7 +421,6 @@ function init_gear_sets()
 	sets.midcast['Inundation'] = sets.midcast.EnfAcc
 	
 	sets.midcast['Enhancing Magic'] = {
-		sub		= "Ammurapi Shield",	-- 10
 		ammo	= "Staunch Tathlum +1",
 		head	= "Leth. Chappel +3",	-- 10
 		neck	= "Dls. Torque +2",		-- 25
@@ -497,9 +457,16 @@ function init_gear_sets()
 		legs	= "Atrophy Tights +4", 	-- 22 / 22
 		feet  	= "Leth. Houseaux +3",	-- 35
 		}
+	sets.midcast['Temper'] = sets.midcast.EnhSkill
+	sets.midcast['Temper II'] = sets.midcast.EnhSkill
+	sets.midcast['Enthunder'] = sets.midcast.EnhSkill
+	sets.midcast['Enstone'] = sets.midcast.EnhSkill
+	sets.midcast['Enaero'] = sets.midcast.EnhSkill
+	sets.midcast['Enblizzard'] = sets.midcast.EnhSkill
+	sets.midcast['Enfire'] = sets.midcast.EnhSkill
+	sets.midcast['Enwater'] = sets.midcast.EnhSkill
+	
 	sets.midcast['Phalanx'] = {			-- 2593 HP
-		main	= "Sakpata's Sword",	-- +5
-		sub		= "Deacon Sword",		-- +4
 		ammo	= "Homiliary",
 		head	= "Merlinic Hood",		-- +4
 		neck	= "Dls. Torque +2",
@@ -542,7 +509,6 @@ function init_gear_sets()
 		main	= "Bolelabunga", })	  
 		
 	sets.midcast.Cure = {
-		main	= "Daybreak",			-- 30
 		ammo	= "Staunch Tathlum +1",
 		head	= "Nyame Helm",			-- HP
 		neck	= "Nodens Gorget",		-- 5
@@ -559,27 +525,27 @@ function init_gear_sets()
 		feet	= "Atro. Boots +4",		-- HP
 		}
 	sets.midcast.CureWeather = set_combine(sets.midcast.Cure, {
-		main	= "Chatoyant Staff",
-		sub		= "Enki Strap",
+		--main	= "Chatoyant Staff",
+		--sub		= "Enki Strap",
 		back	= "Twilight Cape",
 		waist	= "Hachirin-no-Obi",
 		})
 		
 	--- Engaged Sets ---
-	sets.engaged = {						-- 2312 HP
+	sets.engaged = {						-- 35	2312 HP
 		ammo	= "Coiste Bodhar",
-		head	= "Malignance Chapeau",
+		head	= "Malignance Chapeau",		-- 6%
 		neck	= "Anu Torque",
 		ear1	= "Sherida Earring",
-		ear2	= "Dedition Earring",
-		body	= "Malignance Tabard",
-		hands	= "Malignance Gloves",
+		ear2	= "Alabaster Earring",		-- Dedition
+		body	= "Malignance Tabard",		-- 4%
+		hands	= "Malignance Gloves",		-- 4%
 		ring1	= "Chirich Ring +1", 
 		ring2	= "Chirich Ring +1",
 		back	= "Null Shawl",
-		waist	= "Sailfi Belt +1",
-		legs	= "Malignance Tights",
-		feet	= "Malignance Boots",
+		waist	= "Sailfi Belt +1",			-- 9%
+		legs	= "Malignance Tights",		-- 9%
+		feet	= "Malignance Boots",		-- 3%
 		}
 	sets.hybrid = {
 		ammo	= "Coiste Bodhar",
@@ -613,7 +579,6 @@ function init_gear_sets()
 		}
 		
 	--- Other Sets ---
-	sets.DW = {	back = gear.CapeDW,	}
 	sets.hoxne = { ammo = "Hoxne Ampulla", waist = "Plat. Mog. Belt", }
 	sets.idle = sets.defense
 	
@@ -625,37 +590,48 @@ function init_gear_sets()
 	}
 end
 
-function current_weapon()
-	return weapon_sets[state.WeaponType.value][state.WeaponSet.value]
-end
-
 function customize_melee_set()
 	local meleeSet = nil
-	if state.OffenseMode.value == "Defense" or
-	player.status == 'Idle' or incapacitated then
+	if incapacitated then equip(sets.defense) return end
+	
+	-- Set base set
+	if state.OffenseMode.value == "Defense" or player.status == 'Idle' then
 		meleeSet = sets.defense
-	elseif state.OffenseMode.value == "Hybrid" then
-		if dual_wield then
-			meleeSet = set_combine(sets.hybrid, sets.DW)
-		else
-			meleeSet = sets.hybrid
-		end
 	else
-		if dual_wield then
-			meleeSet = set_combine(sets.engaged, sets.DW)
+		if state.OffenseMode.value == "Hybrid" then
+			meleeSet = sets.hybrid
 		else
 			meleeSet = sets.engaged
 		end
-	end
-	if hoxne_equipped then
-		meleeSet = set_combine(meleeSet, sets.hoxne)
-	end
-	if not incapacitated then 
-		local weapon_update = check_weapon()
-		if weapon_update then
-			meleeSet = set_combine(meleeSet, weapon_update)
+	
+		-- Haste update
+		-- Haste:		0	10	15	30	45	Samba:	0	10	15	30	45
+		-- DW Needed:	49	45	42	31	11			47	42	39	25	0
+		if current_haste <= 35 then meleeSet = set_combine(meleeSet, {
+			ear2	= "Suppanomimi",	-- Dual Wield +5%
+			ear1	= "Eabani Earring",	-- Dual Wield +4%
+			waist	= "Reiki Yotai",	-- Dual Wield +7%
+			back	= gear.CapeDW,		-- Dual Wield +10%
+			})
+		elseif current_haste <= 40 then meleeSet = set_combine(meleeSet, {
+			waist	= "Reiki Yotai",	-- Dual Wield +7%
+			back	= gear.CapeDW,		-- Dual Wield +10%
+			})
+		elseif current_haste <= 45 then meleeSet = set_combine(meleeSet, {
+			back	= gear.CapeDW,		-- Dual Wield +10%
+			})
 		end
+	end	
+	
+	-- Weapon update
+	local weapon_update = check_weapon()
+	if weapon_update then
+		meleeSet = set_combine(meleeSet, weapon_update)
 	end
+	
+	-- Hoxne update
+	if hoxne_equipped then meleeSet = set_combine(meleeSet, sets.hoxne)	end
+	
 	equip(meleeSet)
 	
 	if temp_weapons then
@@ -664,13 +640,17 @@ function customize_melee_set()
 	end
 end
 
+function current_weapon()
+	return weapon_sets[state.WeaponType.value][state.WeaponSet.value]
+end
+
 function check_weapon()
 	local WeaponUpdate = nil
 	if temp_weapons then
 		enable('main','sub')
 		WeaponUpdate = {main = tempmain, sub = tempsub}
 
-	elseif not WeaponLock then
+	elseif not weapon_lock then
 		local weapon = current_weapon()
 		local main_matches = player.equipment.main == weapon.main
 		local sub_matches = player.equipment.sub == weapon.sub
@@ -691,6 +671,29 @@ function check_weapon()
 	end
 end
 
+function update_haste()	
+	local h = 0	
+	
+	if buffactive[33] then h = h + 30 end -- Haste - Asssumed II	
+	if buffactive[580] then h = h + 35 end -- Geo-Haste - Assumed Dunna(35) Idris around (40)	
+	if buffactive[604] then h = h + 15 end -- Mighty Guard
+	if buffactive.march then -- 214 Marches
+		if buffactive.march == 1 then h = h + 15 -- Asssumed Honor March
+		elseif buffactive.march == 2 then h = h + 40 end -- Asssumed Honor March + Victory March
+	end	
+	
+	if buffactive[1] then h = h - 100 end -- Weakness	
+	if buffactive[13] then h = h - 25 end -- Slow - Guessed mid range, somewhere 7~40	
+	if buffactive[565] then h = h - 20 end -- Geo-Slow - Assumed max potency 1~20
+	if buffactive[194] then h = h - 25 end -- Elegy - Assumed I, II would be 50
+	
+	if h > 45 then h = 45 end -- Can't have more than 45 magic haste, samba is ability haste though
+	if samba_active then h = h + 5 end -- 370
+	--print('Current Haste: '..h)
+	current_haste = h
+	customize_melee_set()
+end
+
 function job_buff_change(buff,gain)
 	if buff == "doom" then
 		if gain then
@@ -709,12 +712,13 @@ function job_buff_change(buff,gain)
 	elseif buff == "sleep" then
 		if gain then
 			incapacitated = true
-			if WeaponLock then save_temp_weapons() end
+			if weapon_lock then save_temp_weapons() end
 			enable('main')
 			equip({main = 'Caliburnus'})
 			disable('main')
 			return
 		else
+			if not weapon_lock then enable('main') end
 			incapacitated = false
 			customize_melee_set()
 		end
@@ -729,22 +733,24 @@ function job_buff_change(buff,gain)
 		if gain then
 			send_command('@input /p Silenced.')
 			silenced = true
-			auto_echo_drops()
+			if not echo_running then auto_echo_drops() end
 		else
 			silenced = false
 		end
-	elseif buff == "Spontaneity" then
-		if gain then
-			send_command('qa Spikex MA "Impact" t')
+	elseif buff == "Spontaneity" and casting_impact then
+		if gain then send_command('qa Spikex MA "Impact" t') casting_impact = false end
+		
+	elseif buff == "Composure" then
+		if start_order then send_command('qa Spikex MA "Haste II"') end
+		
+	elseif buff == "Haste" and gain then
+		if start_order then
+			coroutine.schedule(function() send_command('exec '..use_file) end, 4)	
+			start_order = false
 		end
-	elseif spell_order then
-		if buff == "Composure" then
-			send_command('qa Spikex MA "Haste II"')
-		elseif buff == "Haste" then
-			spell_order = false
-			coroutine.schedule(function() send_command('exec '..use_file) end, 2)			
-		end	
 	end
+	
+	if S{'weakness', 'slow', 'Haste', 'Elegy', 'March', 'Haste Daze', 'Mighty Guard'}:contains(buff) then update_haste() end
 end
 
 function job_post_pretarget(spell, action, spellMap, eventArgs)
@@ -796,13 +802,14 @@ function job_post_midcast(spell, action, spellMap, eventArgs)
 			if spell.target.type ~= 'SELF' then
 				midcast_update = sets.midcast.EnhOther
 				
+			elseif spell.english:startswith('Phalanx') then
+				if dual_wield then
+					midcast_update = {main="Sakpata's Sword",sub="Colada"}
+				else
+					midcast_update = {main="Sakpata's Sword",sub="Forfend +1"}
+				end
 			elseif spell.english:startswith('Gain') then
 				midcast_update = sets.midcast.GainSpell
-			
-			elseif spell.english:startswith('Temper') or 
-			spell.english:startswith('En') then
-				if WeaponLock then save_temp_weapons() end
-				midcast_update = sets.midcast.EnhSkill
 			
 			elseif (spell.english:startswith('Shell') or 
 				spell.english:startswith('Protect')) then
@@ -811,41 +818,61 @@ function job_post_midcast(spell, action, spellMap, eventArgs)
 			elseif barstatus:contains(spell.english) then
 				midcast_update = sets.midcast.BarStatus
 			end
+			if free_cast then
+				midcast_update = set_combine(midcast_update, {sub="Ammurapi Shield"})
+			end
 		elseif spell.skill == 'Enfeebling Magic' then
+			if free_cast then
+				if S{'Paralyze II','Slow II','Addle II','Distract III','Frazzle III','Poison II'}:contains(spell.english) then
+					midcast_update = {main="Daybreak",sub="Ammurapi Shield"}
+				else
+					midcast_update = {main="Crocea Mors",sub="Ammurapi Shield"}
+				end
+			end
+			if S{'Frazzle II','Gravity','Gravity II','Stun','Impact','Dispel','Sleep','Sleep II','Sleepga','Sleepga II','Bind','Break','Silence','Inundation'}:contains(spell.english) and free_cast then
+				midcast_update = set_combine(midcast_update, {range="Ullr"})
+			else
+				midcast_update = set_combine(midcast_update, {ammo="Regal Gem"})
+			end
 			if state.Immunobreak.value == true then
-				midcast_update = gear.Immunobreak
+				midcast_update = set_combine(midcast_update, gear.Immunobreak)
 			end
 		elseif spell.english:startswith('Cure') then
+			if free_cast then
+				midcast_update = {main="Daybreak",sub="Ammurapi Shield"}
+			end
 			if world.weather_element == 'Light' or 
 			world.day_element == 'Light' then
-				midcast_update = sets.midcast.CureWeather
+				midcast_update = set_combine(midcast_update, sets.midcast.CureWeather)
 			end
 		elseif spell.skill == 'Elemental Magic' then
-			if dual_wield then
-				midcast_update = {main="Bunzi's Rod",sub="Daybreak"}
-			else
-				midcast_update = {main="Bunzi's Rod",sub="Ammurapi Shield"}
+			if free_cast then
+				if dual_wield then
+					midcast_update = {main="Bunzi's Rod",sub="Daybreak"}
+				else
+					midcast_update = {main="Bunzi's Rod",sub="Ammurapi Shield"}
+				end
 			end
-			if magic_bursting then 
+			if magic_bursting then
 				midcast_update = set_combine(midcast_update, sets.midcast['Elemental Magic'].MB)
 			end
 			if spell.element == world.weather_element and 
 			(get_weather_intensity() == 2 and 
 			spell.element ~= elements.weak_to[world.day_element]) then
-				set_combine(midcast_update, gear.Obi)
-			--[[ Target distance under 1.7 yalms.
+				midcast_update = set_combine(midcast_update, gear.Obi)
+			-- Target distance under 1.7 yalms.
 			elseif spell.target.distance < (1.7 + spell.target.model_size) then
-				equip({waist="Orpheus's Sash"})
+				midcast_update = set_combine(midcast_update, {waist="Orpheus's Sash"})
 			-- Matching day and weather.
 			elseif spell.element == world.day_element and spell.element == world.weather_element then
-				equip(gear)
+				midcast_update = set_combine(midcast_update, gear.Obi)
 			-- Target distance under 8 yalms.
 			elseif spell.target.distance < (8 + spell.target.model_size) then
-				equip({waist="Orpheus's Sash"})
-			]]-- Match day or weather.
+				midcast_update = set_combine(midcast_update, {waist="Orpheus's Sash"})
+			-- Match day or weather.
 			elseif spell.element == world.day_element or 
 			spell.element == world.weather_element then
-				set_combine(midcast_update, gear.Obi)
+				midcast_update = set_combine(midcast_update, gear.Obi)
 			end
 		end
 	elseif spell.type == 'WeaponSkill' then
@@ -863,7 +890,7 @@ function job_aftercast(spell)
 	casting = false
 	cast_timer_id = (cast_timer_id or 0) + 1
 	if spell.name == 'Impact' then
-		enable('head', 'body')		
+		enable('head', 'body')
 	end
 	customize_melee_set()
 end
@@ -874,12 +901,26 @@ function job_state_change(field, new_value, old_value)
 			state.WeaponSet:set('A')
 		end
 		setup_weapon_keybinds()
-		if WeaponLock then toggle_weapon_lock(false) end
+		if weapon_lock then toggle_weapon_lock(false) end
 	end
 end
 
 function job_self_command(cmdParams, eventArgs)	
-	if cmdParams[1]:lower() == 'toggle_hoxne' then
+	if cmdParams[1] == 'startup' then
+		toggle_weapon_lock(false)
+		free_cast = false
+		setup_job_aliases()
+		check_dual_wield()
+		update_haste()
+		setup_weapon_keybinds()
+		coroutine.schedule( function() send_command('input /lockstyleset 4') end, 5)
+		
+	elseif cmdParams[1] == 'samba' then
+		if cmdParams[2] then samba_active = true
+		else samba_active = false end
+		update_haste()
+		
+	elseif cmdParams[1] == 'toggle_hoxne' then
 		if hoxne_equipped then
 			enable('range', 'ammo')
 			hoxne_equipped = false
@@ -890,18 +931,19 @@ function job_self_command(cmdParams, eventArgs)
 			hoxne_equipped = true
 			msg = 'Equipped'
 			coroutine.schedule( function() 
-				windower.add_to_chat(210, '<< Hoxne Ready to Use >>')	
+				windower.add_to_chat(210, '<< Hoxne Ready to Use >>')
 				send_command('@input /item "Hoxne Ampulla" <me>')
 			end, 6)
 		end
 		windower.add_to_chat(210, '<< Hoxne '..msg.. ' >>')
 		customize_melee_set()
 		
-	elseif cmdParams[1]:lower() == 'next_spell' then
+	elseif cmdParams[1] == 'next_spell' then
 		send_command(spam_list[nextsp] .. cmdParams[2])
 		nextsp = nextsp % #spam_list + 1
 		
-	elseif cmdParams[1]:lower() == 'burst' then
+	elseif cmdParams[1] == 'burst' then
+		--print('Magic burst detected')
 		if burst_timer then
 			coroutine.close(burst_timer)
 			burst_timer = nil
@@ -913,20 +955,21 @@ function job_self_command(cmdParams, eventArgs)
 			burst_timer = nil
 		end, 8)
 			
-	elseif cmdParams[1]:lower() == 'impact' then
+	elseif cmdParams[1] == 'impact' then
 		local target = windower.ffxi.get_mob_by_target('t')
 		if target then	
 			enable('head', 'body')
 			equip({head = "empty", body = "Crepuscular Cloak"})
-			disable('head', 'body')			
+			disable('head', 'body')
 			local spontaneity_recast = windower.ffxi.get_ability_recasts()[37]
 			if spontaneity_recast > 0 then
 				send_command('qa Spikex MA "Impact" t')
 			else
+				casting_impact = true
 				send_command('qa Spikex JA "Spontaneity"')
 			end
 		end
-	elseif cmdParams[1]:lower() == 'enspell' then
+	elseif cmdParams[1] == 'enspell' then
 		if world.day_element == 'Fire' then
 			send_command('Enfire')
 		elseif world.day_element == 'Earth' then
@@ -941,21 +984,34 @@ function job_self_command(cmdParams, eventArgs)
 			send_command('Enthunder')
 		end	
 			
-	elseif cmdParams[1]:lower() == 'lock' then
-		WeaponLock = not WeaponLock
-		toggle_weapon_lock(WeaponLock)
-		if not WeaponLock then customize_melee_set() end
+	elseif cmdParams[1] == 'lock' then
+		weapon_lock = not weapon_lock
+		toggle_weapon_lock(weapon_lock)
+		if not weapon_lock then customize_melee_set() end
+		windower.add_to_chat(210, '<< Weapon Lock: '..tostring(weapon_lock).. ' >>')
 		
-	elseif cmdParams[1]:lower() == 'rune' then
+	elseif cmdParams[1] == 'free' then
+		free_cast = not free_cast
+		if weapon_lock then toggle_weapon_lock(false) end
+		windower.add_to_chat(210, '<< Free Cast: '..tostring(free_cast).. ' >>')
+		
+	elseif cmdParams[1] == 'rune' then
 		send_command('@input /ja '..state.Runes.value..' <me>')
 		
-	elseif cmdParams[1]:lower() == 'cure_lowest' then
+	elseif cmdParams[1] == 'cure_lowest' then
 		send_command('Cure4 '..get_lowest_hp_member().id)
 		
 	elseif cmdParams[1] == 'spell_order' then
 		use_file = cmdParams[2]
-		spell_order = true		
-		send_command('qa Spikex JA Composure')
+		start_order = true
+		send_command('cancel haste')
+		if windower.ffxi.get_ability_recasts()[50] > 0 then
+			send_command('qa Spikex MA "Haste II"')
+			
+		else
+			send_command('cancel Composure')
+			coroutine.schedule(function() send_command('qa Spikex JA Composure') end, 1)				
+		end
 	end
 end
 
@@ -976,18 +1032,6 @@ function get_lowest_hp_member()
 	return lowest_member
 end
 
-function cast_impact()
-	if call_id ~= impact_call then return end -- Superseded by a newer /impact
-	if casting_impact and attempts < 15 then
-		send_command('Spontaneity')
-		send_command('Impact')
-		attempts = attempts + 1
-		coroutine.schedule(function() cast_impact(call_id) end, 0.5)
-	else
-		enable('head', 'body')
-	end
-end
-
 function save_temp_weapons()
 	temp_weapons = true
 	tempmain = player.equipment.main
@@ -997,19 +1041,18 @@ end
 
 function toggle_weapon_lock(should_enable)
 	if should_enable then
-		WeaponLock = true
-		weapon_lock_display:show()
+		weapon_lock = true
 		disable('main','sub','range')
 	else
-		WeaponLock = false
+		weapon_lock = false
 		enable('main','sub')
 		if not hoxne_equipped then enable('range', 'ammo') end
-		weapon_lock_display:hide()
 	end
 end
 
 function auto_echo_drops ()
-	if not silenced then return end
+    if not silenced then echo_running = false return end
+    echo_running = true
 	send_command('input /item "Echo Drops" <me>')
 	coroutine.schedule(function() auto_echo_drops() end, 2)
 end

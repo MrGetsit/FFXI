@@ -4,9 +4,12 @@ function get_sets()
 end
 function job_setup()	
 	send_command('lua l Skillchains')
-    state.OffenseMode:options('Normal', 'Defense')
+    state.OffenseMode:options('Hybrid', 'Defense', 'Offense')
     send_command('bind @S gs c cycle OffenseMode')
 	weapon_set = 'h2h'
+	
+	setup_weapon_keybinds()
+	send_command('wait 5; input /lockstyleset 1')
 end
 -- % Normal	^ Ctrl	! Alt	@ Win	# Apps	~ Shift
 function user_setup() 		
@@ -18,6 +21,7 @@ function user_setup()
 	send_command('send @all alias mis qa Pharen JA "Inner Strength"')
 	send_command('send @all alias mhf qa Pharen JA "Hundred Fists"')
 	send_command('send @all alias mhp qa Pharen JA "Mantra"')
+	send_command('send @all alias mfs qa Pharen JA "Formless Strikes"')
 	
 	send_command('send @all bind  numpad6   qa Pharen JA Boost') 
 	send_command('send @all bind ~numpad4   qa Pharen JA Provoke mt') 
@@ -26,12 +30,11 @@ function user_setup()
 	send_command('send @all bind ^numpad5   qa Pharen JA Impetus') 
 	send_command('send @all bind ^numpad6 send Pharen exec MonkOBuffs.txt')
 	send_command('send @all bind %pageup    qa Pharen JA "Chi Blast" t') 
-	
-	send_command('wait 5; input /lockstyle on')
-	setup_weapon_keybinds()
 end
 
 function setup_weapon_keybinds()
+	local main = weapon_set
+	
 	if weapon_set == 'staff' then
 		send_command('send @all bind numpad4 qa Pharen WS "Shell Crusher" t')
 		send_command('send @all bind numpad5 qa Pharen WS "Shattersoul" t') 
@@ -60,18 +63,18 @@ function init_gear_sets()
 	gear.CritCape	=	{ name="Segomo's Mantle", augments={'STR+20','Accuracy+20 Attack+20','STR+10','Crit.hit rate+10','Damage taken-5%',}}
 	
    --- Precast Sets ---	
-	sets.precast.JA['Boost']	= { waist 	= "Ask Sash" }
-	sets.precast.JA['Chakra']	= { body 	= "Anch. Cyclas +1", hand = "Melee Gloves" }
-	sets.precast.JA['Chi Blast']= { hands 	= "Temple Gloves" }
-	sets.precast.JA['Dodge']	= { feet 	= "Anch. Gaiters +4" }
-	sets.precast.JA['Focus']	= { head 	= "Temple Crown" }
-	sets.precast.JA['Footwork']	= { feet 	= "Bhikku Gaiters +3" }
-	sets.precast.JA['Mantra']	= { feet 	= "Hes. Gaiters" }
+	sets.precast.JA['Boost']	= { waist= "Ask Sash" }
+	sets.precast.JA['Chakra']	= { body = "Anch. Cyclas +1",	hand = "Melee Gloves" }
+	sets.precast.JA['Chi Blast']= { head = "Hesychast's Crown",	hands= "Temple Gloves" }
+	sets.precast.JA['Dodge']	= { feet = "Anch. Gaiters +4" }
+	sets.precast.JA['Focus']	= { head = "Temple Crown" }
+	sets.precast.JA['Footwork']	= { feet = "Bhikku Gaiters +3" }
+	sets.precast.JA['Mantra']	= { feet = "Hes. Gaiters" }
 	
     sets.precast.WS = {
 		ammo	= "Knobkierrie",
 		head	= "Adhemar Bonnet +1",
-		neck	= "Monk's Nodowa +2",
+		neck	= "Fotia Gorget",
 		ear1  	= "Sherida Earring",
 		ear2  	= "Schere Earring",	
 		body	= "Mpaca's Doublet",
@@ -90,9 +93,9 @@ function init_gear_sets()
 		back	= gear.TPCape,
 		})
     sets.precast.WS['Dragon Kick'] = set_combine(sets.precast.WS, {
-		neck	= "Fotia Gorget",
-		body	= "Bhikku Cyclas +3",
 		head  	= "Mpaca's Cap",
+        neck	= "Rep. Plat. Medal",
+		body	= "Bhikku Cyclas +3",
 		})
     sets.precast.WS['Tornado Kick'] = sets.precast.WS['Dragon Kick']
 	sets.precast.WS['Shell Crusher'] = { -- ACC/MACC
@@ -110,54 +113,98 @@ function init_gear_sets()
 			legs  	= "Bhikku Hose +3",	
 			feet	= "Bhikku Gaiters +3",
 		}
-		
-    --- Engaged Sets ---					-- SB	DT	ACC	MEV	STP	Mult	
-    sets.engaged = {						-- 35					14KA
-		ammo	= "Coiste Bodhar",			--					03	03DA
-		head  	= "Bhikku Crown +3",		-- 14	11	61	098
-	--	head  	= "Ryuo Somen +1",			-- 08		35	048 12
-		neck  	= "Monk's Nodowa +2",		-- 						25KA
-		ear1  	= "Sherida Earring",		-- 05x				05	05DA
-		ear2  	= "Mache Earring +1",		--			10			02DA
-	--	ear2  	= "Schere Earring",			-- 03					06DA
-		body  	= "Mpaca's doublet",		--		10	40	086		04TA
-	--	body  	= "Ken. Samue +1",			-- 12		52	117		06TA
-		hands 	= "Adhemar wristbands +1",	--			32	043	07	04TA
-	--	hands 	= "Malignance Gloves",		--		05	50	112	12
-		ring1 	= "Gere Ring",				--						05TA
-		ring2 	= "Niqmaddu Ring",			-- 05x					03QA
-		back  	= gear.TPCape,				--		05	20			10DA
-		waist 	= "Moonbow Belt +1",		-- 15x	06				08TA
-		legs  	= "Bhikku Hose +3",			--		14	63	119		30KA
-		feet  	= "Mpaca's boots",			--		06	40	096		03TA
-	--	feet  	= "Anch. Gaiters +4",		--			56	109		10KA
+	
+	--- Engaged Sets	
+    --[[							-- SB	DT	MDB	ACC	MEV	STP	Mult	
+		ammo	= "Coiste Bodhar",			--						03	03DA
+		head	= "Duty Crown",			-- 05	05	05	42~	115		05DA	Aug: 4TA 7STP
+		head	= "Mpaca's Cap",			-- 		07	12	40	069		03TA	4 Crit R	Augs: 5DA 15SC Dam
+		head	= "Malignance Chapeau",		--		06	05	50	123	08			3 PDL
+		head	= "Bhikku Crown +3",		-- 14	11	08	61	098
+		head	= "Adhemar Bonnet +1",		-- 08		03		059		04TA	6 Crit D
+		head	= "Ryuo Somen +1",			-- 08			35	048 12
+		neck	= "Monk's Nodowa +2",		-- 				30			25KA	10 PDL
+		ear1	= "Sherida Earring",		-- 05II					05	05DA
+		ear2	= "Mache Earring +1",		--				10			02DA
+		ear2	= "Schere Earring",		-- 03						06DA
+		body	= "Bhikku Cyclas +3",		--		10		64	109		01KA	8 Martial Arts +Impetus
+		body	= "Duty Cyclas",			-- 07	07	09	42~	126		07DA	Aug: 5TA 8STP
+		body	= "Mpaca's doublet",		--		10	14	40	086		04TA	Augs: 4-8 STP
+		body	= "Malignance Tabard",		--		09	08	50	139	11			6 PDL
+		body	= "Ken. Samue +1",			-- 12	09	09	52	117		06TA	9 Crit R
+		hands	= "Duty Gauntlets",		-- 03	03	05	42~	100		03DA	Aug: 3TA 6STP
+		hands	= "Mpaca's Gloves",		--		08	11	40	059		03TA	Augs: TA damage
+		hands	= "Malignance Gloves",		--		05	04	50	112	12			4 PDL
+		hands	= "Adhemar wristbands +1",	--			02	32	043	07	04TA
+		ring1	= "Gere Ring",			--							05TA
+		ring2	= "Niqmaddu Ring",			-- 05II						03QA
+		back	= gear.TPCape,			--		05		20			10DA
+		waist	= "Moonbow Belt +1",		-- 15II	06					08TA
+		legs	= "Bhikku Hose +3",		--		14	08	63	119		30KA
+		feet	= "Duty Sollerets",		-- 06	06	08	42~	131		06DA	Aug: 3TA 6STP
+		feet	= "Mpaca's boots",			--		06	12	40	096		03TA
+		feet	= "Malignance Boots",		--		04	05	50	150	09			2 PDL
+		feet	= "Anch. Gaiters +4",		--			05	56	109		10KA
+    ]]
+	--- Offense							-- SB	DT	MDB	ACC	MEV	STP	Mult
+	--										-- 66	48	34	277	448	15	26DA/24TA/03QA/69KA
+    sets.engaged = {						-- 35						14KA
+		ammo	= "Coiste Bodhar",			--						03	03DA
+		head	= "Mpaca's Cap",			-- 		07	12	40	069		03TA	4 Crit R	Augs: 5DA 15SC Dam
+		neck	= "Monk's Nodowa +2",		-- 				30			25KA	10 PDL
+		ear1	= "Sherida Earring",		-- 05II					05	05DA
+		ear2	= "Mache Earring +1",		--				10			02DA
+		body	= "Mpaca's doublet",		--		10	14	40	086		04TA	Augs: 4-8 STP
+		hands	= "Adhemar wristbands +1",	--			02	32	043	07	04TA
+		ring1	= "Gere Ring",				--							05TA
+		ring2	= "Niqmaddu Ring",			-- 05II						03QA
+		back	= gear.TPCape,				--		05		20			10DA
+		waist	= "Moonbow Belt +1",		-- 15II	06					08TA
+		legs	= "Bhikku Hose +3",			--		14	08	63	119		30KA
+		feet	= "Duty Sollerets",			-- 06	06	08	42~	131		06DA	Aug: 3TA 6STP
 		}
-
+    --- Hybrid								-- SB	DT	MDB	ACC	MEV	STP	Mult	
+	--										-- 78	51	41	259	580	08	38DA/16TA/03QA/69KA
+    sets.hybrid = {							-- 35						14KA
+		ammo	= "Coiste Bodhar",			--						03	03DA
+		head	= "Duty Crown",				-- 05	05	05	42~	115		05DA	Aug: 4TA 7STP
+		neck	= "Monk's Nodowa +2",		-- 				30			25KA	10 PDL
+		ear1	= "Sherida Earring",		-- 05II					05	05DA
+		ear2	= "Mache Earring +1",		--				10			02DA
+		body	= "Duty Cyclas",			-- 07	07	09	42~	126		07DA	Aug: 5TA 8STP
+		hands	= "Mpaca's Gloves",			--		08	11	40	059		03TA	Augs: TA damage
+		ring1	= "Gere Ring",				--							05TA
+		ring2	= "Niqmaddu Ring",			-- 05II						03QA
+		back	= gear.TPCape,				--		05		20			10DA
+		waist	= "Moonbow Belt +1",		-- 15II	06					08TA
+		legs	= "Bhikku Hose +3",			--		14	08	63	119		30KA
+		feet	= "Duty Sollerets",			-- 06	06	08	42~	131		06DA	Aug: 3TA 6STP
+		}
+    --- Defense							-- SB	DT	MDB	ACC	MEV	STP	Mult			
     sets.defense = {		
 		ammo	= "Coiste Bodhar",
 		head	= "Nyame Helm",	
-		neck  	= "Null Loop",
-		ear1  	= "Eabani Earring",		
-		ear2  	= "Alabaster Earring",
+		neck	= "Null Loop",
+		ear1	= "Eabani Earring",		
+		ear2	= "Alabaster Earring",
 		body	= "Nyame Mail",	
 		hands	= "Nyame Gauntlets",
-		ring1 	= "Regal Ring",
-		ring2 	= "Warden's Ring",			
-		back  	= gear.TPCape,				
-		waist 	= "Null Belt",	
+		ring1	= "Regal Ring",
+		ring2	= "Warden's Ring",			
+		back	= gear.TPCape,				
+		waist	= "Null Belt",	
 		legs	= "Nyame Flanchard",	
 		feet	= "Nyame Sollerets",		
         }
-
-    --- Other Sets ---
-    --sets.idle.Town = set_combine(sets.idle, {ring1="Warp Ring", ring2="Dim. Ring (Holla)"})	 
 end
 
 function customize_melee_set()
+	if incapacitated then equip(sets.defense) return end
 	local meleeSet = nil
-    if state.OffenseMode.value == "Defense" or player.status == 'Idle' or incapacitated then
+    if state.OffenseMode.value == "Defense" or player.status == 'Idle' then
 		meleeSet = sets.defense
-		if incapacitated then equip(meleeSet) return end
+    elseif state.OffenseMode.value == "Hybrid" then
+		meleeSet = sets.hybrid
 	else
 		meleeSet = sets.engaged
     end	
@@ -194,7 +241,8 @@ function job_post_precast(spell, action, spellMap, eventArgs)
 	end
 end
 
-function job_aftercast(spell, action, spellMap, eventArgs)	
+function job_aftercast(spell, action, spellMap, eventArgs)
+	if spell.name == "Boost" then return end
 	customize_melee_set()
 end
 

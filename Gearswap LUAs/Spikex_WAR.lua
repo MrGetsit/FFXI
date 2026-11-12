@@ -48,6 +48,9 @@ function init_gear_sets()
 	sets.Naegling 	= {main = "Naegling", 	sub = "Blurred Shield +1"}
 	sets.Shining 	= {main = "Shining One",sub = "Utu Grip"}
 	
+	gear.CapeTP 	= { name = "Cichol's Mantle", augments={'DEX+20','Accuracy+20 Attack+20','Accuracy+10','"Dbl.Atk."+10','Phys. dmg. taken-10%'} }
+	gear.CapeWS 	= { name = "Cichol's Mantle", augments={'STR+20','Accuracy+20 Attack+20','STR+10','Weapon skill damage +10%'} }
+	
 	--- Ability Sets ---
 	sets.precast.JA['Aggressor']		= { head = "Pummeler's Mask", chest="Agoge Lorica" }
 	sets.precast.JA['Berserk']			= { chest= "Pummeler's Lorica +4", back="Cichol's Mantle", feet="Agoge Calligae" }
@@ -69,8 +72,8 @@ function init_gear_sets()
 		body	= "Pummeler's Lorica +4",
 		hands	= "Boii Mufflers +3",
 		ring1	= "Cornelia's Ring",
-		ring2	= "Regal Ring",
-		back	= "Cichol's Mantle",
+		ring2	= "Epaminondas's Ring",
+		back	= gear.CapeWS,
 		waist	= "Sailfi Belt +1",
 		legs	= "Boii Cuisses +3",
 		feet	= "Sakpata's Leggings",
@@ -84,8 +87,8 @@ function init_gear_sets()
 		body	= "Pummeler's Lorica +4",
 		hands	= "Boii Mufflers +3",
 		ring1	= "Cornelia's Ring",
-		ring2	= "Regal Ring",
-		back	= "Cichol's Mantle",
+		ring2	= "Epaminondas's Ring",
+		back	= gear.CapeWS,
 		waist	= "Sailfi Belt +1",
 		legs	= "Boii Cuisses +3",
 		feet	= "Sakpata's Leggings",
@@ -103,7 +106,7 @@ function init_gear_sets()
 		--ring1	= "Niqmaddu Ring", 
 		ring1	= "Chirich Ring +1",	-- Moonlight Ring
 		ring2	= "Chirich Ring +1",	-- Moonlight Ring
-		back	= "Null Shawl",			-- Cichol's Mantle
+		back	= gear.CapeTP,
 		waist	= "Sailfi Belt +1",		-- Ioskeha Belt +1
 		legs	= "Boii Cuisses +3",	-- Pumm. Cuisses +3
 		feet	= "Pumm. Calligae +4",
@@ -118,7 +121,7 @@ function init_gear_sets()
 		hands	= "Sakpata's Gauntlets",
 		ring1	= "Niqmaddu Ring", 
 		ring2	= "Chirich Ring +1",	
-		back	= "Null Shawl",
+		back	= gear.CapeTP,
 		waist	= "Null Belt",
 		legs	= "Sakpata's Cuisses",	
 		feet	= "Sakpata's Leggings", 
@@ -133,7 +136,7 @@ function init_gear_sets()
 		hands	= "Sakpata's Gauntlets",
 		ring1	= "Murky Ring", 
 		ring2	= "Fortified Ring",	
-		back	= "Null Shawl",
+		back	= gear.CapeTP,
 		waist	= "Null Belt",
 		legs	= "Sakpata's Cuisses",	
 		feet	= "Sakpata's Leggings", 
