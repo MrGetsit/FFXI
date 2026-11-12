@@ -1,7 +1,11 @@
 _addon.name = 'DebuffGrid'
 _addon.author = 'Spikex'
-_addon.version = '1.0'
+_addon.version = '1.01'
 _addon.commands = {'debuffgrid', 'dbg'}
+
+-- Minor fix to not load textures twice on both load and login
+-- No longer reload already loaded textures
+-- Saved IDs to not build strings on every message
 
 config = require('config')
 packets = require('packets')
@@ -13,6 +17,11 @@ defaults.pos = {}
 defaults.pos.x = 100
 defaults.pos.y = 100
 defaults.icon_size = 32
+
+local DAMAGE_MSGS   = S{2, 252}
+local STATUS_MSGS   = S{236, 237, 268, 271}
+local WORE_OFF_MSGS = S{64, 204, 206, 350, 531}
+local DEATH_MSGS    = S{6, 20, 113, 406, 605, 646}
 
 settings = config.load(defaults)
 
@@ -44,6 +53,16 @@ local grid_cols = 4
 local inactive_alpha = 80  -- Semi-transparent when not active
 local active_alpha = 255   -- Fully opaque when active
 
+local update_queued = false
+function queue_update()
+	if update_queued then return end
+	update_queued = true
+	coroutine.schedule(function()
+		update_queued = false
+		update_display()
+	end, 0.1)
+end
+
 function initialize_debuff_mappings()
 	-- Build mapping from debuff names to spell IDs and effect IDs
 	for spell_id, spell in pairs(res.spells) do
@@ -63,6 +82,7 @@ function initialize_debuff_mappings()
 end
 
 function create_ui()
+	grid_visible = false
 	-- Calculate background size
 	local bg_width = (settings.icon_size * grid_cols) + (icon_spacing * (grid_cols - 1)) + (border_size * 2)
 	local bg_height = (settings.icon_size * grid_rows) + (icon_spacing * (grid_rows - 1)) + (border_size * 2)
@@ -153,7 +173,7 @@ function create_ui()
 					debuff_names = debuff_names,
 					effect_ids = effect_ids,  -- Maps effect_id -> debuff_name
 					is_multi = is_multi,
-					current_debuff = nil,  -- Track which debuff is currently active
+					shown = debuff_names[1],  -- Track which debuff is currently active
 				}
 			end
 		end
@@ -239,28 +259,28 @@ function update_display()
 				end
 				
 				-- Update icon if the active debuff changed
-				if data.is_multi and active_debuff_name ~= data.current_debuff then
-					data.current_debuff = active_debuff_name
-					
-					if active_debuff_name then
-						local new_spell_id = debuff_to_spell[active_debuff_name]
-						local new_path = windower.windower_path .. 'addons/DebuffGrid/icons/' .. new_spell_id .. '.png'
-						data.icon:path(new_path)
-					else
-						-- Reset to first debuff in the list when none are active
-						local default_spell_id = debuff_to_spell[data.debuff_names[1]]
-						local default_path = windower.windower_path .. 'addons/DebuffGrid/icons/' .. default_spell_id .. '.png'
-						data.icon:path(default_path)
+				if data.is_multi then
+					local desired = active_debuff_name or data.debuff_names[1]
+					if desired ~= data.shown then
+						data.shown = desired
+						data.icon:path(windower.windower_path .. 'addons/DebuffGrid/icons/' .. debuff_to_spell[desired] .. '.png')
 					end
 				end
-				
-				data.icon:alpha(is_active and active_alpha or inactive_alpha)
+				local a = is_active and active_alpha or inactive_alpha
+				if data.alpha ~= a then
+					data.alpha = a
+					data.icon:alpha(a)
+				end
 			end
 		end
 	end
 end
+local grid_visible = false
 
 function show_grid()
+	if grid_visible then return end
+	grid_visible = true
+	
 	if background then
 		background:show()
 	end
@@ -275,6 +295,9 @@ function show_grid()
 end
 
 function hide_grid()
+	if not grid_visible then return end
+	grid_visible = false
+	
 	if background then
 		background:hide()
 	end
@@ -300,7 +323,7 @@ function apply_debuff(target_id, effect_id, spell_id)
 	
 	-- Update display if this is the current target
 	if target_id == current_target_id then
-		update_display()
+		queue_update()
 	end
 end
 
@@ -316,7 +339,7 @@ function remove_debuff(target_id, effect_id)
 	
 	-- Update display if this is the current target
 	if target_id == current_target_id then
-		update_display()
+		queue_update()
 	end
 end
 
@@ -327,41 +350,34 @@ windower.register_event('incoming chunk', function(id, data)
 		
 		-- Category 4 = Magic
 		if act.category == 4 then
-			-- Damaging spells (messages 2, 252)
-			if S{2, 252}:contains(act.targets[1].actions[1].message) then
-				local target_id = act.targets[1].id
-				local spell_id = act.param
-				local spell = res.spells[spell_id]
-				
+			local target = act.targets[1]
+			local action = target and target.actions[1]
+			if not action then return end
+			
+			local message = action.message
+			local spell = res.spells[act.param]
+			
+			if DAMAGE_MSGS:contains(message) then
 				if spell and spell.status then
-					apply_debuff(target_id, spell.status, spell_id)
+					apply_debuff(target.id, spell.status, act.param)
 				end
 				
-			-- Non-damaging spells (messages 236, 237, 268, 271)
-			elseif S{236, 237, 268, 271}:contains(act.targets[1].actions[1].message) then
-				local target_id = act.targets[1].id
-				local effect_id = act.targets[1].actions[1].param
-				local spell_id = act.param
-				local spell = res.spells[spell_id]
-				
-				if spell and spell.status and spell.status == effect_id then
-					apply_debuff(target_id, effect_id, spell_id)
+			elseif STATUS_MSGS:contains(message) then
+				if spell and spell.status and spell.status == action.param then
+					apply_debuff(target.id, action.param, act.param)
 				end
 			end
 		end
 		
 	elseif id == 0x029 then
-		-- Action message packet
 		local target_id = data:unpack('I', 0x09)
 		local param_1 = data:unpack('I', 0x0D)
 		local message_id = data:unpack('H', 0x19) % 32768
 		
-		-- Debuff wore off (messages 64, 204, 206, 350, 531)
-		if S{64, 204, 206, 350, 531}:contains(message_id) then
+		if WORE_OFF_MSGS:contains(message_id) then
 			remove_debuff(target_id, param_1)
 			
-		-- Target died (messages 6, 20, 113, 406, 605, 646)
-		elseif S{6, 20, 113, 406, 605, 646}:contains(message_id) then
+		elseif DEATH_MSGS:contains(message_id) then
 			debuffed_mobs[target_id] = nil
 			
 			if target_id == current_target_id then
@@ -378,6 +394,7 @@ end)
 -- Initialize on load/login
 windower.register_event('load', 'login', function()
 	initialize_debuff_mappings()
+    if background then return end
 	create_ui()
 	last_bg_x = settings.pos.x
 	last_bg_y = settings.pos.y
