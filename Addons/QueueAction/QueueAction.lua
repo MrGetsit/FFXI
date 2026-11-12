@@ -1,15 +1,9 @@
 _addon.name = 'QueueAction'
 _addon.author = 'Spikex'
-_addon.version = '1.05'
+_addon.version = '1.06'
 _addon.commands = {'QueueAction', 'qa'}
 
 -- Changes
--- Added function to more quickly determine if action is for current player or not
--- Look abilities up in a small cached index instead of loading the full resource tables
--- Fixed bug where self target wasn't sent correctly
--- Added auto downgrade magic for threnody spells on cooldown
--- Added check if current target is dead to use backup target faster
--- Fixed backuptarget not working with variable being private or receiver having themself selected
 
 require('tables')
 require('strings')
