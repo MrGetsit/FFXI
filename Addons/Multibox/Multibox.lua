@@ -1,15 +1,14 @@
 _addon.author = 'Spikex'
-_addon.version = '1.05'
+_addon.version = '1.07'
 _addon.name = 'Multibox'
 _addon.commands = { 'multibox', 'mb' }
 
 -- Changes: 
--- Stopped resetting leader after zoning as no data is saved other than the name, nothing to refresh
--- Got rid of spawn_type check on interaction, just always interact when commanded
--- Changed following logic to better handle teleporting around
--- Force leader update on double tap
--- Cleaned up follow in postrender again
--- Fixed spellcast interrupt counting as a new spell starting
+-- Added check in follow for resting
+-- Always press enter on ctrl enter
+-- Update current leader on keyboard detection
+-- Added framerate toggle
+-- Fixed reverse not setting state correctly
 
 require('sets')
 require('strings')
@@ -54,6 +53,7 @@ function change_leader(new_leader) -- new_leader: character name
 	queued_waypoint = nil
 	last_waypoint = nil
 	stop_moving()
+	
 	if self.name == new_leader then
 		zone = windower.ffxi.get_info().zone
 		is_leader = true
@@ -103,6 +103,7 @@ function change_state(new_state, arg1, arg2, arg3)
 	
 	if new_state == 'zoning' then
 		if zoning then return end
+		
 		zoning = true
 		
 		if is_following then
@@ -116,9 +117,6 @@ function change_state(new_state, arg1, arg2, arg3)
 				local offsetx, offsety = dirx * waypoint_spacing, diry * waypoint_spacing
 				windower.send_ipc_message('multibox pos_update '..zone..' '..last_waypoint.x + offsetx..' '..last_waypoint.y + offsety..' final')
 			else
-				-- Need to re-request leader info once we land in the new zone
-				-- current_leader = nil 
-				
 				-- Get current position to check distance against
 				local start_zone_pos = windower.ffxi.get_mob_by_target('me')
 				if not windower.ffxi.get_info().logged_in or not start_zone_pos then return end
@@ -187,7 +185,7 @@ function change_state(new_state, arg1, arg2, arg3)
 				local new_waypoint = { x = tonumber(arg1), y = tonumber(arg2) }
 				if distance_to(new_waypoint, self) > 40 then return end
 				if arg3 then -- Double tap
-					print('Double tap follow - clearing waypoints')
+					--print('Double tap follow - clearing waypoints')
 					if casting then casting = false print('dt finish casting') end
 					stop_moving()
 					move_here = true 
@@ -209,15 +207,13 @@ function change_state(new_state, arg1, arg2, arg3)
 			target = windower.ffxi.get_mob_by_target('t')
 			if not target then return end
 			windower.send_ipc_message('multibox advance '..zone..' '..target.id)
-			if self.status == 1 then current_state = new_state return end -- Already engaged with target, don't need to use function
 		else
+			if not arg1 then return end
 			stop_moving()
-			if arg1 then 
-				target = windower.ffxi.get_mob_by_id(arg1)
-				turn_to_target(target)
-			else return end
+			target = windower.ffxi.get_mob_by_id(arg1)
+			if target then turn_to_target(target) else return end
 		end
-		engage(target.id) 
+		engage(target.id)
 		
 	elseif new_state == 'retreat' then
 		engage()
@@ -237,6 +233,7 @@ function change_state(new_state, arg1, arg2, arg3)
 				coroutine.schedule(function() double_tap = false end, 2)
 				windower.send_ipc_message('multibox reverse '..zone..' '..target.id) 
 				change_state('reverse')
+				return
 			end
 		else 
 			stop_moving()
@@ -498,6 +495,7 @@ windower.register_event('postrender', function()
 		end
 	else if not zoning then print('Multibox: Started zoning') change_state('zoning') end return end
 	if self.hpp == 0 and current_state ~= 'stop' then print('Multibox: Dead') change_state('stop') return end
+	if self.status == 33 then return end -- Resting
 	
 	if casting then
 		if moving then stop_moving(true) end
@@ -540,7 +538,7 @@ windower.register_event('postrender', function()
 			if moving then
 				-- Moving without a waypoint to move towards
 				if not waypoints[1] then stop_moving() return end
-				if not has_moved then print('stop') stop_moving(true) end
+				if not has_moved then stop_moving(true) end
 				-- Arrived at next waypoint
 				if (move_here and distance_to_next_waypoint < 0.1) or -- Stop on position
 				(not move_here and distance_to_next_waypoint < 0.5) then -- Close enough
@@ -581,7 +579,7 @@ windower.register_event('postrender', function()
 						end
 					-- Path is blocked by something
 					else 
-						windower.send_command('input /tell '..current_leader..' Multibox: I am stuck on something.')
+						--windower.send_command('input /tell '..current_leader..' Multibox: I am stuck on something.')
 						stuck_counter = -1000
 						stop_moving()
 					end				
@@ -596,7 +594,7 @@ windower.register_event('postrender', function()
 					if player_current.status == 1 then stop_moving(true) return end					
 					-- Check followers position to confirm if they are actually moving
 					if last_checked_position and math.sqrt((self.x - last_checked_position.x)^2 + (self.y - last_checked_position.y)^2) < 0.05 then
-						print('Multibox: Movement stuck detected, resetting')
+						--print('Multibox: Movement stuck detected, resetting')
 						stop_moving(true)
 					end
 					last_checked_position = { x = self.x, y = self.y }
@@ -761,7 +759,7 @@ windower.register_event('ipc message', function (msg)
 			if points_too_far >= 0 then
 				points_too_far = points_too_far + 1
 				if points_too_far == 3 then
-					windower.send_command('input /tell '..current_leader..' Multibox: Next waypoint too far.')
+					--windower.send_command('input /tell '..current_leader..' Multibox: Next waypoint too far.')
 					points_too_far = -1000
 					coroutine.schedule(function() 
 						if points_too_far < 0 then print('Waypoints timeout') change_state('stop') end
@@ -820,7 +818,7 @@ windower.register_event('status change',function (new, old)
 		end
 	elseif old == 0 and new == 4 then -- Enter event state
 		event_found = true
-		change_state('interact') 
+		change_state('interact')
 		
 	elseif old == 4 and new == 0 then -- Exit event state
 		trying_to_interact = false
@@ -882,7 +880,8 @@ windower.register_event('zone change',function (new, old)
 	while not self do
 		self = windower.ffxi.get_mob_by_target('me')
 		coroutine.sleep(1)
-	end	
+	end
+	
 	zoning = false
 	if is_leader then
 		change_leader(self.name)
@@ -907,23 +906,20 @@ end)
 windower.register_event('keyboard',function (dik, pressed, flags, blocked )
 	if not windower.ffxi.get_info().logged_in then return end
 	if not self then self = windower.ffxi.get_player() return end
-	if not current_leader then 
-		if windower.has_focus() then change_leader(self.name)
-		else windower.send_ipc_message('multibox request_leader '..zone) end 
-	end -- Backup if startup fails to get leader
+	if current_leader ~= self.name then change_leader(self.name) end
 	--print('Keyboard event dik:'..dik..'  pressed:'..tostring(pressed)..'  flags:'..flags..'  blocked:'..tostring(blocked))
 	
 	-- Only check if ctrl key (dik 29 or flags 4) is held down
 	if flags ~= 4 or pressed then return end
 	
 	if dik == 28 then -- dik 28 = enter key
-		if interacting then -- In event (Dialog open)
-			simulate_key_press('enter')
-		else
+		simulate_key_press('enter')
+		if not interacting then -- In event (Dialog open)
 			local target = windower.ffxi.get_mob_by_target('t')
-			if not target then return end
-			windower.send_ipc_message('multibox interact '..zone..' '..target.id)
-			interact_with_target(target)
+			if target then
+				windower.send_ipc_message('multibox interact '..zone..' '..target.id)
+				interact_with_target(target)
+			end
 		end
 	elseif dik == 200 then -- dik 200 = up key
 		simulate_key_press('up')
@@ -973,11 +969,11 @@ windower.register_event('incoming chunk', function(id, data)
 			end
 		end
 		
-	elseif id == 0x00B and not zoning then -- Started zoning
+	elseif id == 0x00B and not zoning then
 		change_state('zoning')
 		
 	elseif id == 0x052 then -- NPC Release, Exit interacting if not in an event
-		if event_found then return end
+		if event_found then return end -- Don't toggle framerate when zoning, causes disconnect
 		coroutine.schedule(function()
 			if not event_found and current_state ~= 'interact' then
 				interacting = false
